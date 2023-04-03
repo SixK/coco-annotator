@@ -4,30 +4,36 @@
       v-tooltip.right="name"
       class="fa fa-x fa-clone"
       style="color: white"
-      data-toggle="modal"
-      data-target="#copyAnnotations"
-    ></i>
-    <br />
+      data-bs-toggle="modal"
+      data-bs-target="#copyAnnotations"
+    />
+    <br>
     <!-- Modal -->
     <div
       id="copyAnnotations"
+      ref="modal"
       class="modal fade"
       tabindex="-1"
       role="dialog"
-      ref="modal"
       aria-labelledby="copyAnnotationsLabel"
       aria-hidden="true"
     >
-      <div class="modal-dialog" role="document">
+      <div
+        class="modal-dialog"
+        role="document"
+      >
         <div class="modal-content">
           <div class="modal-header">
-            <h5 class="modal-title" id="copyAnnotationsLabel">
+            <h5
+              id="copyAnnotationsLabel"
+              class="modal-title"
+            >
               Copy Annotations From Image
             </h5>
             <button
               type="button"
               class="close"
-              data-dismiss="modal"
+              data-bs-dismiss="modal"
               aria-label="Close"
             >
               <span aria-hidden="true">&times;</span>
@@ -41,7 +47,7 @@
                 style="float: left"
                 @click="fromId = previous.toString()"
               >
-                <i class="fa fa-arrow-left"></i> Previous Image
+                <i class="fa fa-arrow-left" /> Previous Image
               </button>
               <button
                 type="button"
@@ -49,7 +55,7 @@
                 style="float: right; margin-left: 8px"
                 @click="fromId = next.toString()"
               >
-                Next Image <i class="fa fa-arrow-right"></i>
+                Next Image <i class="fa fa-arrow-right" />
               </button>
 
               <div class="form-group">
@@ -62,8 +68,10 @@
                   }"
                   placeholder="Enter an image ID"
                   required
-                />
-                <div class="invalid-feedback">{{ validImageId }}</div>
+                >
+                <div class="invalid-feedback">
+                  {{ validImageId }}
+                </div>
               </div>
 
               <div class="form-group">
@@ -80,7 +88,11 @@
             </form>
           </div>
           <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" @click="close()">
+            <button
+              type="button"
+              class="btn btn-secondary"
+              @click="close()"
+            >
               Close
             </button>
             <button
@@ -109,6 +121,8 @@ let $ = JQuery;
 
 export default {
   name: "CopyAnnotationsButton",
+  components: { TagsInput },
+  mixins: [toastrs],
   props: {
     imageId: {
       type: Number,
@@ -127,8 +141,6 @@ export default {
       required: true
     }
   },
-  components: { TagsInput },
-  mixins: [toastrs],
   data() {
     return {
       name: "Copy Annotations",
@@ -176,19 +188,7 @@ export default {
           })
           .finally(() => this.removeProcess(process));
       });
-    }
-  },
-  watch: {
-    categories: {
-      immediate: true,
-      handler(newCategories) {
-        let tags = [];
-        newCategories.forEach(category => {
-          tags.push(category.id.toString());
-        });
-        this.selectedCategories = tags;
-      }
-    }
+    },
   },
   computed: {
     validImageId() {
@@ -210,8 +210,20 @@ export default {
       });
 
       return tags;
-    }
-  }
+    },
+  },
+  watch: {
+    categories: {
+      immediate: true,
+      handler(newCategories) {
+        let tags = [];
+        newCategories.forEach((category) => {
+          tags.push(category.id.toString());
+        });
+        this.selectedCategories = tags;
+      },
+    },
+  },
 };
 </script>
 

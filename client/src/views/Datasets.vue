@@ -11,8 +11,8 @@
           Datasets
           <i
             class="fa fa-question-circle help-icon"
-            data-toggle="modal"
-            data-target="#helpDataset"
+            data-bs-toggle="modal"
+            data-bs-target="#helpDataset"
             aria-hidden="true"
           />
         </h2>
@@ -30,12 +30,17 @@
             <button
               type="button"
               class="btn btn-success"
-              data-toggle="modal"
-              data-target="#createDataset"
+              data-bs-toggle="modal"
+              data-bs-target="#createDataset"
             >
               Create
             </button>
-            <button type="button" class="btn btn-primary">Import</button>
+            <button
+              type="button"
+              class="btn btn-primary"
+            >
+              Import
+            </button>
             <button
               type=" button"
               class="btn btn-secondary"
@@ -46,12 +51,21 @@
           </div>
         </div>
 
-        <hr />
-        <p v-if="datasets.length < 1" class="text-center">
+        <hr>
+        <p
+          v-if="datasets.length < 1"
+          class="text-center"
+        >
           You need to create a dataset!
         </p>
-        <div v-else style="background-color: gray">
-          <Pagination :pages="pages" @pagechange="updatePage" />
+        <div
+          v-else
+          style="background-color: gray"
+        >
+          <Pagination
+            :pages="pages"
+            @pagechange="updatePage"
+          />
           <div class="row bg-light">
             <DatasetCard
               v-for="dataset in datasets"
@@ -64,15 +78,25 @@
       </div>
     </div>
 
-    <div class="modal fade" tabindex="-1" role="dialog" id="createDataset">
-      <div class="modal-dialog" role="document">
+    <div
+      id="createDataset"
+      class="modal fade"
+      tabindex="-1"
+      role="dialog"
+    >
+      <div
+        class="modal-dialog"
+        role="document"
+      >
         <div class="modal-content">
           <div class="modal-header">
-            <h5 class="modal-title">Creating a Dataset</h5>
+            <h5 class="modal-title">
+              Creating a Dataset
+            </h5>
             <button
               type="button"
               class="close"
-              data-dismiss="modal"
+              data-bs-dismiss="modal"
               aria-label="Close"
             >
               <span aria-hidden="true">&times;</span>
@@ -90,7 +114,7 @@
                   class="form-control"
                   placeholder="Dataset name"
                   required
-                />
+                >
                 <div class="invalid-feedback">
                   {{ validDatasetName }}
                 </div>
@@ -104,12 +128,19 @@
                   :existing-tags="categoryTags"
                   :typeahead="true"
                   :typeahead-activation-threshold="0"
-                ></TagsInput>
+                />
               </div>
 
-              <div class="form-group" required>
+              <div
+                class="form-group"
+                required
+              >
                 <label>Folder Directory</label>
-                <input class="form-control" disabled :value="directory" />
+                <input
+                  class="form-control"
+                  disabled
+                  :value="directory"
+                >
               </div>
             </form>
           </div>
@@ -124,7 +155,7 @@
             <button
               type="button"
               class="btn btn-secondary"
-              data-dismiss="modal"
+              data-bs-dismiss="modal"
             >
               Close
             </button>
@@ -133,15 +164,25 @@
       </div>
     </div>
 
-    <div class="modal fade" tabindex="-1" role="dialog" id="helpDataset">
-      <div class="modal-dialog" role="document">
+    <div
+      id="helpDataset"
+      class="modal fade"
+      tabindex="-1"
+      role="dialog"
+    >
+      <div
+        class="modal-dialog"
+        role="document"
+      >
         <div class="modal-content">
           <div class="modal-header">
-            <h5 class="modal-title">Datasets</h5>
+            <h5 class="modal-title">
+              Datasets
+            </h5>
             <button
               type="button"
               class="close"
-              data-dismiss="modal"
+              data-bs-dismiss="modal"
               aria-label="Close"
             >
               <span aria-hidden="true">&times;</span>
@@ -151,16 +192,16 @@
           <div class="modal-body">
             More information can be found in the
             <a href="/help">help section</a>.
-            <hr />
+            <hr>
             <h6>What is a dataset?</h6>
             A dataset is a collection of images. It provides default category
             options for all subsequent images. Each dataset has its own folder
             in the /datasets directory.
-            <hr />
+            <hr>
             <h6>How do I create one?</h6>
             Click on the "Create" button found on this webpage. A dataset name
             must be provided.
-            <hr />
+            <hr>
             <h6>How do I add images?</h6>
             Once you have created a dataset you can add images by placing them
             in the create folder (while the server is running).
@@ -170,7 +211,7 @@
             <button
               type="button"
               class="btn btn-secondary"
-              data-dismiss="modal"
+              data-bs-dismiss="modal"
             >
               Close
             </button>
@@ -221,19 +262,19 @@ export default {
 
       Datasets.allData({
         limit: this.limit,
-        page: page
-      }).then(response => {
-        this.datasets = response.data.datasets;
-        this.categories = response.data.categories;
-        this.subdirectories = response.data.subdirectories;
-        this.pages = response.data.pagination.pages;
-        this.page = response.data.pagination.page;
-        AdminPanel.getUsers(this.limit)
-          .then(response => {
+        page: page,
+      })
+        .then((response) => {
+          this.datasets = response.data.datasets;
+          this.categories = response.data.categories;
+          this.subdirectories = response.data.subdirectories;
+          this.pages = response.data.pagination.pages;
+          this.page = response.data.pagination.page;
+          AdminPanel.getUsers(this.limit).then((response) => {
             this.users = response.data.users;
           });
-      })
-      .finally(() => this.removeProcess(process));
+        })
+        .finally(() => this.removeProcess(process));
     },
     createDataset() {
       if (this.create.name.length < 1) return;
@@ -254,12 +295,7 @@ export default {
             error.response.data.message
           );
         });
-    }
-  },
-  watch: {
-    user() {
-      this.updatePage();
-    }
+    },
   },
   computed: {
     directory() {
@@ -279,7 +315,12 @@ export default {
     },
     user() {
       return this.$store.state.user.user;
-    }
+    },
+  },
+  watch: {
+    user() {
+      this.updatePage();
+    },
   },
   created() {
     this.updatePage();

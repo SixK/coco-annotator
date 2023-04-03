@@ -1,9 +1,15 @@
 <template>
   <nav class="navbar navbar-expand-lg navbar-dark fixed-top">
-    
-    <i class="fa fa-circle" :style="{ color: color }" style="padding: 0 10px; font-size: 10px" v-tooltip="backendStatus"></i>
+    <i
+      class="fa fa-circle"
+      :style="{ color: color }"
+      style="padding: 0 10px; font-size: 10px"
+    />
 
-    <RouterLink class="navbar-brand" to="/">
+    <RouterLink
+      class="navbar-brand"
+      to="/"
+    >
       <strong>{{ name }}</strong>
       <span class="subscript">{{ version }}</span>
     </RouterLink>
@@ -11,8 +17,8 @@
     <button
       class="navbar-toggler"
       type="button"
-      data-toggle="collapse"
-      data-target="#navbarSupportedContent"
+      data-bs-toggle="collapse"
+      data-bs-target="#navbarSupportedContent"
       aria-controls="navbarSupportedContent"
       aria-expanded="false"
       aria-label="Toggle navigation"
@@ -20,14 +26,27 @@
       <span class="navbar-toggler-icon" />
     </button>
 
-    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+    <div
+      id="navbarSupportedContent"
+      class="collapse navbar-collapse"
+    >
       <ul class="navbar-nav mr-auto">
-        <li class="nav-item" :class="{ active: $route.name === 'datasets' || $route.name === 'dataset' }">
-          <RouterLink class="nav-link" to="/datasets">Datasets</RouterLink>
-        </li>
         <li
           class="nav-item"
+          :class="{
+            active: $route.name === 'datasets' || $route.name === 'dataset',
+          }"
+        >
+          <RouterLink
+            class="nav-link"
+            to="/datasets"
+          >
+            Datasets
+          </RouterLink>
+        </li>
+        <li
           v-show="$route.name === 'annotate'"
+          class="nav-item"
           :class="{ active: $route.name === 'annotate' }"
         >
           <RouterLink
@@ -37,35 +56,69 @@
             {{ dataset.name }}
           </RouterLink>
         </li>
-        <li class="nav-item" :class="{ active: $route.name === 'categories' }">
-          <RouterLink class="nav-link" to="/categories">Categories</RouterLink>
+        <li
+          class="nav-item"
+          :class="{ active: $route.name === 'categories' }"
+        >
+          <RouterLink
+            class="nav-link"
+            to="/categories"
+          >
+            Categories
+          </RouterLink>
         </li>
-        <li class="nav-item" :class="{ active: $route.name === 'undo' }">
-          <RouterLink class="nav-link" to="/undo">Undo</RouterLink>
+        <li
+          class="nav-item"
+          :class="{ active: $route.name === 'undo' }"
+        >
+          <RouterLink
+            class="nav-link"
+            to="/undo"
+          >
+            Undo
+          </RouterLink>
         </li>
-        <li class="nav-item" :class="{ active: $route.name === 'tasks' }">
-          <RouterLink class="nav-link" to="/tasks">Tasks</RouterLink>
+        <li
+          class="nav-item"
+          :class="{ active: $route.name === 'tasks' }"
+        >
+          <RouterLink
+            class="nav-link"
+            to="/tasks"
+          >
+            Tasks
+          </RouterLink>
         </li>
         <li
           v-show="$store.getters['user/isAdmin']"
           class="nav-item"
           :class="{ active: $route.name === 'admin' }"
         >
-          <RouterLink class="nav-link d-none d-xl-block" to="/admin/panel">Admin</RouterLink>
+          <RouterLink
+            class="nav-link d-none d-xl-block"
+            to="/admin/panel"
+          >
+            Admin
+          </RouterLink>
         </li>
         <li class="nav-item d-none d-xl-block">
-          <a class="nav-link" href="/api">API</a>
+          <a
+            class="nav-link"
+            href="/api"
+          >API</a>
         </li>
         <li class="nav-item d-none d-xl-block">
           <a
             class="nav-link"
             href="https://github.com/jsbroks/coco-annotator/wiki"
-            >Help</a
-          >
+          >Help</a>
         </li>
       </ul>
       <Status class="nav-link left" />
-      <User class="nav-link left" v-if="loginEnabled" />
+      <User
+        v-if="loginEnabled"
+        class="nav-link left"
+      />
     </div>
   </nav>
 </template>

@@ -1,67 +1,69 @@
 <template>
-  <div style="display: block; height: inherit;">
-    
-    <aside v-show="panels.show.left" class="left-panel shadow-lg">
+  <div style="display: block; height: inherit">
+    <aside
+      v-show="panels.show.left"
+      class="left-panel shadow-lg"
+    >
       <div v-show="mode == 'segment'">
-        <hr />
+        <hr>
 
         <SelectTool
+          ref="select"
           v-model="activeTool"
           :scale="image.scale"
           @setcursor="setCursor"
-          ref="select"
         />
-        <hr />
+        <hr>
 
         <BBoxTool
+          ref="bbox"
           v-model="activeTool"
           :scale="image.scale"
           @setcursor="setCursor"
-          ref="bbox"
         />
 
         <PolygonTool
+          ref="polygon"
           v-model="activeTool"
           :scale="image.scale"
           @setcursor="setCursor"
-          ref="polygon"
         />
 
         <MagicWandTool
+          ref="magicwand"
           v-model="activeTool"
           :width="image.raster.width"
           :height="image.raster.height"
           :image-data="image.data"
           @setcursor="setCursor"
-          ref="magicwand"
         />
 
         <BrushTool
+          ref="brush"
           v-model="activeTool"
           :scale="image.scale"
           @setcursor="setCursor"
-          ref="brush"
         />
         <EraserTool
+          ref="eraser"
           v-model="activeTool"
           :scale="image.scale"
           @setcursor="setCursor"
-          ref="eraser"
         />
 
         <KeypointTool
+          ref="keypoint"
           v-model="activeTool"
           @setcursor="setCursor"
-          ref="keypoint"
         />
         <DEXTRTool
+          ref="dextr"
           v-model="activeTool"
           :scale="image.scale"
           @setcursor="setCursor"
-          ref="dextr"
         />
       </div>
-      <hr />
+      <hr>
 
       <AnnotateButton :annotate-url="dataset.annotate_url" />
 
@@ -79,28 +81,31 @@
       <CenterButton />
       <UndoButton />
 
-      <hr />
+      <hr>
 
       <DownloadButton :image="image" />
       <SaveButton />
       <ModeButton v-model="mode" />
       <SettingsButton
+        ref="settings"
         :metadata="image.metadata"
         :commands="commands"
-        ref="settings"
       />
 
-      <hr />
+      <hr>
       <DeleteButton :image="image" />
     </aside>
 
-    <aside v-show="panels.show.right" class="right-panel shadow-lg">
-      <hr />
+    <aside
+      v-show="panels.show.right"
+      class="right-panel shadow-lg"
+    >
+      <hr>
       <FileTitle
+        ref="filetitle"
         :previousimage="image.previous"
         :nextimage="image.next"
         :filename="image.filename"
-        ref="filetitle"
       />
 
       <div v-if="categories.length > 5">
@@ -109,7 +114,7 @@
             v-model="search"
             class="search"
             placeholder="Category Search"
-          />
+          >
         </div>
       </div>
 
@@ -136,22 +141,25 @@
             :category="category"
             :all-categories="categories"
             :opacity="shapeOpacity"
+            ref="category"
             :hover="hover"
             :index="index"
-            @click="onCategoryClick"
-            @keypoints-complete="onKeypointsComplete"
             :current="current"
             :active-tool="activeTool"
             :scale="image.scale"
-            ref="category"
+            @click="onCategoryClick"
+            @keypoints-complete="onKeypointsComplete"
           />
         </div>
 
-        <div v-show="mode == 'label'" style="overflow: auto; max-height: 100%">
+        <div
+          v-show="mode == 'label'"
+          style="overflow: auto; max-height: 100%"
+        >
           <CLabel
             v-for="category in categories"
-            v-model="image.categoryIds"
             :key="category.id + '-label'"
+            v-model="image.categoryIds"
             :category="category"
             :search="search"
           />
@@ -159,10 +167,15 @@
       </div>
 
       <div v-show="mode == 'segment'">
-        <hr />
-        <h6 class="sidebar-title text-center">{{ activeTool }}</h6>
+        <hr>
+        <h6 class="sidebar-title text-center">
+          {{ activeTool }}
+        </h6>
 
-        <div class="tool-section" style="max-height: 30%; color: lightgray">
+        <div
+          class="tool-section"
+          style="max-height: 30%; color: lightgray"
+        >
           <div v-if="$refs.bbox != null">
             <BBoxPanel :bbox="$refs.bbox" />
           </div>
@@ -193,28 +206,49 @@
             />
           </div>
           <div v-if="$refs.dextr != null">
-            <DEXTRPanel
-              :dextr="$refs.dextr"
-            />
+            <DEXTRPanel :dextr="$refs.dextr" />
           </div>
         </div>
       </div>
     </aside>
 
-    <div class="middle-panel" :style="{ cursor: cursor }">
-    <v-touch @pinch="onpinch" @pinchstart="onpinchstart">
-      <div id="frame" class="frame" @wheel="onwheel">
-        <canvas class="canvas" id="editor" ref="image" resize />
-      </div>
-    </v-touch>   
+    <div
+      class="middle-panel"
+      :style="{ cursor: cursor }"
+    >
+      <v-touch
+        @pinch="onpinch"
+        @pinchstart="onpinchstart"
+      >
+        <div
+          id="frame"
+          class="frame"
+          @wheel="onwheel"
+        >
+          <canvas
+            id="editor"
+            ref="image"
+            class="canvas"
+            resize
+          />
+        </div>
+      </v-touch>
     </div>
 
-    <div v-show="annotating.length > 0" class="fixed-bottom alert alert-warning alert-dismissible fade show">
+    <div
+      v-show="annotating.length > 0"
+      class="fixed-bottom alert alert-warning alert-dismissible fade show"
+    >
       <span>
-      This image is being annotated by <b>{{ annotating.join(', ') }}</b>.
+        This image is being annotated by <b>{{ annotating.join(", ") }}</b>.
       </span>
-      
-      <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+
+      <button
+        type="button"
+        class="close"
+        data-bs-dismiss="alert"
+        aria-label="Close"
+      >
         <span aria-hidden="true">&times;</span>
       </button>
     </div>
@@ -443,8 +477,10 @@ export default {
       let curr_zoom = e.scale * this.pinching.old_zoom;
       let beta = this.paper.view.zoom / curr_zoom;
       let pc = viewPosition.subtract(this.paper.view.center);
-      let a = viewPosition.subtract(pc.multiply(beta)).subtract(this.paper.view.center);  
-      let transform = {zoom: curr_zoom, offset: a}
+      let a = viewPosition
+        .subtract(pc.multiply(beta))
+        .subtract(this.paper.view.center);
+      let transform = { zoom: curr_zoom, offset: a };
       if (transform.zoom < 10 && transform.zoom > 0.01) {
         this.image.scale = 1 / transform.zoom;
         this.paper.view.zoom = transform.zoom;
@@ -623,12 +659,13 @@ export default {
     onCategoryClick(indices) {
       this.current.annotation = indices.annotation;
       this.current.category = indices.category;
-      if (!indices.hasOwnProperty('keypoint')) {
+      if (!indices.hasOwnProperty("keypoint")) {
         indices.keypoint = -1;
       }
       if (indices.keypoint !== -1) {
         this.current.keypoint = indices.keypoint;
-        let ann = this.currentCategory.category.annotations[this.current.annotation];
+        let ann =
+          this.currentCategory.category.annotations[this.current.annotation];
         let kpTool = this.$refs.keypoint;
         let selectTool = this.$refs.select;
         let category = this.$refs.category[this.current.category];
@@ -642,7 +679,9 @@ export default {
           this.activeTool = selectTool;
           this.activeTool.click();
         } else {
-          this.currentAnnotation.keypoint.next.label = String(indices.keypoint + 1);
+          this.currentAnnotation.keypoint.next.label = String(
+            indices.keypoint + 1
+          );
           this.activeTool = kpTool;
           this.activeTool.click();
         }
@@ -665,7 +704,12 @@ export default {
       return this.$refs.category[index];
     },
     // Current Annotation Operations
-    uniteCurrentAnnotation(compound, simplify = true, undoable = true, isBBox = false) {
+    uniteCurrentAnnotation(
+      compound,
+      simplify = true,
+      undoable = true,
+      isBBox = false
+    ) {
       if (this.currentAnnotation == null) return;
       this.currentAnnotation.unite(compound, simplify, undoable, isBBox);
     },
@@ -687,7 +731,9 @@ export default {
       } else {
         this.current.category += 1;
         if (this.currentKeypoint) {
-          this.currentAnnotation.onAnnotationKeypointClick(this.current.keypoint);
+          this.currentAnnotation.onAnnotationKeypointClick(
+            this.current.keypoint
+          );
         }
       }
     },
@@ -709,9 +755,14 @@ export default {
         this.current.annotation = -1;
       } else {
         this.current.annotation += 1;
-        if (this.currentAnnotation != null && this.currentAnnotation.showKeypoints) {
+        if (
+          this.currentAnnotation != null &&
+          this.currentAnnotation.showKeypoints
+        ) {
           this.current.keypoint = 0;
-          this.currentAnnotation.onAnnotationKeypointClick(this.current.keypoint);
+          this.currentAnnotation.onAnnotationKeypointClick(
+            this.current.keypoint
+          );
         } else {
           this.current.keypoint = -1;
         }
@@ -725,9 +776,15 @@ export default {
         this.decrementCategory();
       } else {
         this.current.annotation -= 1;
-        if (this.currentAnnotation != null && this.currentAnnotation.showKeypoints) {
-          this.current.keypoint = this.currentAnnotation.keypointLabels.length - 1;
-          this.currentAnnotation.onAnnotationKeypointClick(this.current.keypoint);
+        if (
+          this.currentAnnotation != null &&
+          this.currentAnnotation.showKeypoints
+        ) {
+          this.current.keypoint =
+            this.currentAnnotation.keypointLabels.length - 1;
+          this.currentAnnotation.onAnnotationKeypointClick(
+            this.current.keypoint
+          );
         } else {
           this.current.keypoint = -1;
         }
@@ -761,7 +818,10 @@ export default {
         if (this.currentAnnotation != null) {
           if (this.currentKeypoint != null) {
             this.decrementKeypoint();
-          } else if (this.currentAnnotation.showKeypoints && this.current.keypoint == -1) {
+          } else if (
+            this.currentAnnotation.showKeypoints &&
+            this.current.keypoint == -1
+          ) {
             this.decrementKeypoint();
           } else {
             this.decrementAnnotation();
@@ -780,7 +840,10 @@ export default {
         if (this.currentAnnotation != null) {
           if (this.currentKeypoint != null) {
             this.incrementKeypoint();
-          } else if (this.currentAnnotation.showKeypoints && this.current.keypoint == -1) {
+          } else if (
+            this.currentAnnotation.showKeypoints &&
+            this.current.keypoint == -1
+          ) {
             this.incrementKeypoint();
           } else {
             this.incrementAnnotation();
@@ -815,7 +878,9 @@ export default {
         ) {
           this.currentAnnotation.showKeypoints = true;
           this.current.keypoint = 0;
-          this.currentAnnotation.onAnnotationKeypointClick(this.current.keypoint);
+          this.currentAnnotation.onAnnotationKeypointClick(
+            this.current.keypoint
+          );
         }
       }
     },
@@ -864,7 +929,7 @@ export default {
       if (!categoryComponent) return null;
       return categoryComponent.category;
     },
-    addAnnotation(categoryName, segments, keypoints, isbbox=false) {
+    addAnnotation(categoryName, segments, keypoints, isbbox = false) {
       segments = segments || [];
       keypoints = keypoints || [];
 
@@ -918,13 +983,58 @@ export default {
       }
     },
     nextImage() {
-      if(this.image.next != null)
-        this.$refs.filetitle.route(this.image.next);
+      if (this.image.next != null) this.$refs.filetitle.route(this.image.next);
     },
     previousImage() {
-      if(this.image.previous != null)
+      if (this.image.previous != null)
         this.$refs.filetitle.route(this.image.previous);
-    }
+    },
+  },
+  computed: {
+    doneLoading() {
+      return !this.loading.image && !this.loading.data;
+    },
+    currentAnnotationLength() {
+      if (this.currentCategory == null) return null;
+      return this.currentCategory.category.annotations.length;
+    },
+    currentKeypointLength() {
+      if (this.currentAnnotation == null) return null;
+      return this.currentAnnotation.annotation.keypoints.length;
+    },
+    currentCategory() {
+      return this.getCategory(this.current.category);
+    },
+    currentAnnotation() {
+      if (this.currentCategory == null) {
+        return null;
+      }
+      return this.currentCategory.getAnnotation(this.current.annotation);
+    },
+    currentKeypoint() {
+      if (this.currentCategory == null) {
+        return null;
+      }
+      if (
+        this.currentAnnotation == null ||
+        this.currentAnnotation.keypointLabels.length === 0 ||
+        !this.currentAnnotation.showKeypoints
+      ) {
+        return null;
+      }
+      if (this.current.keypoint == -1) {
+        return null;
+      }
+      return {
+        label: [String(this.current.keypoint + 1)],
+        visibility: this.currentAnnotation.getKeypointVisibility(
+          this.current.keypoint
+        ),
+      };
+    },
+    user() {
+      return this.$store.getters["user/user"];
+    },
   },
   watch: {
     doneLoading(done) {
@@ -983,50 +1093,7 @@ export default {
     },
     user() {
       this.removeFromAnnotatingList();
-    }
-  },
-  computed: {
-    doneLoading() {
-      return !this.loading.image && !this.loading.data;
     },
-    currentAnnotationLength() {
-      if (this.currentCategory == null) return null;
-      return this.currentCategory.category.annotations.length;
-    },
-    currentKeypointLength() {
-      if (this.currentAnnotation == null) return null;
-      return this.currentAnnotation.annotation.keypoints.length;
-    },
-    currentCategory() {
-      return this.getCategory(this.current.category);
-    },
-    currentAnnotation() {
-      if (this.currentCategory == null) {
-        return null;
-      }
-      return this.currentCategory.getAnnotation(this.current.annotation);
-    },
-    currentKeypoint() {
-      if (this.currentCategory == null) {
-        return null;
-      }
-      if (this.currentAnnotation == null 
-      || this.currentAnnotation.keypointLabels.length === 0 
-      || !this.currentAnnotation.showKeypoints)
-      {
-        return null;
-      }
-      if (this.current.keypoint == -1) {
-        return null;
-      }
-      return {
-        label: [String(this.current.keypoint + 1)],
-        visibility: this.currentAnnotation.getKeypointVisibility(this.current.keypoint)
-      };
-    },
-    user() {
-      return this.$store.getters["user/user"];
-    }
   },
   sockets: {
     annotating(data) {

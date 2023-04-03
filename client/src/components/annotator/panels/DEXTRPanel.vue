@@ -1,18 +1,18 @@
 <template>
   <div v-show="dextr.isActive">
     <PanelInputNumber
+      v-model="dextr.settings.padding"
       name="Padding"
       min="0"
       max="1000"
       step="2"
-      v-model="dextr.settings.padding"
     />
     <PanelInputNumber
+      v-model="dextr.settings.threshold"
       name="Threshold"
       min="0"
       max="100"
       step="5"
-      v-model="dextr.settings.threshold"
     />
   </div>
 </template>

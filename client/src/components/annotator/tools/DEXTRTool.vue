@@ -24,17 +24,6 @@ export default {
       points: []
     };
   },
-  methods: {
-    createPoint(point) {
-      let paperPoint = new paper.Path.Circle(point, 5);
-      paperPoint.fillColor = this.$parent.currentAnnotation.color;
-      paperPoint.data.point = point;
-      this.points.push(paperPoint);
-    },
-    onMouseDown(event) {
-      this.createPoint(event.point);
-    }
-  },
   computed: {
     isDisabled() {
       return this.$parent.current.annotation == -1;
@@ -86,7 +75,18 @@ export default {
           })
           .finally(() => points.forEach(point => point.remove()));
       }
-    }
-  }
+    },
+  },
+  methods: {
+    createPoint(point) {
+      let paperPoint = new paper.Path.Circle(point, 5);
+      paperPoint.fillColor = this.$parent.currentAnnotation.color;
+      paperPoint.data.point = point;
+      this.points.push(paperPoint);
+    },
+    onMouseDown(event) {
+      this.createPoint(event.point);
+    },
+  },
 };
 </script>

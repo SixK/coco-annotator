@@ -5,6 +5,11 @@
   </div>
 </template>
 
+<script setup>
+import VLazyImage from "v-lazy-image";
+// import { useRoute, useRouter } from 'vue-router';
+</script>
+
 <script>
 import NavBar from "@/components/NavBar";
 import { mapMutations } from "vuex";
@@ -94,7 +99,9 @@ export default {
     }
   },
   mounted() {
-    if (this.$route.name.toLowerCase() !== "annotate") {
+    // this.$route.name does not exists at this point, so always use loader
+    // if (this.$route.name.toLowerCase() !== "annotate")
+    {
       this.loader = this.$loading.show({
         height: 100
       });

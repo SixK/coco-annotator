@@ -7,7 +7,7 @@
       v-model="localValue"
       class="form-control tool-option-input"
       @keyup.enter="$emit('submit')"
-    />
+    >
   </div>
 </template>
 

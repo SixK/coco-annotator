@@ -32,6 +32,11 @@ export default {
       }
     };
   },
+  computed: {
+    isDisabled() {
+      return this.$parent.current.annotation === -1;
+    },
+  },
   watch: {
     isActive(active) {
       if (active) {
@@ -122,10 +127,5 @@ export default {
       this.onMouseDown(event);
     }
   },
-  computed: {
-    isDisabled() {
-      return this.$parent.current.annotation === -1;
-    }
-  }
 };
 </script>

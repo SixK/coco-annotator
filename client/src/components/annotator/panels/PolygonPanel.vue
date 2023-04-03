@@ -1,31 +1,43 @@
 <template>
   <div v-show="polygon.isActive">
-    <PanelButton name="Close Polygon" @click="polygon.complete" />
-    <PanelButton name="Delete Polygon" @click="polygon.deletePolygon" />
-    <PanelToggle name="Guidance" v-model="polygon.polygon.guidance" />
-    <PanelToggle name="Auto Select Color" v-model="polygon.color.auto" />
+    <PanelButton
+      name="Close Polygon"
+      @click="polygon.complete"
+    />
+    <PanelButton
+      name="Delete Polygon"
+      @click="polygon.deletePolygon"
+    />
+    <PanelToggle
+      v-model="polygon.polygon.guidance"
+      name="Guidance"
+    />
+    <PanelToggle
+      v-model="polygon.color.auto"
+      name="Auto Select Color"
+    />
     <PanelToggle
       v-show="polygon.color.auto"
-      name="Only Black or White"
       v-model="polygon.color.blackOrWhite"
+      name="Only Black or White"
     />
     <PanelInputString
-      name="Stroke Color"
       v-model="polygon.polygon.pathOptions.strokeColor"
+      name="Stroke Color"
     />
     <PanelInputNumber
+      v-model="polygon.polygon.completeDistance"
       name="Auto Complete Distance"
       min="0"
       max="1000"
       step="5"
-      v-model="polygon.polygon.completeDistance"
     />
     <PanelInputNumber
+      v-model="polygon.polygon.minDistance"
       name="Min Distance"
       min="0"
       max="500"
       step="2"
-      v-model="polygon.polygon.minDistance"
     />
   </div>
 </template>

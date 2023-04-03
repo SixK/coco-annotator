@@ -1,15 +1,15 @@
 <template>
   <div v-show="eraser.isActive">
     <PanelInputNumber
+      v-model="eraser.eraser.pathOptions.radius"
       name="Radius"
       min="0"
       max="1000"
       step="5"
-      v-model="eraser.eraser.pathOptions.radius"
     />
     <PanelInputString
-      name="Stroke Color"
       v-model="eraser.eraser.pathOptions.strokeColor"
+      name="Stroke Color"
     />
   </div>
 </template>

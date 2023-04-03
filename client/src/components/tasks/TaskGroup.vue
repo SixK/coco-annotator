@@ -1,17 +1,29 @@
 <template>
   <div style="margin: 10px">
     <div class="card">
-
-      <div class="card-header text-left" @click="showTasks = !showTasks">
+      <div
+        class="card-header text-left"
+        @click="showTasks = !showTasks"
+      >
         {{ name }}
 
         <span style="float: right; color: light-gray">
-          {{ runningTasks.length }} of {{ tasks.length }} task<span v-show="tasks.length != 1">s</span> running
+          {{ runningTasks.length }} of {{ tasks.length }} task<span
+            v-show="tasks.length != 1"
+          >s</span>
+          running
         </span>
       </div>
 
-      <div v-show="showTasks" class="card-body">
-        <Task :key="index" v-for="(task, index) in tasks" :task="task" />
+      <div
+        v-show="showTasks"
+        class="card-body"
+      >
+        <Task
+          v-for="(task, index) in tasks"
+          :key="index"
+          :task="task"
+        />
       </div>
     </div>
   </div>

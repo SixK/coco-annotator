@@ -1,12 +1,15 @@
 <template>
-  <div class="form-inline my-2 my-lg-0" style="margin-right: 10px">
+  <div
+    class="form-inline my-2 my-lg-0"
+    style="margin-right: 10px"
+  >
     <div class="dropdown show">
       <a
+        id="dropdownMenuLink"
         class="btn-outline-light btn-sm dropdown-toggle"
         href="#"
         role="button"
-        id="dropdownMenuLink"
-        data-toggle="dropdown"
+        data-bs-toggle="dropdown"
         aria-haspopup="true"
         aria-expanded="false"
       >
@@ -24,16 +27,29 @@
             class="dropdown-item"
             href="#"
           >
-            <RouterLink class="route" to="/admin/panel">Admin Panel</RouterLink>
+            <RouterLink
+              class="route"
+              to="/admin/panel"
+            >Admin Panel</RouterLink>
           </a>
         </li>
         <li>
-          <a class="dropdown-item" href="#">
-            <RouterLink class="route" to="/user">User Settings</RouterLink>
+          <a
+            class="dropdown-item"
+            href="#"
+          >
+            <RouterLink
+              class="route"
+              to="/user"
+            >User Settings</RouterLink>
           </a>
         </li>
         <li>
-          <a class="dropdown-item" href="#" @click="logoutButton">Logout</a>
+          <a
+            class="dropdown-item"
+            href="#"
+            @click="logoutButton"
+          >Logout</a>
         </li>
       </ul>
     </div>

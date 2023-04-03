@@ -94,7 +94,7 @@ export default {
             if (!this.$refs.polygon.isDisabled) this.activeTool = "Polygon";
           }
         },
-        
+
         {
           default: ["w"],
           name: "Magic Wand Tool",
@@ -138,7 +138,7 @@ export default {
           title: "BBox Tool Shortcuts",
           default: ["escape"],
           name: "Remove Current BBox",
-          function: this.$refs.bbox.deletePolygon
+          function: this.$refs.bbox.deleteBbox,
         },
         {
           title: "Polygon Tool Shortcuts",

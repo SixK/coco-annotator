@@ -12,8 +12,8 @@ export class Keypoints extends paper.Group {
     this._keypoints = [];
     this.labels = labels;
     this.colors = {};
-    for (let i=0; i < colors.length; ++i) {
-      this.colors[String(i+1)] = colors[i];
+    for (let i = 0; i < colors.length; ++i) {
+      this.colors[String(i + 1)] = colors[i];
     }
 
     this.annotationId = args.annotationId;
@@ -60,7 +60,7 @@ export class Keypoints extends paper.Group {
     keypoint.keypoints = this;
     keypoint.path.keypoints = this;
     // keypoint.color = this.strokeColor;
-    keypoint.strokeColor =  this.strokeColor;
+    keypoint.strokeColor = this.strokeColor;
     keypoint.path.strokeWidth = this.strokeWidth;
 
     let indexLabel = keypoint.indexLabel;
@@ -320,7 +320,7 @@ export let VisibilityType = {
   UNKNOWN: 3
 };
 
-export let VisibilityOptions = (function() {
+export let VisibilityOptions = (function () {
   let options = {};
   for (let l in VisibilityType) {
     if (l !== "UNKNOWN") {
@@ -328,8 +328,7 @@ export let VisibilityOptions = (function() {
     }
   }
   return options;
-}());
-
+})();
 
 export class Keypoint extends paper.Point {
   constructor(x, y, args) {

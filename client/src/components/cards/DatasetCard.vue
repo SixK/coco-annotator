@@ -4,12 +4,12 @@
     <div class="card mb-4 box-shadow">
       <!-- Display Image -->
       <img
-        @click="onImageClick"
         :src="imageUrl"
         class="card-img-top"
+        style="width: 100%; display: block"
+        @click="onImageClick"
         @error="imageError = true"
-        style="width: 100%; display: block;"
-      />
+      >
 
       <!-- Card Body -->
       <div class="card-body">
@@ -21,15 +21,15 @@
         </span>
 
         <i
-          class="card-text fa fa-ellipsis-v fa-x icon-more"
           :id="'dropdownDataset' + dataset.id"
-          data-toggle="dropdown"
+          class="card-text fa fa-ellipsis-v fa-x icon-more"
+          data-bs-toggle="dropdown"
           aria-haspopup="true"
           aria-expanded="false"
           aria-hidden="true"
         />
 
-        <br />
+        <br>
 
         <div>
           <div v-if="dataset.numberImages > 0">
@@ -40,11 +40,13 @@
                 class="progress-bar"
                 role="progressbar"
                 :style="{ width: percent + '%' }"
-              ></div>
+              />
             </div>
           </div>
 
-          <p v-else>No images in dataset.</p>
+          <p v-else>
+            No images in dataset.
+          </p>
           <span
             v-for="(category, index) in listCategories"
             :key="index"
@@ -61,30 +63,30 @@
         >
           <button
             class="dropdown-item"
-            data-toggle="modal"
-            :data-target="'#datasetEdit' + dataset.id"
+            data-bs-toggle="modal"
+            :data-bs-target="'#datasetEdit' + dataset.id"
           >
             Edit
           </button>
           <button
             v-if="dataset.permissions.owner"
             class="dropdown-item"
-            data-toggle="modal"
-            :data-target="'#datasetShare' + dataset.id"
+            data-bs-toggle="modal"
+            :data-bs-target="'#datasetShare' + dataset.id"
           >
             Share
           </button>
           <button
+            v-show="dataset.permissions.download"
             class="dropdown-item"
             @click="onCocoDownloadClick"
-            v-show="dataset.permissions.download"
           >
             Download COCO
           </button>
-          <hr v-show="dataset.permissions.delete" />
+          <hr v-show="dataset.permissions.delete">
           <button
-            class="dropdown-item delete"
             v-show="dataset.permissions.delete"
+            class="dropdown-item delete"
             @click="onDeleteClick"
           >
             Delete
@@ -101,15 +103,24 @@
     </div>
 
     <!-- Edit Dataset -->
-    <div class="modal fade" role="dialog" :id="'datasetEdit' + dataset.id">
-      <div class="modal-dialog" role="document">
+    <div
+      :id="'datasetEdit' + dataset.id"
+      class="modal fade"
+      role="dialog"
+    >
+      <div
+        class="modal-dialog"
+        role="document"
+      >
         <div class="modal-content">
           <div class="modal-header">
-            <h5 class="modal-title">{{ dataset.name }}</h5>
+            <h5 class="modal-title">
+              {{ dataset.name }}
+            </h5>
             <button
               type="button"
               class="close"
-              data-dismiss="modal"
+              data-bs-dismiss="modal"
               aria-label="Close"
             >
               <span aria-hidden="true">&times;</span>
@@ -128,12 +139,12 @@
                 />
               </div>
 
-              <Metadata
+              <MetaData
+                ref="defaultAnnotation"
                 :metadata="defaultMetadata"
                 title="Default Annotation Metadata"
                 key-name="Default Key"
                 value-name="Default Value"
-                ref="defaultAnnotation"
               />
             </form>
           </div>
@@ -141,15 +152,15 @@
             <button
               type="button"
               class="btn btn-success"
+              data-bs-dismiss="modal"
               @click="onSave"
-              data-dismiss="modal"
             >
               Save
             </button>
             <button
               type="button"
               class="btn btn-secondary"
-              data-dismiss="modal"
+              data-bs-dismiss="modal"
             >
               Close
             </button>
@@ -159,15 +170,24 @@
     </div>
 
     <!-- Share Dataset -->
-    <div class="modal fade" role="dialog" :id="'datasetShare' + dataset.id">
-      <div class="modal-dialog" role="document">
+    <div
+      :id="'datasetShare' + dataset.id"
+      class="modal fade"
+      role="dialog"
+    >
+      <div
+        class="modal-dialog"
+        role="document"
+      >
         <div class="modal-content">
           <div class="modal-header">
-            <h5 class="modal-title">{{ dataset.name }}</h5>
+            <h5 class="modal-title">
+              {{ dataset.name }}
+            </h5>
             <button
               type="button"
               class="close"
-              data-dismiss="modal"
+              data-bs-dismiss="modal"
               aria-label="Close"
             >
               <span aria-hidden="true">&times;</span>
@@ -192,15 +212,15 @@
             <button
               type="button"
               class="btn btn-success"
+              data-bs-dismiss="modal"
               @click="onShare"
-              data-dismiss="modal"
             >
               Save
             </button>
             <button
               type="button"
               class="btn btn-secondary"
-              data-dismiss="modal"
+              data-bs-dismiss="modal"
             >
               Close
             </button>
@@ -213,7 +233,7 @@
 
 <script>
 import axios from "axios";
-import Metadata from "@/components/Metadata";
+import MetaData from "@/components/MetaData";
 
 import TagsInput from "@/components/TagsInput";
 
@@ -221,7 +241,7 @@ import { mapMutations } from "vuex";
 
 export default {
   name: "DatasetCard",
-  components: { Metadata, TagsInput },
+  components: { MetaData, TagsInput },
   props: {
     dataset: {
       type: Object,

@@ -6,12 +6,14 @@
       style="overflow: auto; height: calc(100vh - 55px)"
     >
       <div class="container">
-        <h2 class="text-center">Hello, {{ displayName }}</h2>
+        <h2 class="text-center">
+          Hello, {{ displayName }}
+        </h2>
 
-        <br />
+        <br>
         <div style="text-align: left">
           <h4>Change Password</h4>
-          <br />
+          <br>
           <form>
             <div class="form-group">
               <label>Current Password</label>
@@ -20,7 +22,7 @@
                 type="password"
                 class="form-control"
                 required
-              />
+              >
             </div>
             <div class="form-group">
               <label>New Password</label>
@@ -30,7 +32,7 @@
                 type="password"
                 class="form-control"
                 required
-              />
+              >
               <div class="invalid-feedback">
                 Minimum length of 5 characters.
               </div>
@@ -47,7 +49,7 @@
                 }"
                 type="password"
                 class="form-control"
-              />
+              >
             </div>
             <button
               type="submit"

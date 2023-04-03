@@ -3,8 +3,18 @@
     <div class="input-group-prepend tool-option-pre">
       <span class="input-group-text tool-option-font">{{ name }}</span>
     </div>
-    <select v-model="localValue" class="form-control tool-option-input">
-      <option :key="option.key" v-for="option in options" :value="option.key" :selected="option.selected">{{ option.value }}</option>
+    <select
+      v-model="localValue"
+      class="form-control tool-option-input"
+    >
+      <option
+        v-for="option in options"
+        :key="option.key"
+        :value="option.key"
+        :selected="option.selected"
+      >
+        {{ option.value }}
+      </option>
     </select>
   </div>
 </template>
@@ -30,18 +40,11 @@ export default {
       required: true
     }
   },
+  emits: ["update"],
   data() {
     return {
       localValue: this.value
     };
-  },
-  watch: {
-    localValue() {
-      this.$emit("update", this.localValue);
-    },
-    value(newValue) {
-      this.localValue = newValue;
-    }
   },
   computed: {
     options() {
@@ -54,8 +57,16 @@ export default {
         });
       });
       return array;
-    }
-  }
+    },
+  },
+  watch: {
+    localValue() {
+      this.$emit("update", this.localValue);
+    },
+    value(newValue) {
+      this.localValue = newValue;
+    },
+  },
 };
 </script>
 

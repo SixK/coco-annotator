@@ -6,55 +6,90 @@
       @click="createKeypoints"
     />
 
-    <p class="title" style="margin: 0">{{ title }}</p>
+    <p
+      class="title"
+      style="margin: 0"
+    >
+      {{ title }}
+    </p>
 
     <div class="row">
       <div class="col-sm-5">
-        <p class="subtitle">{{ keyTitle }}:</p>
+        <p class="subtitle">
+          {{ keyTitle }}:
+        </p>
       </div>
       <div class="col-sm-7">
-        <p class="subtitle">{{ valueTitle }}:</p>
+        <p class="subtitle">
+          {{ valueTitle }}:
+        </p>
       </div>
     </div>
 
     <form>
-      <ul class="list-group" style="height: 50%;">
-        <li v-if="keypoints.length == 0" class="list-group-item keypoint-item">
+      <ul
+        class="list-group"
+        style="height: 50%"
+      >
+        <li
+          v-if="keypoints.length == 0"
+          class="list-group-item keypoint-item"
+        >
           <i class="subtitle">No keypoints.</i>
         </li>
-        <li v-for="(object, index) in keypoints" :key="index" class="list-group-item keypoint-item">
-          <div class="row form-group" style="cell">
+        <li
+          v-for="(object, index) in keypoints"
+          :key="index"
+          class="list-group-item keypoint-item"
+        >
+          <div
+            class="row form-group"
+            style="cell"
+          >
             <!-- :class="{'was-validated': object.label_error.length === 0 }" -->
-            <div class="col-sm-5" style="padding-right: 5px;">
+            <div
+              class="col-sm-5"
+              style="padding-right: 5px"
+            >
               <input
                 :value="object.label"
                 type="text"
                 class="keypoint-input form-control"
-                :class="{'is-invalid': object.label_error.length !== 0}"
+                :class="{ 'is-invalid': object.label_error.length !== 0 }"
                 :required="object.edges.length !== 0"
                 :placeholder="keyTitle"
                 @input="keypointLabelUpdated(index, $event.target.value)"
-              />
-              <div class="invalid-feedback">{{ object.label_error }}</div>
+              >
+              <div class="invalid-feedback">
+                {{ object.label_error }}
+              </div>
             </div>
 
             <div class="col-sm-1 keypoint-color">
               <!-- <input v-model="object.color" type="color" class="form-control" /> -->
-              <input :value="object.color" @input="colorUpdated(index, $event.target.value)" type="color" class="form-control" />
+              <input
+                :value="object.color"
+                type="color"
+                class="form-control"
+                @input="colorUpdated(index, $event.target.value)"
+              >
             </div>
 
-            <div class="col-sm-6" style="padding-left: 5px;">
+            <div
+              class="col-sm-6"
+              style="padding-left: 5px"
+            >
               <TagsInput
                 :value="object.edges"
                 placeholder="Add connected label"
                 class="keypoint-input"
-                :elementId="`index${index}`"
+                :element-id="`index${index}`"
                 :existing-tags="otherKeypointLabels(object.label)"
-                :onlyExistingTags="true"
+                :only-existing-tags="true"
                 :typeahead="true"
                 :typeahead-activation-threshold="0"
                 @input="keypointEdgesUpdated(index, $event)"
-              ></TagsInput>
+              />
             </div>
           </div>
         </li>
@@ -123,8 +158,16 @@ export default {
     },
     exclude: {
       type: String,
-      default: ""
-    }
+      default: "",
+    },
+  },
+  data() {
+    return {
+      keypoints: [],
+      hiddenValue: { edges: [], labels: [], colors: [] },
+      isMounted: false,
+      nextDistinct: -1,
+    };
   },
   computed: {
     valid() {
@@ -139,13 +182,13 @@ export default {
       return true;
     }
   },
-  data() {
-    return {
-      keypoints: [],
-      hiddenValue: { edges: [], labels: [], colors: [] },
-      isMounted: false,
-      nextDistinct: -1,
-    };
+  watch: {
+    value() {
+      if (this.hiddenValue !== this.value) {
+        this.hiddenValue = this.value;
+        this.keypoints = this.keypointsFromProp();
+      }
+    },
   },
   created() {
     this.keypoints = this.keypointsFromProp();
@@ -158,7 +201,7 @@ export default {
     export() {
       let keypoints = [];
 
-      for (let i=0; i < this.value.labels.length; ++i) {
+      for (let i = 0; i < this.value.labels.length; ++i) {
         keypoints.push({
           label: this.value.labels[i],
           edges: [],
@@ -190,7 +233,7 @@ export default {
         this.value.labels != null &&
         this.value.labels.length
       ) {
-        for (let i=0; i < this.value.labels.length; ++i) {
+        for (let i = 0; i < this.value.labels.length; ++i) {
           let label = this.value.labels[i];
           if (label.length > 0) {
             keypoints.push({
@@ -285,7 +328,11 @@ export default {
             kp_edges.add(current_kp.label);
             kp.edges = Array.from(kp_edges);
           }
-          if (kp.edges.length === 0 && kp.label.length === 0 && kp.label_error) {
+          if (
+            kp.edges.length === 0 &&
+            kp.label.length === 0 &&
+            kp.label_error
+          ) {
             kp.label_error = "";
           }
         }
@@ -343,14 +390,6 @@ export default {
       return DISTINCT_COLORS[++this.nextDistinct];
     }
   },
-  watch: {
-    value() {
-      if (this.hiddenValue !== this.value) {
-        this.hiddenValue = this.value;
-        this.keypoints = this.keypointsFromProp();
-      }
-    }
-  }
 };
 </script>
 

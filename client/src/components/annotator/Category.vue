@@ -1,13 +1,16 @@
 <template>
   <div
-    class="card"
     v-show="showCategory"
+    class="card"
     :style="{
       'background-color': backgroundColor,
       'border-color': borderColor
     }"
   >
-    <div class="card-header" :id="'heading' + category.id">
+    <div
+      :id="'heading' + category.id"
+      class="card-header"
+    >
       <div :style="{ color: isVisible ? 'white' : 'gray' }">
         <div @click="onEyeClick">
           <i
@@ -16,7 +19,11 @@
             :style="{ color: showAnnotations ? 'white' : color }"
             aria-hidden="true"
           />
-          <i v-else class="fa fa-eye-slash category-icon" aria-hidden="true" />
+          <i
+            v-else
+            class="fa fa-eye-slash category-icon"
+            aria-hidden="true"
+          />
         </div>
 
         <button
@@ -31,24 +38,28 @@
 
         <i
           class="fa fa-gear category-icon"
-          data-toggle="modal"
-          :data-target="'#categorySettings' + category.id"
+          data-bs-toggle="modal"
+          :data-bs-target="'#categorySettings' + category.id"
           style="float: right; color: white"
           aria-hidden="true"
         />
 
         <i
-          @click="createAnnotation"
           class="fa fa-plus category-icon"
           style="float: right; color: white; padding-right: 0"
           aria-hidden="true"
+          @click="createAnnotation"
         />
       </div>
     </div>
 
-    <ul v-show="showAnnotations" ref="collapse" class="list-group">
+    <ul
+      v-show="showAnnotations"
+      ref="collapse"
+      class="list-group"
+    >
       <li
-        v-show="this.category.annotations.length > 0"
+        v-show="category.annotations.length > 0"
         class="list-group-item btn btn-link btn-sm text-left"
         :style="{ 'background-color': backgroundColor, color: 'white' }"
       >
@@ -56,49 +67,54 @@
           v-model="search"
           class="annotation-search"
           placeholder="Search"
-          :disabled="this.category.annotations.length < 2"
-        />
+          :disabled="category.annotations.length < 2"
+        >
       </li>
 
       <Annotation
         v-for="(annotation, listIndex) in category.annotations"
-        :search="search"
         :key="annotation.id"
+        :search="search"
         :simplify="simplify"
         :annotation="annotation"
         :current="current.annotation"
-        @click="onAnnotationClick(listIndex)"
-        @keypoint-click="onKeypointClick(listIndex, $event)"
-        @keypoints-complete="$emit('keypoints-complete')"
         :opacity="opacity"
         :index="listIndex"
         :keypoint-edges="keypoint.edges"
+        ref="annotation"
         :keypoint-labels="keypoint.labels"
         :keypoint-colors="keypoint.colors"
-        ref="annotation"
         :hover="hover.annotation"
         :active-tool="activeTool"
+        @click="onAnnotationClick(listIndex)"
         :scale="scale"
-        @deleted="annotationDeleted"
+        @keypoint-click="onKeypointClick(listIndex, $event)"
         :all-categories="getCategoriesList"
+        @keypoints-complete="$emit('keypoints-complete')"
+        @deleted="annotationDeleted"
       />
     </ul>
 
     <div
+      :id="'categorySettings' + category.id"
+      ref="category_settings"
       class="modal fade"
       tabindex="-1"
       role="dialog"
-      ref="category_settings"
-      :id="'categorySettings' + category.id"
     >
-      <div class="modal-dialog" role="document">
+      <div
+        class="modal-dialog"
+        role="document"
+      >
         <div class="modal-content">
           <div class="modal-header">
-            <h5 class="modal-title">{{ category.name }}</h5>
+            <h5 class="modal-title">
+              {{ category.name }}
+            </h5>
             <button
               type="button"
               class="close"
-              data-dismiss="modal"
+              data-bs-dismiss="modal"
               aria-label="Close"
             >
               <span aria-hidden="true">&times;</span>
@@ -113,21 +129,26 @@
                   class="form-control"
                   :value="supercategory"
                   @input="supercategory = $event.target.value"
-                />
+                >
               </div>
 
               <div class="form-group row">
                 <label class="col-sm-2 col-form-label">Color</label>
                 <div class="col-sm-9">
-                  <input v-model="color" type="color" class="form-control" />
+                  <input
+                    v-model="color"
+                    type="color"
+                    class="form-control"
+                  >
                 </div>
               </div>
 
               <div class="form-group">
-                <KeypointsDefinition ref="keypoints"
+                <KeypointsDefinition
+                  ref="keypoints"
                   v-model="keypoint"
                   element-id="keypointLabels"
-                ></KeypointsDefinition>
+                />
               </div>
             </form>
           </div>
@@ -135,15 +156,17 @@
             <button
               type="button"
               class="btn btn-success"
-              @click="onUpdateClick"
               :disabled="!isFormValid"
               :class="{ disabled: !isFormValid }"
-              data-dismiss="modal"
-            >Update</button>
+              data-bs-dismiss="modal"
+              @click="onUpdateClick"
+            >
+              Update
+            </button>
             <button
               type="button"
               class="btn btn-secondary"
-              data-dismiss="modal"
+              data-bs-dismiss="modal"
             >
               Close
             </button>
@@ -209,7 +232,7 @@ export default {
       required: true
     }
   },
-  data: function() {
+  data: function () {
     return {
       group: null,
       supercategory: this.category.supercategory,
@@ -225,6 +248,92 @@ export default {
       search: "",
       isMounted: false,
     };
+  },
+  computed: {
+    showCategory() {
+      let search = this.categorysearch.toLowerCase();
+      if (search.length === 0) return true;
+      return this.category.name.toLowerCase().includes(search);
+    },
+    getCategoriesList() {
+      return this.allCategories.map((category) => ({
+        value: category.id,
+        text: category.name,
+      }));
+    },
+    isCurrent() {
+      return this.current.category === this.index;
+    },
+    isHover() {
+      return this.hover.category === this.index;
+    },
+    backgroundColor() {
+      if (this.isHover && !this.showAnnotations) {
+        return "#646c82";
+      }
+      return "inherit";
+    },
+    borderColor() {
+      if (this.isCurrent) return "rgba(255, 255, 255, 0.25)";
+      return "#404552";
+    },
+    darkHSL() {
+      let color = new paper.Color(this.color);
+      let h = Math.round(color.hue);
+      let l = Math.round(color.lightness * 50);
+      let s = Math.round(color.saturation * 100);
+      return "hsl(" + h + "," + s + "%," + l + "%)";
+    },
+    isFormValid() {
+      return (
+        this.isMounted &&
+        this.$refs &&
+        this.$refs.keypoints &&
+        this.$refs.keypoints.valid
+      );
+    },
+  },
+  watch: {
+    color() {
+      this.setColor();
+    },
+    opacity() {
+      let annotations = this.$refs.annotation;
+      if (annotations == null) return;
+
+      annotations.forEach((a) => (a.compoundPath.opacity = this.opacity));
+    },
+    isVisible(newVisible) {
+      let annotations = this.$refs.annotation;
+      if (annotations == null) return;
+
+      annotations.forEach((a) => {
+        a.keypoints.visible = newVisible;
+        a.isVisible = newVisible;
+      });
+      this.setColor();
+    },
+    showAnnotations(showing) {
+      if (!showing) {
+        this.$emit("click", {
+          annotation: -1,
+          keypoint: -1,
+          category: this.index,
+        });
+      }
+      this.setColor();
+    },
+    category() {
+      this.initCategory();
+    },
+  },
+  mounted() {
+    this.initCategory();
+    $(this.$refs.category_settings).on(
+      "hidden.bs.modal",
+      this.resetCategorySettings
+    );
+    this.isMounted = true;
   },
   methods: {
     show(index) {
@@ -452,85 +561,7 @@ export default {
       this.$emit("click", indices);
 
       if (this.category.annotations.length === 0) this.isVisible = false;
-    }
-  },
-  computed: {
-    showCategory() {
-      let search = this.categorysearch.toLowerCase();
-      if (search.length === 0) return true;
-      return this.category.name.toLowerCase().includes(search);
     },
-    getCategoriesList() {
-      return this.allCategories.map(category => ({
-        value: category.id,
-        text: category.name
-      }));
-    },
-    isCurrent() {
-      return this.current.category === this.index;
-    },
-    isHover() {
-      return this.hover.category === this.index;
-    },
-    backgroundColor() {
-      if (this.isHover && !this.showAnnotations) {
-        return "#646c82";
-      }
-      return "inherit";
-    },
-    borderColor() {
-      if (this.isCurrent) return "rgba(255, 255, 255, 0.25)";
-      return "#404552";
-    },
-    darkHSL() {
-      let color = new paper.Color(this.color);
-      let h = Math.round(color.hue);
-      let l = Math.round(color.lightness * 50);
-      let s = Math.round(color.saturation * 100);
-      return "hsl(" + h + "," + s + "%," + l + "%)";
-    },
-    isFormValid() {
-      return (
-        this.isMounted &&
-        this.$refs &&
-        this.$refs.keypoints &&
-        this.$refs.keypoints.valid
-      );
-    }
-  },
-  watch: {
-    color() {
-      this.setColor();
-    },
-    opacity() {
-      let annotations = this.$refs.annotation;
-      if (annotations == null) return;
-
-      annotations.forEach(a => (a.compoundPath.opacity = this.opacity));
-    },
-    isVisible(newVisible) {
-      let annotations = this.$refs.annotation;
-      if (annotations == null) return;
-
-      annotations.forEach(a => {
-        a.keypoints.visible = newVisible;
-        a.isVisible = newVisible;
-      });
-      this.setColor();
-    },
-    showAnnotations(showing) {
-      if (!showing) {
-        this.$emit("click", {
-          annotation: -1,
-          keypoint: -1,
-          category: this.index
-        });
-      }
-      this.setColor();
-    },
-    category() {
-      this.initCategory();
-    }
   },
   sockets: {
     annotation(data) {
@@ -551,12 +582,6 @@ export default {
       }
     }
   },
-  mounted() {
-    this.initCategory();
-    $(this.$refs.category_settings).on(
-      "hidden.bs.modal", this.resetCategorySettings);
-    this.isMounted = true;
-  }
 };
 </script>
 

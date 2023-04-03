@@ -19,17 +19,17 @@ export default {
       name: "Mode: " + this.mode
     };
   },
-  watch: {
-    mode() {
-      this.name = "Mode: " + this.mode;
-    }
-  },
   computed: {
     icon() {
       if (this.mode == "segment") return "fa-pencil-square-o";
       if (this.mode == "label") return "fa-tags";
       return "";
-    }
+    },
+  },
+  watch: {
+    mode() {
+      this.name = "Mode: " + this.mode;
+    },
   },
   methods: {
     next() {

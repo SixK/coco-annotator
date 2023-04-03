@@ -6,9 +6,13 @@
       style="overflow: auto; height: calc(100vh - 55px)"
     >
       <div class="container">
-        <h2 class="text-center">Tasks</h2>
-        <p class="text-center"><b>{{ total }}</b> tasks are running</p>
-      
+        <h2 class="text-center">
+          Tasks
+        </h2>
+        <p class="text-center">
+          <b>{{ total }}</b> tasks are running
+        </p>
+
         <hr>
 
         <TaskGroup
@@ -17,7 +21,6 @@
           :name="group"
           :tasks="groupping[group]"
         />
-
       </div>
     </div>
   </div>
@@ -60,10 +63,7 @@ export default {
       let task = this.tasks.find(t => t.id == taskId);
       if (task == null) return;
       task.show = true;
-    }
-  },
-  watch: {
-    taskToShow: "showTask"
+    },
   },
   computed: {
     taskToShow() {
@@ -92,7 +92,10 @@ export default {
       });
 
       return groupping;
-    }
+    },
+  },
+  watch: {
+    taskToShow: "showTask",
   },
   created() {
     this.updatePage();

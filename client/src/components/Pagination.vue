@@ -1,8 +1,14 @@
 <template>
   <div class="row align-items-center justify-content-center bg-light">
     <ul class="pagination text-center">
-      <li class="page-item" @click="previousPage">
-        <a class="page-link" aria-label="Previous">
+      <li
+        class="page-item"
+        @click="previousPage"
+      >
+        <a
+          class="page-link"
+          aria-label="Previous"
+        >
           <span aria-hidden="true">&laquo;</span>
           <span class="sr-only">Previous</span>
         </a>
@@ -12,7 +18,10 @@
         :key="pageIndex"
         :class="{ 'page-item': true, active: pageIndex + startPage == page }"
       >
-        <a class="page-link" @click="page = pageIndex + startPage">{{
+        <a
+          class="page-link"
+          @click="page = pageIndex + startPage"
+        >{{
           pageIndex + startPage
         }}</a>
       </li>
@@ -20,7 +29,10 @@
         :class="{ 'page-item': true, disabled: page == pages }"
         @click="nextPage"
       >
-        <a class="page-link" aria-label="Next">
+        <a
+          class="page-link"
+          aria-label="Next"
+        >
           <span aria-hidden="true">&raquo;</span>
           <span class="sr-only">Next</span>
         </a>
@@ -45,28 +57,6 @@ export default {
       timer: null
     };
   },
-  methods: {
-    previousPage() {
-      this.page -= 1;
-      if (this.page < 1) {
-        this.page = 1;
-      }
-    },
-    nextPage() {
-      this.page += 1;
-      if (this.page > this.pages) {
-        this.page = this.pages;
-      }
-    }
-  },
-  watch: {
-    page(newPage, oldPage) {
-      if (newPage === oldPage) return;
-
-      clearTimeout(this.timer);
-      this.timer = setTimeout(() => this.$emit("pagechange", this.page), 0);
-    }
-  },
   computed: {
     startPage() {
       if (this.range > this.pages) {
@@ -83,13 +73,35 @@ export default {
       }
 
       return start;
-    }
+    },
+  },
+  watch: {
+    page(newPage, oldPage) {
+      if (newPage === oldPage) return;
+
+      clearTimeout(this.timer);
+      this.timer = setTimeout(() => this.$emit("pagechange", this.page), 0);
+    },
   },
   created() {
     if (this.range > this.pages) {
       this.range = this.pages;
     }
-  }
+  },
+  methods: {
+    previousPage() {
+      this.page -= 1;
+      if (this.page < 1) {
+        this.page = 1;
+      }
+    },
+    nextPage() {
+      this.page += 1;
+      if (this.page > this.pages) {
+        this.page = this.pages;
+      }
+    },
+  },
 };
 </script>
 

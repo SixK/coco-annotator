@@ -1,5 +1,6 @@
 import "intersection-observer";
 
+import { createApp, h, configureCompat } from "vue";
 import Vue from "vue";
 import App from "./App.vue";
 import router from "./router";
@@ -8,9 +9,9 @@ import VueToastr2 from "vue-toastr-2";
 import paper from "paper";
 import VTooltip from "v-tooltip";
 import Loading from "vue-loading-overlay";
-import VueTouch from 'vue-touch'
+// import VueTouch from 'vue-touch'
+import Vue3TouchEvents from "vue3-touch-events";
 import VueSocketIO from "vue-socket.io";
-import { VLazyImagePlugin } from "v-lazy-image";
 
 import "bootstrap";
 import "bootstrap/dist/css/bootstrap.min.css";
@@ -19,24 +20,31 @@ import "vue-loading-overlay/dist/vue-loading.css";
 
 Vue.config.productionTip = false;
 
-paper.install(window);
-
 window.toastr = require("toastr");
 
-Vue.use(VueToastr2);
-Vue.use(VTooltip);
-Vue.use(Loading);
-Vue.use(VLazyImagePlugin);
-Vue.use(
-  new VueSocketIO({
-    debug: true,
-    connection: window.location.origin
-  })
-);
-Vue.use(VueTouch,{name:'v-touch'});
+const socketio = new VueSocketIO({
+  debug: true,
+  connection: window.location.origin,
+});
 
-new Vue({
-  router,
-  store,
-  render: h => h(App)
-}).$mount("#app");
+const app = createApp({
+  render: () => h(App),
+});
+
+app.use(VueToastr2);
+app.use(VTooltip);
+app.use(router);
+app.use(store);
+app.use(socketio);
+app.use(Loading);
+app.use(Vue3TouchEvents, { name: "v-touch" });
+
+configureCompat(
+  {
+    // default everything to Vue 2 behavior
+    MODE: 2,
+  },
+  { RENDER_FUNCTION: false }
+);
+
+app.mount("#app");

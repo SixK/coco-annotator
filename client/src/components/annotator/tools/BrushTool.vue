@@ -28,6 +28,44 @@ export default {
       selection: null
     };
   },
+  computed: {
+    isDisabled() {
+      return this.$parent.current.annotation == -1;
+    },
+  },
+  watch: {
+    "brush.pathOptions.radius"() {
+      if (this.brush.path == null) return;
+
+      let position = this.brush.path.position;
+      this.brush.path.remove();
+      this.createBrush(position);
+    },
+    "brush.pathOptions.strokeColor"(newColor) {
+      if (this.brush.path == null) return;
+
+      this.brush.path.strokeColor = newColor;
+    },
+    isActive(active) {
+      if (this.brush.path != null) {
+        this.brush.path.visible = active;
+      }
+
+      if (active) {
+        this.tool.activate();
+        localStorage.setItem("editorTool", this.name);
+      }
+    },
+    /**
+     * Change width of stroke based on zoom of image
+     */
+    scale(newScale) {
+      this.brush.pathOptions.strokeWidth = newScale * this.scaleFactor;
+      if (this.brush.path != null)
+        this.brush.path.strokeWidth = newScale * this.scaleFactor;
+    },
+  },
+  mounted() {},
   methods: {
     removeBrush() {
       if (this.brush.path != null) {
@@ -113,45 +151,7 @@ export default {
         pref.strokeColor || this.brush.pathOptions.strokeColor;
       this.brush.pathOptions.radius =
         pref.radius || this.brush.pathOptions.radius;
-    }
-  },
-  computed: {
-    isDisabled() {
-      return this.$parent.current.annotation == -1;
-    }
-  },
-  watch: {
-    "brush.pathOptions.radius"() {
-      if (this.brush.path == null) return;
-
-      let position = this.brush.path.position;
-      this.brush.path.remove();
-      this.createBrush(position);
     },
-    "brush.pathOptions.strokeColor"(newColor) {
-      if (this.brush.path == null) return;
-
-      this.brush.path.strokeColor = newColor;
-    },
-    isActive(active) {
-      if (this.brush.path != null) {
-        this.brush.path.visible = active;
-      }
-
-      if (active) {
-        this.tool.activate();
-        localStorage.setItem("editorTool", this.name);
-      }
-    },
-    /**
-     * Change width of stroke based on zoom of image
-     */
-    scale(newScale) {
-      this.brush.pathOptions.strokeWidth = newScale * this.scaleFactor;
-      if (this.brush.path != null)
-        this.brush.path.strokeWidth = newScale * this.scaleFactor;
-    }
   },
-  mounted() {}
 };
 </script>

@@ -1,10 +1,23 @@
 <template>
-  <div class="card" @click="click" v-show="show">
-    <div class="card-header" :id="'heading' + category.id">
+  <div
+    v-show="show"
+    class="card"
+    @click="click"
+  >
+    <div
+      :id="'heading' + category.id"
+      class="card-header"
+    >
       <div :style="{ color: isSelected ? 'white' : 'gray' }">
         <div>
-          <i v-if="isSelected" class="fa fa-check-square-o category-icon" />
-          <i v-else class="fa fa-square-o category-icon" />
+          <i
+            v-if="isSelected"
+            class="fa fa-check-square-o category-icon"
+          />
+          <i
+            v-else
+            class="fa fa-square-o category-icon"
+          />
         </div>
 
         <span

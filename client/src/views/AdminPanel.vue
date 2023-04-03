@@ -6,7 +6,9 @@
       style="overflow: auto; height: calc(100vh - 55px)"
     >
       <div class="container">
-        <h2 class="text-center">Users</h2>
+        <h2 class="text-center">
+          Users
+        </h2>
         <p class="text-center">
           Total of <strong>{{ total }}</strong> user accounts.
         </p>
@@ -20,18 +22,25 @@
             <button
               type="button"
               class="btn btn-success"
-              data-toggle="modal"
-              data-target="#createUser"
+              data-bs-toggle="modal"
+              data-bs-target="#createUser"
             >
               Create User
             </button>
-            <button type="button" class="btn btn-secondary" @click="updatePage">
+            <button
+              type="button"
+              class="btn btn-secondary"
+              @click="updatePage"
+            >
               Refresh
             </button>
           </div>
         </div>
 
-        <div class="row justify-content-md-center" style="padding-bottom: 10px">
+        <div
+          class="row justify-content-md-center"
+          style="padding-bottom: 10px"
+        >
           <div class="col-md-2 text-right">
             <span>Limit</span>
           </div>
@@ -52,23 +61,42 @@
           <table class="table table-hover table-sm">
             <thead class="remove-top-border">
               <tr>
-                <th scope="col">Username</th>
-                <th scope="col">Name</th>
-                <th scope="col">Admin</th>
+                <th scope="col">
+                  Username
+                </th>
+                <th scope="col">
+                  Name
+                </th>
+                <th scope="col">
+                  Admin
+                </th>
                 <!-- <th class="text-center" scope="col">Edit</th> -->
-                <th class="text-center" scope="col" @click="deleteUser(user)">
+                <th
+                  class="text-center"
+                  scope="col"
+                  @click="deleteUser(user)"
+                >
                   Delete
                 </th>
               </tr>
             </thead>
 
             <tbody>
-              <tr v-for="(user, index) in users" :key="index">
+              <tr
+                v-for="(user, index) in users"
+                :key="index"
+              >
                 <td>{{ user.username }}</td>
                 <td>{{ user.name }}</td>
                 <td>
-                  <i v-if="user.is_admin" class="fa fa-circle text-center" />
-                  <i v-else class="fa fa-circle-thin text-center" />
+                  <i
+                    v-if="user.is_admin"
+                    class="fa fa-circle text-center"
+                  />
+                  <i
+                    v-else
+                    class="fa fa-circle-thin text-center"
+                  />
                 </td>
                 <!-- <td><i class="fa fa-pencil text-center edit-icon" @click="editUser(user)" /></td> -->
                 <td>
@@ -84,15 +112,25 @@
       </div>
     </div>
 
-    <div class="modal fade" tabindex="-1" role="dialog" id="createUser">
-      <div class="modal-dialog" role="document">
+    <div
+      id="createUser"
+      class="modal fade"
+      tabindex="-1"
+      role="dialog"
+    >
+      <div
+        class="modal-dialog"
+        role="document"
+      >
         <div class="modal-content">
           <div class="modal-header">
-            <h5 class="modal-title">Create a User</h5>
+            <h5 class="modal-title">
+              Create a User
+            </h5>
             <button
               type="button"
               class="close"
-              data-dismiss="modal"
+              data-bs-dismiss="modal"
               aria-label="Close"
             >
               <span aria-hidden="true">&times;</span>
@@ -110,7 +148,7 @@
                   class="form-control"
                   placeholder="Username"
                   required
-                />
+                >
               </div>
               <div
                 class="form-group"
@@ -122,7 +160,7 @@
                   class="form-control"
                   placeholder="Password"
                   required
-                />
+                >
               </div>
               <div
                 class="form-group"
@@ -134,26 +172,30 @@
                   class="form-control"
                   placeholder="Name"
                   required
-                />
+                >
               </div>
               <div class="form-check">
                 <input
                   v-model="create.isAdmin"
                   type="checkbox"
                   class="form-check-input"
-                />
+                >
                 <label class="form-check-label">Admin</label>
               </div>
             </form>
           </div>
           <div class="modal-footer">
-            <button type="submit" class="btn btn-primary" @click="createUser">
+            <button
+              type="submit"
+              class="btn btn-primary"
+              @click="createUser"
+            >
               Create User
             </button>
             <button
               type="button"
               class="btn btn-secondary"
-              data-dismiss="modal"
+              data-bs-dismiss="modal"
             >
               Close
             </button>

@@ -28,6 +28,44 @@ export default {
       }
     };
   },
+  computed: {
+    isDisabled() {
+      return this.$parent.current.annotation == -1;
+    },
+  },
+  watch: {
+    "eraser.pathOptions.radius"() {
+      if (this.eraser.brush == null) return;
+
+      let position = this.eraser.brush.position;
+      this.eraser.brush.remove();
+      this.createBrush(position);
+    },
+    "eraser.pathOptions.strokeColor"(newColor) {
+      if (this.eraser.brush == null) return;
+
+      this.eraser.brush.strokeColor = newColor;
+    },
+    isActive(active) {
+      if (this.eraser.brush != null) {
+        this.eraser.brush.visible = active;
+      }
+
+      if (active) {
+        this.tool.activate();
+        localStorage.setItem("editorTool", this.name);
+      }
+    },
+    /**
+     * Change width of stroke based on zoom of image
+     */
+    scale(newScale) {
+      this.eraser.pathOptions.strokeWidth = newScale * this.scaleFactor;
+      if (this.eraser.brush != null)
+        this.eraser.brush.strokeWidth = newScale * this.scaleFactor;
+    },
+  },
+  mounted() {},
   methods: {
     removeBrush() {
       if (this.eraser.brush != null) {
@@ -89,45 +127,7 @@ export default {
         pref.strokeColor || this.eraser.pathOptions.strokeColor;
       this.eraser.pathOptions.radius =
         pref.radius || this.eraser.pathOptions.radius;
-    }
-  },
-  computed: {
-    isDisabled() {
-      return this.$parent.current.annotation == -1;
-    }
-  },
-  watch: {
-    "eraser.pathOptions.radius"() {
-      if (this.eraser.brush == null) return;
-
-      let position = this.eraser.brush.position;
-      this.eraser.brush.remove();
-      this.createBrush(position);
     },
-    "eraser.pathOptions.strokeColor"(newColor) {
-      if (this.eraser.brush == null) return;
-
-      this.eraser.brush.strokeColor = newColor;
-    },
-    isActive(active) {
-      if (this.eraser.brush != null) {
-        this.eraser.brush.visible = active;
-      }
-
-      if (active) {
-        this.tool.activate();
-        localStorage.setItem("editorTool", this.name);
-      }
-    },
-    /**
-     * Change width of stroke based on zoom of image
-     */
-    scale(newScale) {
-      this.eraser.pathOptions.strokeWidth = newScale * this.scaleFactor;
-      if (this.eraser.brush != null)
-        this.eraser.brush.strokeWidth = newScale * this.scaleFactor;
-    }
   },
-  mounted() {}
 };
 </script>

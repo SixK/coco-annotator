@@ -1,57 +1,93 @@
 <template>
   <div class="col-md-3">
-    <div class="card mb-4 box-shadow" @click="onCardClick">
+    <div
+      class="card mb-4 box-shadow"
+      @click="onCardClick"
+    >
       <div class="card-body">
-        <span class="d-inline-block text-truncate" style="max-width: 75%; float: left">
-          <i class="fa fa-circle color-icon" aria-hidden="true" :style="{ color: category.color }" />
+        <span
+          class="d-inline-block text-truncate"
+          style="max-width: 75%; float: left"
+        >
+          <i
+            class="fa fa-circle color-icon"
+            aria-hidden="true"
+            :style="{ color: category.color }"
+          />
           <strong class="card-title">{{ category.name }}</strong>
         </span>
 
         <i
-          class="card-text fa fa-ellipsis-v fa-x icon-more"
           :id="'dropdownCategory' + category.id"
-          data-toggle="dropdown"
+          class="card-text fa fa-ellipsis-v fa-x icon-more"
+          data-bs-toggle="dropdown"
           aria-haspopup="true"
           aria-expanded="false"
           aria-hidden="true"
         />
 
-        <br />
+        <br>
 
         <div>
           <p v-if="category.numberAnnotations > 0">
             {{ category.numberAnnotations }} objects have been made with this
             category.
           </p>
-          <p v-else>No annotations use this category</p>
+          <p v-else>
+            No annotations use this category
+          </p>
         </div>
 
-        <div class="dropdown-menu" :aria-labelledby="'dropdownCategory' + category.id">
-          <a class="dropdown-item" @click="onDeleteClick">Delete</a>
+        <div
+          class="dropdown-menu"
+          :aria-labelledby="'dropdownCategory' + category.id"
+        >
+          <a
+            class="dropdown-item"
+            @click="onDeleteClick"
+          >Delete</a>
           <!--<a class="dropdown-item" @click="onDownloadClick"
             >Download COCO & Images</a
           >-->
           <button
             class="dropdown-item"
-            data-toggle="modal"
-            :data-target="'#categoryEdit' + category.id"
-          >Edit</button>
+            data-bs-toggle="modal"
+            :data-bs-target="'#categoryEdit' + category.id"
+          >
+            Edit
+          </button>
         </div>
       </div>
 
       <div
         v-show="$store.getters['user/loginEnabled']"
         class="card-footer text-muted"
-      >Created by {{ category.creator }}</div>
+      >
+        Created by {{ category.creator }}
+      </div>
     </div>
 
-    <div class="modal fade" role="dialog" ref="category_settings"
-        :id="'categoryEdit' + category.id" >
-      <div class="modal-dialog" role="document">
+    <div
+      :id="'categoryEdit' + category.id"
+      ref="category_settings"
+      class="modal fade"
+      role="dialog"
+    >
+      <div
+        class="modal-dialog"
+        role="document"
+      >
         <div class="modal-content">
           <div class="modal-header">
-            <h5 class="modal-title">Category: {{ category.name }}</h5>
-            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <h5 class="modal-title">
+              Category: {{ category.name }}
+            </h5>
+            <button
+              type="button"
+              class="close"
+              data-bs-dismiss="modal"
+              aria-label="Close"
+            >
               <span aria-hidden="true">&times;</span>
             </button>
           </div>
@@ -64,9 +100,9 @@
                   :value="name"
                   required="true"
                   class="form-control"
-                  :class="{'is-invalid': name.length === 0}"
+                  :class="{ 'is-invalid': name.length === 0 }"
                   @input="name = $event.target.value"
-                />
+                >
               </div>
 
               <div class="form-group">
@@ -76,13 +112,17 @@
                   class="form-control"
                   :value="category.supercategory"
                   @input="supercategory = $event.target.value"
-                />
+                >
               </div>
 
               <div class="form-group row">
                 <label class="col-sm-2 col-form-label">Color</label>
                 <div class="col-sm-9">
-                  <input v-model="color" type="color" class="form-control" />
+                  <input
+                    v-model="color"
+                    type="color"
+                    class="form-control"
+                  >
                 </div>
               </div>
 
@@ -92,7 +132,7 @@
                   v-model="keypoint"
                   element-id="keypoints"
                   placeholder="Add a keypoint"
-                ></KeypointsDefinition>
+                />
               </div>
             </form>
           </div>
@@ -100,12 +140,20 @@
             <button
               type="button"
               class="btn btn-success"
-              @click="onUpdateClick"
               :disabled="!isFormValid"
               :class="{ disabled: !isFormValid }"
-              data-dismiss="modal"
-            >Update</button>
-            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+              data-bs-dismiss="modal"
+              @click="onUpdateClick"
+            >
+              Update
+            </button>
+            <button
+              type="button"
+              class="btn btn-secondary"
+              data-bs-dismiss="modal"
+            >
+              Close
+            </button>
           </div>
         </div>
       </div>
@@ -124,8 +172,14 @@ let $ = JQuery;
 
 export default {
   name: "CategoryCard",
-  mixins: [toastrs],
   components: { KeypointsDefinition },
+  mixins: [toastrs],
+  props: {
+    category: {
+      type: Object,
+      required: true,
+    },
+  },
   data() {
     return {
       group: null,
@@ -141,12 +195,6 @@ export default {
       isMounted: false,
     };
   },
-  props: {
-    category: {
-      type: Object,
-      required: true
-    }
-  },
   computed: {
     isFormValid() {
       return (
@@ -160,6 +208,13 @@ export default {
   },
   created() {
     this.resetCategorySettings();
+  },
+  mounted() {
+    $(this.$refs.category_settings).on(
+      "hidden.bs.modal",
+      this.resetCategorySettings
+    );
+    this.isMounted = true;
   },
   methods: {
     resetCategorySettings() {
@@ -213,11 +268,6 @@ export default {
         });
     }
   },
-  mounted() {
-    $(this.$refs.category_settings).on(
-      "hidden.bs.modal", this.resetCategorySettings);
-    this.isMounted = true;
-  }
 };
 </script>
 

@@ -1,15 +1,15 @@
 <template>
   <div v-show="brush.isActive">
     <PanelInputNumber
+      v-model="brush.brush.pathOptions.radius"
       name="Radius"
       min="0"
       max="1000"
       step="5"
-      v-model="brush.brush.pathOptions.radius"
     />
     <PanelInputString
-      name="Stroke Color"
       v-model="brush.brush.pathOptions.strokeColor"
+      name="Stroke Color"
     />
   </div>
 </template>

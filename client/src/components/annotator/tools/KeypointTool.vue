@@ -21,6 +21,14 @@ export default {
       cursor: "cell"
     };
   },
+  computed: {
+    isDisabled() {
+      return this.$parent.current.annotation === -1;
+    },
+  },
+  watch: {},
+  created() {},
+  mounted() {},
   methods: {
     export() {
       return {};
@@ -29,13 +37,5 @@ export default {
       this.$parent.currentAnnotation.addKeypoint(event.point);
     }
   },
-  computed: {
-    isDisabled() {
-      return this.$parent.current.annotation === -1;
-    }
-  },
-  watch: {},
-  created() {},
-  mounted() {}
 };
 </script>

@@ -22,87 +22,100 @@
       </div>
 
       <button
-          class="btn btn-sm btn-link collapsed text-left annotation-text"
-          :style="{
-            float: 'left',
-            width: '70%',
-            color: isVisible ? 'white' : 'gray'
-          }"
-          aria-expanded="false"
-          :aria-controls="'collapse_keypoints' + annotation.id"
-          @click="onAnnotationClick(!showKeypoints);"
-        >
+        class="btn btn-sm btn-link collapsed text-left annotation-text"
+        :style="{
+          float: 'left',
+          width: '70%',
+          color: isVisible ? 'white' : 'gray',
+        }"
+        aria-expanded="false"
+        :aria-controls="'collapse_keypoints' + annotation.id"
+        @click="onAnnotationClick(!showKeypoints)"
+      >
         <template v-if="name.length === 0">
           {{ index + 1 }}
         </template>
-        <template v-else> {{ name }} </template>
+        <template v-else>
+          {{ name }}
+        </template>
         {{ annotation.name }}
-        <i v-if="isEmpty" style="padding-left: 5px; color: lightgray"
-          >(Empty)</i
-        >
-        <i v-else style="padding-left: 5px; color: lightgray"
-          >(id: {{ annotation.id }})</i
-        >
-
-        </button>
+        <i
+          v-if="isEmpty"
+          style="padding-left: 5px; color: lightgray"
+        >(Empty)</i>
+        <i
+          v-else
+          style="padding-left: 5px; color: lightgray"
+        >(id: {{ annotation.id }})</i>
+      </button>
 
       <i
         class="fa fa-gear annotation-icon"
-        style="float:right"
-        data-toggle="modal"
-        :data-target="'#annotationSettings' + annotation.id"
+        style="float: right"
+        data-bs-toggle="modal"
+        :data-bs-target="'#annotationSettings' + annotation.id"
       />
       <i
-        @click="deleteAnnotation"
         class="fa fa-trash-o annotation-icon"
-        style="float:right"
+        style="float: right"
+        @click="deleteAnnotation"
       />
     </li>
 
-    <ul v-show="showKeypoints" ref="collapse_keypoints"
-        class="list-group keypoint-list">
-      <li v-for="(kp, index) in keypointListView" :key="index"
-          :style="{'background-color': kp.backgroundColor}"
-          class="list-group-item text-left keypoint-item">
+    <ul
+      v-show="showKeypoints"
+      ref="collapse_keypoints"
+      class="list-group keypoint-list"
+    >
+      <li
+        v-for="(kp, index) in keypointListView"
+        :key="index"
+        :style="{ 'background-color': kp.backgroundColor }"
+        class="list-group-item text-left keypoint-item"
+      >
         <div>
-          <i class="fa fa-map-marker keypoint-icon"
-              :style="{ color: kp.iconColor}"
-              />
+          <i
+            class="fa fa-map-marker keypoint-icon"
+            :style="{ color: kp.iconColor }"
+          />
         </div>
         <a
-          @click="onAnnotationKeypointClick(index)"
           :style="{
             float: 'left',
             width: '70%',
             color: 'white'
           }"
+          @click="onAnnotationKeypointClick(index)"
         >
-          <span> {{ kp.label }} </span> 
+          <span> {{ kp.label }} </span>
         </a>
         <i
           v-if="kp.visibility !== 0"
-          @click="onAnnotationKeypointSettingsClick(index)"
           class="fa fa-gear annotation-icon"
-          style="float:right; color: lightgray;"
-          data-toggle="modal"
-          :data-target="'#keypointSettings' + annotation.id"
+          style="float: right; color: lightgray"
+          data-bs-toggle="modal"
+          :data-bs-target="'#keypointSettings' + annotation.id"
+          @click="onAnnotationKeypointSettingsClick(index)"
         />
         <i
           v-if="kp.visibility !== 0"
-          @click="onDeleteKeypointClick(index)"
           class="fa fa-trash-o annotation-icon"
-          style="float:right; color: lightgray;"
+          style="float: right; color: lightgray"
+          @click="onDeleteKeypointClick(index)"
         />
       </li>
     </ul>
 
     <div
+      :id="'keypointSettings' + annotation.id"
       class="modal fade"
       tabindex="-1"
       role="dialog"
-      :id="'keypointSettings' + annotation.id"
     >
-      <div class="modal-dialog" role="document">
+      <div
+        class="modal-dialog"
+        role="document"
+      >
         <div class="modal-content">
           <div class="modal-header">
             <h5 class="modal-title">
@@ -111,7 +124,7 @@
             <button
               type="button"
               class="close"
-              data-dismiss="modal"
+              data-bs-dismiss="modal"
               aria-label="Close"
             >
               <span aria-hidden="true">&times;</span>
@@ -122,9 +135,18 @@
               <div class="form-group row">
                 <label class="col-sm-3 col-form-label">Visibility</label>
                 <div class="col-sm-8">
-                  <select v-model="keypoint.visibility" class="form-control">
-                    <option v-for="(desc, label) in visibilityOptions" 
-                      :key="label" :value="label" :selected="keypoint.visibility == label">{{desc}}</option>
+                  <select
+                    v-model="keypoint.visibility"
+                    class="form-control"
+                  >
+                    <option
+                      v-for="(desc, label) in visibilityOptions"
+                      :key="label"
+                      :value="label"
+                      :selected="keypoint.visibility == label"
+                    >
+                      {{ desc }}
+                    </option>
                   </select>
                 </div>
               </div>
@@ -134,7 +156,7 @@
             <button
               type="button"
               class="btn btn-secondary"
-              data-dismiss="modal"
+              data-bs-dismiss="modal"
             >
               Close
             </button>
@@ -144,12 +166,15 @@
     </div>
 
     <div
+      :id="'annotationSettings' + annotation.id"
       class="modal fade"
       tabindex="-1"
       role="dialog"
-      :id="'annotationSettings' + annotation.id"
     >
-      <div class="modal-dialog" role="document">
+      <div
+        class="modal-dialog"
+        role="document"
+      >
         <div class="modal-content">
           <div class="modal-header">
             <h5 class="modal-title">
@@ -159,7 +184,7 @@
             <button
               type="button"
               class="close"
-              data-dismiss="modal"
+              data-bs-dismiss="modal"
               aria-label="Close"
             >
               <span aria-hidden="true">&times;</span>
@@ -170,49 +195,59 @@
               <div class="form-group row">
                 <label class="col-sm-3 col-form-label">Color</label>
                 <div class="col-sm-8">
-                  <input v-model="color" type="color" class="form-control" />
+                  <input
+                    v-model="color"
+                    type="color"
+                    class="form-control"
+                  >
                 </div>
               </div>
               <div class="form-group row">
                 <label class="col-sm-3 col-form-label">Name</label>
                 <div class="col-sm-8">
-                  <input v-model="name" class="form-control" />
+                  <input
+                    v-model="name"
+                    class="form-control"
+                  >
                 </div>
               </div>
               <div class="form-group row">
                 <label class="col-sm-3 col-form-label">Category</label>
                 <div class="col-sm-8">
-                  <select class="form-control" @change="setCategory">
+                  <select
+                    class="form-control"
+                    @change="setCategory"
+                  >
                     <option
                       v-for="option in allCategories"
-                      :selected="annotation.category_id === option.value"
                       :key="option.text"
+                      :selected="annotation.category_id === option.value"
                     >
                       {{ option.text }}
                     </option>
                   </select>
                 </div>
               </div>
-              <Metadata
-                :metadata="annotation.metadata"
+              <MetaData
                 ref="metadata"
+                :metadata="annotation.metadata"
                 exclude="name"
               />
             </form>
           </div>
           <div class="modal-footer">
             <button
-              @click="deleteAnnotation"
               type="button"
               class="btn btn-danger"
-              data-dismiss="modal"
+              data-bs-dismiss="modal"
+              @click="deleteAnnotation"
             >
               Delete
             </button>
             <button
               type="button"
               class="btn btn-secondary"
-              data-dismiss="modal"
+              data-bs-dismiss="modal"
             >
               Close
             </button>
@@ -233,16 +268,16 @@ import { Keypoint, Keypoints, VisibilityOptions } from "@/libs/keypoints";
 import { mapMutations } from "vuex";
 import UndoAction from "@/undo";
 
-import TagsInput from "@/components/TagsInput";
-import Metadata from "@/components/Metadata";
+// import TagsInput from "@/components/TagsInput";
+import MetaData from "@/components/MetaData";
 
 let $ = JQuery;
 
 export default {
   name: "Annotation",
   components: {
-    Metadata,
-    TagsInput
+    MetaData,
+    // TagsInput
   },
   props: {
     annotation: {
@@ -380,11 +415,15 @@ export default {
         if (this.activeTool !== "Select") return;
         $(`#annotationSettings${this.annotation.id}`).modal("show");
       };
-      this.keypoints = new Keypoints(this.keypointEdges, this.keypointLabels,
-        this.keypointColors, {
+      this.keypoints = new Keypoints(
+        this.keypointEdges,
+        this.keypointLabels,
+        this.keypointColors,
+        {
           annotationId: this.annotation.id,
           categoryName: this.$parent.category.name,
-        });
+        }
+      );
       this.keypoints.radius = this.scale * 6;
       this.keypoints.lineWidth = this.scale * 2;
 
@@ -519,9 +558,13 @@ export default {
       this.addUndo(action);
     },
     simplifyPath() {
-      if (this.compoundPath != null && this.compoundPath.isEmpty() && this.keypoints.isEmpty()) {
-          this.deleteAnnotation();
-          return;
+      if (
+        this.compoundPath != null &&
+        this.compoundPath.isEmpty() &&
+        this.keypoints.isEmpty()
+      ) {
+        this.deleteAnnotation();
+        return;
       }
       let simplify = this.simplify;
 
@@ -574,7 +617,7 @@ export default {
         radius: this.scale * 6,
         onClick: event => {
           if (!["Select", "Keypoints"].includes(this.activeTool)) return;
-          
+
           let keypoint = event.target.keypoint;
           // Remove if already selected
           if (keypoint == this.currentKeypoint) {
@@ -623,7 +666,7 @@ export default {
 
       this.keypoints.addKeypoint(keypoint);
       this.isEmpty = this.compoundPath.isEmpty() && this.keypoints.isEmpty();
-      
+
       let unusedLabels = this.notUsedKeypointLabels;
       delete unusedLabels[String(label)];
       let unusedLabelKeys = Object.keys(unusedLabels);
@@ -638,7 +681,7 @@ export default {
         this.keypoint.next.label = nextLabel;
       } else {
         this.keypoint.next.label = -1;
-        this.$emit('keypoints-complete');
+        this.$emit("keypoints-complete");
       }
       this.tagRecomputeCounter++;
     },
@@ -661,7 +704,7 @@ export default {
       newCompound.onDoubleClick = this.compoundPath.onDoubleClick;
       newCompound.onClick = this.compoundPath.onClick;
       this.annotation.isbbox = isBBox;
-      
+
       if (undoable) this.createUndoAction("Unite");
 
       this.compoundPath.remove();
@@ -794,20 +837,88 @@ export default {
       if (this.isCurrent && activeIndex == index + 1) return "rgb(30, 86, 36)";
 
       return "#383c4a";
-    }
+    },
+  },
+  computed: {
+    categoryIndex() {
+      return this.$parent.index;
+    },
+    isCurrent() {
+      if (this.index === this.current && this.$parent.isCurrent) {
+        // if (this.compoundPath != null) this.compoundPath.bringToFront();
+        if (this.keypoints != null) this.keypoints.bringToFront();
+        return true;
+      }
+      return false;
+    },
+    keypointListView() {
+      let listView = [];
+      for (let i = 0; i < this.keypointLabels.length; ++i) {
+        let visibility = this.getKeypointVisibility(i);
+        let iconColor = "rgb(40, 42, 49)";
+        if (visibility == 1) {
+          iconColor = "lightgray";
+        } else if (visibility == 2) {
+          iconColor = this.keypointColors[i];
+        }
+        listView.push({
+          label: this.keypointLabels[i],
+          visibility,
+          iconColor,
+          backgroundColor: this.getKeypointBackgroundColor(i),
+        });
+      }
+      return listView;
+    },
+    isHover() {
+      return this.index === this.hover;
+    },
+    backgroundColor() {
+      if (this.isHover && this.$parent.isHover) return "#646c82";
+
+      if (this.isCurrent) return "#4b624c";
+
+      return "inherit";
+    },
+    showSideMenu() {
+      let search = this.search.toLowerCase();
+      if (search.length === 0) return true;
+      if (search === String(this.annotation.id)) return true;
+      if (search === String(this.index + 1)) return true;
+      return this.name.toLowerCase().includes(this.search);
+    },
+    darkHSL() {
+      let color = new paper.Color(this.color);
+      let h = Math.round(color.hue);
+      let l = Math.round(color.lightness * 50);
+      let s = Math.round(color.saturation * 100);
+      return "hsl(" + h + "," + s + "%," + l + "%)";
+    },
+    notUsedKeypointLabels() {
+      this.tagRecomputeCounter;
+      let tags = {};
+
+      for (let i = 0; i < this.keypointLabels.length; i++) {
+        // Include it tags if it is the current keypoint or not in use.
+        if (this.keypoints && !this.keypoints._labelled[i + 1]) {
+          tags[i + 1] = this.keypointLabels[i];
+        }
+      }
+
+      return tags;
+    },
   },
   watch: {
     activeTool(tool) {
       if (this.isCurrent) {
         this.session.tools.push(tool);
-      
+
         if (tool === "Keypoints") {
           if (!this.showKeypoints) {
             this.showKeypoints = true;
           }
           var labelIndex = -1;
-          for(let i=0; i < this.keypointLabels.length; ++i) {
-            
+          for (let i = 0; i < this.keypointLabels.length; ++i) {
             if (this.isKeypointLabeled(i)) {
               if (labelIndex < 0) {
                 labelIndex = i;
@@ -819,7 +930,7 @@ export default {
           }
 
           if (labelIndex > -1) {
-            this.keypoint.tag = [String(labelIndex+1)];
+            this.keypoint.tag = [String(labelIndex + 1)];
             this.currentKeypoint = this.keypoints._labelled[this.keypoint.tag];
             this.$emit("keypoint-click", labelIndex);
           }
@@ -894,76 +1005,7 @@ export default {
 
         this.keypoints.radius = scale * 6;
         this.keypoints.lineWidth = scale * 2;
-      }
-    }
-  },
-  computed: {
-    categoryIndex() {
-      return this.$parent.index;
-    },
-    isCurrent() {
-      if (this.index === this.current && this.$parent.isCurrent) {
-        // if (this.compoundPath != null) this.compoundPath.bringToFront();
-        if (this.keypoints != null) this.keypoints.bringToFront();
-        return true;
-      }
-      return false;
-    },
-    keypointListView() {
-      let listView = [];
-      for (let i=0; i < this.keypointLabels.length; ++i) {
-        let visibility = this.getKeypointVisibility(i);
-        let iconColor = 'rgb(40, 42, 49)';
-        if (visibility == 1) {
-          iconColor = 'lightgray';
-        } else if (visibility == 2) {
-          iconColor = this.keypointColors[i];
-        }
-        listView.push({
-          label: this.keypointLabels[i],
-          visibility,
-          iconColor,
-          backgroundColor: this.getKeypointBackgroundColor(i),
-        });
-      }
-      return listView;
-    },
-    isHover() {
-      return this.index === this.hover;
-    },
-    backgroundColor() {
-      if (this.isHover && this.$parent.isHover) return "#646c82";
-
-      if (this.isCurrent) return "#4b624c";
-
-      return "inherit";
-    },
-    showSideMenu() {
-      let search = this.search.toLowerCase();
-      if (search.length === 0) return true;
-      if (search === String(this.annotation.id)) return true;
-      if (search === String(this.index + 1)) return true;
-      return this.name.toLowerCase().includes(this.search);
-    },
-    darkHSL() {
-      let color = new paper.Color(this.color);
-      let h = Math.round(color.hue);
-      let l = Math.round(color.lightness * 50);
-      let s = Math.round(color.saturation * 100);
-      return "hsl(" + h + "," + s + "%," + l + "%)";
-    },
-    notUsedKeypointLabels() {
-      this.tagRecomputeCounter;
-      let tags = {};
-
-      for (let i = 0; i < this.keypointLabels.length; i++) {
-        // Include it tags if it is the current keypoint or not in use.
-        if (this.keypoints && !this.keypoints._labelled[i + 1]) {
-          tags[i + 1] = this.keypointLabels[i];
-        }
-      }
-
-      return tags;
+      },
     },
   },
   sockets: {

@@ -2,7 +2,7 @@
   <div class="col-md-3">
     <div
       class="card mb-4 shadow-sm"
-      :class="{'border': annotated, 'border-danger': annotated}"
+      :class="{ border: annotated, 'border-danger': annotated }"
       @mouseover="hover = true"
       @mouseleave="hover = false"
     >
@@ -12,16 +12,26 @@
           :src-placeholder="loaderUrl"
           class="card-img-top"
           style="width: 100%; display: block"
-          :style="{'opacity': annotated ? 0.3 : 1}"
+          :style="{ opacity: annotated ? 0.3 : 1 }"
         />
       </div>
 
-      <b v-if="annotated" class="overlay-text text-center">
-        Being annotated by {{image.annotating.join(', ')}}
+      <b
+        v-if="annotated"
+        class="overlay-text text-center"
+      >
+        Being annotated by {{ image.annotating.join(", ") }}
       </b>
 
-      <div class="card-body" style="width: 100%" :style="{'opacity': annotated ? 0.3 : 1}">
-        <div class="row" style="width: 100%">
+      <div
+        class="card-body"
+        style="width: 100%"
+        :style="{ opacity: annotated ? 0.3 : 1 }"
+      >
+        <div
+          class="row"
+          style="width: 100%"
+        >
           <span
             :class="{ 'text-truncate': !hover }"
             style="width: 100%; float: left"
@@ -32,9 +42,9 @@
           </span>
 
           <i
-            class="card-text fa fa-ellipsis-v fa-x icon-more"
             :id="'dropdownImage' + image.id"
-            data-toggle="dropdown"
+            class="card-text fa fa-ellipsis-v fa-x icon-more"
+            data-bs-toggle="dropdown"
             aria-haspopup="true"
             aria-expanded="false"
             aria-hidden="true"
@@ -50,7 +60,10 @@
             >
               Delete
             </button>
-            <button class="btn dropdown-item" @click="openAnnotator">
+            <button
+              class="btn dropdown-item"
+              @click="openAnnotator"
+            >
               Annotate
             </button>
             <button
@@ -66,11 +79,14 @@
           <p v-show="image.num_annotations > 0">
             {{ image.num_annotations }} annotation<span
               v-show="image.num_annotations > 1"
-              >s</span
-            >
+            >s</span>
           </p>
-          <p v-show="image.annotated == true && image.num_annotations < 0">Annotated</p>
-          <p v-show="image.annotated == false">No annotations</p>
+          <p v-show="image.annotated == true && image.num_annotations < 0">
+            Annotated
+          </p>
+          <p v-show="image.annotated == false">
+            No annotations
+          </p>
         </div>
 
         <div class="row">
@@ -87,6 +103,10 @@
     </div>
   </div>
 </template>
+
+<script setup>
+import VLazyImage from "v-lazy-image";
+</script>
 
 <script>
 import axios from "axios";
@@ -105,6 +125,22 @@ export default {
       showAnnotations: true,
       loaderUrl: require("@/assets/loader.gif")
     };
+  },
+  computed: {
+    imageUrl() {
+      let d = new Date();
+      if (this.showAnnotations) {
+        return `/api/image/${
+          this.image.id
+        }?width=250&thumbnail=true&dummy=${d.getTime()}`;
+      } else {
+        return "/api/image/" + this.image.id + "?width=250";
+      }
+    },
+    annotated() {
+      if (!this.image.annotating) return 0;
+      return this.image.annotating.length > 0;
+    },
   },
   methods: {
     downloadURI(uri, exportName) {
@@ -141,24 +177,8 @@ export default {
       axios.delete("/api/image/" + this.image.id).then(() => {
         this.$parent.updatePage();
       });
-    }
-  },
-  computed: {
-    imageUrl() {
-      let d = new Date();
-      if (this.showAnnotations) {
-        return `/api/image/${
-          this.image.id
-        }?width=250&thumbnail=true&dummy=${d.getTime()}`;
-      } else {
-        return "/api/image/" + this.image.id + "?width=250";
-      }
     },
-    annotated() {
-      if (!this.image.annotating) return 0;
-      return this.image.annotating.length > 0;
-    }
-  }
+  },
 };
 </script>
 

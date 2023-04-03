@@ -1,39 +1,55 @@
 <template>
   <div
+    :id="'task-' + task.id"
     class="card text-left"
-    :id="'task-' + this.task.id"
-    :style="{ 'background-color': highlight ? 'lightgreen' : 'white'}"
+    :style="{ 'background-color': highlight ? 'lightgreen' : 'white' }"
   >
-  
-    <div class="card-body title" @click="showLogs = !showLogs">
-      
+    <div
+      class="card-body title"
+      @click="showLogs = !showLogs"
+    >
       <span class="text-muted">{{ task.id }}.</span> {{ task.name }}
 
       <!--<span class="time text-muted">(Running for {{ time }})</span>-->
-      
+
       <div style="float: right">
-       
-        <span v-show="errors > 0" class="badge badge-danger" @click.stop="onlyErrors = !onlyErrors">
+        <span
+          v-show="errors > 0"
+          class="badge badge-danger"
+          @click.stop="onlyErrors = !onlyErrors"
+        >
           {{ errors }} error<span v-show="errors > 1">s</span>
         </span>
-        
-        <span v-show="warnings > 0" class="badge badge-warning" @click.stop="onlyWarnings = !onlyWarnings">
+
+        <span
+          v-show="warnings > 0"
+          class="badge badge-warning"
+          @click.stop="onlyWarnings = !onlyWarnings"
+        >
           {{ warnings }} warning<span v-show="warnings > 1">s</span>
         </span>
-
       </div>
     </div>
-  
-    <div v-show="showLogs" class="card-body">
+
+    <div
+      v-show="showLogs"
+      class="card-body"
+    >
       <div class="logs">
         <p
-          class="log"
-          :key="index"
           v-for="(line, index) in displayLogs.slice().reverse()"
-          :style="{ 'color': textColor(line) }"
-        >{{ line }}</p>
+          :key="index"
+          class="log"
+          :style="{ color: textColor(line) }"
+        >
+          {{ line }}
+        </p>
       </div>
-      <button v-show="completed" class="btn btn-danger btn-block btn-sm delete" @click="deleteTask">
+      <button
+        v-show="completed"
+        class="btn btn-danger btn-block btn-sm delete"
+        @click="deleteTask"
+      >
         Delete
       </button>
     </div>
@@ -42,11 +58,9 @@
       <div
         class="progress-bar"
         :class="{ 'bg-success': completed }"
-        :style="{ 'width': task.progress + '%' }"
-      >
-      </div>
+        :style="{ width: task.progress + '%' }"
+      />
     </div>
-
   </div>
 </template>
 
@@ -77,32 +91,7 @@ export default {
       this.task.progress = data.progress;
       this.task.warnings = data.warnings;
       this.task.errors = data.errors;
-    }
-  },
-  methods: {
-    textColor(text) {
-      if (text.includes("[ERROR]")) return "red";
-      if (text.includes("[WARNING]")) return "yellow";
-      return "white";
     },
-    deleteTask() {
-      Tasks.delete(this.task.id).finally(() => {
-        this.$parent.$parent.updatePage();
-      });
-    },
-    getLogs() {
-      Tasks.getLogs(this.task.id).then(response => {
-        this.logs = response.data.logs;
-      });
-    }
-  },
-  watch: {
-    showLogs: "getLogs",
-    completed() {
-      if (this.showLogs) {
-        this.getLogs();
-      }
-    }
   },
   computed: {
     warnings() {
@@ -117,15 +106,24 @@ export default {
     },
     displayLogs() {
       let logs = this.logs;
-      if (this.onlyErrors) return this.logs.filter(t => t.includes("[ERROR]"));
+      if (this.onlyErrors)
+        return this.logs.filter((t) => t.includes("[ERROR]"));
       if (this.onlyWarnings)
-        return this.logs.filter(t => t.includes("[WARNING]"));
+        return this.logs.filter((t) => t.includes("[WARNING]"));
 
       return logs;
     },
     completed() {
       return this.task.completed || this.task.progress >= 100;
-    }
+    },
+  },
+  watch: {
+    showLogs: "getLogs",
+    completed() {
+      if (this.showLogs) {
+        this.getLogs();
+      }
+    },
   },
   mounted() {
     let show = this.task.show;
@@ -142,7 +140,24 @@ export default {
         }, 200);
       }
     }
-  }
+  },
+  methods: {
+    textColor(text) {
+      if (text.includes("[ERROR]")) return "red";
+      if (text.includes("[WARNING]")) return "yellow";
+      return "white";
+    },
+    deleteTask() {
+      Tasks.delete(this.task.id).finally(() => {
+        this.$parent.$parent.updatePage();
+      });
+    },
+    getLogs() {
+      Tasks.getLogs(this.task.id).then((response) => {
+        this.logs = response.data.logs;
+      });
+    },
+  },
 };
 </script>
 

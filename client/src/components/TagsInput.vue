@@ -2,24 +2,24 @@
   <div class="tags-input-root">
     <div :class="wrapperClass + ' tags-input'">
       <span
-        class="tags-input-badge tags-input-badge-pill tags-input-badge-selected-default"
         v-for="(badge, index) in tagBadges"
         :key="index"
+        class="tags-input-badge tags-input-badge-pill tags-input-badge-selected-default"
       >
-        <span v-html="badge"></span>
+        <span v-html="badge" />
 
         <i
           href="#"
           class="tags-input-remove"
           @click.prevent="removeTag(index)"
-        ></i>
+        />
       </span>
 
       <input
-        type="text"
         ref="taginput"
-        :placeholder="showPlaceholder ? placeholder : ''"
         v-model="input"
+        type="text"
+        :placeholder="showPlaceholder ? placeholder : ''"
         @keydown.enter.prevent="tagFromInput"
         @keydown.8="removeLastTag"
         @keydown.down="nextSearchResult"
@@ -30,15 +30,15 @@
         @focus="onFocus"
         @blur="hideTypeahead"
         @value="tags"
-      />
+      >
 
       <input
-        type="hidden"
         v-if="elementId"
-        :name="elementId"
         :id="elementId"
         v-model="hiddenInput"
-      />
+        type="hidden"
+        :name="elementId"
+      >
     </div>
 
     <!-- Typeahead/Autocomplete -->
@@ -50,17 +50,16 @@
         <span
           v-for="(tag, index) in searchResults"
           :key="index"
-          v-text="tag.text"
-          @mouseover="searchSelection = index"
-          @mousedown.prevent="tagFromSearchOnClick(tag)"
           class="tags-input-badge"
           :class="{
             'tags-input-typeahead-item-default': index != searchSelection,
             'tags-input-typeahead-item-highlighted-default':
-              index == searchSelection
+              index == searchSelection,
           }"
-        >
-        </span>
+          @mouseover="searchSelection = index"
+          @mousedown.prevent="tagFromSearchOnClick(tag)"
+          v-text="tag.text"
+        />
       </p>
 
       <ul
@@ -70,15 +69,15 @@
         <li
           v-for="(tag, index) in searchResults"
           :key="index"
-          v-text="tag.text"
-          @mouseover="searchSelection = index"
-          @mousedown.prevent="tagFromSearchOnClick(tag)"
           :class="{
             'tags-input-typeahead-item-default': index != searchSelection,
             'tags-input-typeahead-item-highlighted-default':
-              index == searchSelection
+              index == searchSelection,
           }"
-        ></li>
+          @mouseover="searchSelection = index"
+          @mousedown.prevent="tagFromSearchOnClick(tag)"
+          v-text="tag.text"
+        />
       </ul>
     </div>
   </div>
@@ -170,13 +169,6 @@ export default {
     };
   },
 
-  created() {
-    this.tagsFromValue();
-
-    // Emit an event
-    this.$emit("initialized");
-  },
-
   computed: {
     showPlaceholder() {
       if (this.onlyExistingTags) {
@@ -199,7 +191,14 @@ export default {
 
     value() {
       this.tagsFromValue();
-    }
+    },
+  },
+
+  created() {
+    this.tagsFromValue();
+
+    // Emit an event
+    this.$emit("initialized");
   },
 
   methods: {

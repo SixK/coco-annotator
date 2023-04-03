@@ -1,18 +1,18 @@
 <template>
   <div v-show="magicwand.isActive">
     <PanelInputNumber
+      v-model="magicwand.wand.threshold"
       name="Threshold"
       min="0"
       max="1000"
       step="5"
-      v-model="magicwand.wand.threshold"
     />
     <PanelInputNumber
+      v-model="magicwand.wand.blur"
       name="Blur"
       min="0"
       max="1000"
       step="5"
-      v-model="magicwand.wand.blur"
     />
   </div>
 </template>

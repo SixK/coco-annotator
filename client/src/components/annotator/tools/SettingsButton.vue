@@ -4,24 +4,32 @@
       v-tooltip.right="name"
       class="fa fa-x fa-cog"
       style="color: white"
-      data-toggle="modal"
-      data-target="#settings"
-    ></i>
+      data-bs-toggle="modal"
+      data-bs-target="#settings"
+    />
 
-    <br />
+    <br>
     <!-- Modal -->
     <div
-      class="modal fade"
       id="settings"
+      class="modal fade"
       tabindex="-1"
       role="dialog"
       aria-labelledby="settingsLabel"
       aria-hidden="true"
     >
-      <div class="modal-dialog" role="document">
+      <div
+        class="modal-dialog"
+        role="document"
+      >
         <div class="modal-content">
           <div class="modal-header">
-            <h5 class="modal-title" id="settingsLabel">Image Settings</h5>
+            <h5
+              id="settingsLabel"
+              class="modal-title"
+            >
+              Image Settings
+            </h5>
             <button
               type="button"
               class="close"
@@ -39,7 +47,7 @@
                   v-model.number="$parent.simplify"
                   type="number"
                   class="form-control"
-                />
+                >
               </div>
             </div>
 
@@ -47,32 +55,44 @@
               <label class="col-sm-2 col-form-label">Annotate API</label>
               <div class="col-sm-9">
                 <input
-                  type="string"
                   v-model.number="$parent.dataset.annotate_url"
+                  type="string"
                   class="form-control"
-                />
+                >
               </div>
             </div>
 
-            <Metadata :metadata="metadata" ref="metadata" />
+            <MetaData
+              ref="metadata"
+              :metadata="metadata"
+            />
 
-            <p style="margin: 30px 0 0 0">Keyboard Shortcuts</p>
+            <p style="margin: 30px 0 0 0">
+              Keyboard Shortcuts
+            </p>
 
             <div class="row">
               <div class="col-sm">
-                <p class="subtitle">Operation</p>
+                <p class="subtitle">
+                  Operation
+                </p>
               </div>
               <div class="col-sm">
-                <p class="subtitle">Shortcut</p>
+                <p class="subtitle">
+                  Shortcut
+                </p>
               </div>
             </div>
 
-            <ul class="list-group" style="height: 50%;">
+            <ul
+              class="list-group"
+              style="height: 50%"
+            >
               <CustomShortcut
                 v-for="(command, index) in commands"
                 :key="index"
-                :shortcut="command"
                 ref="shortcuts"
+                :shortcut="command"
               />
             </ul>
           </div>
@@ -80,7 +100,7 @@
             <button
               type="button"
               class="btn btn-secondary"
-              data-dismiss="modal"
+              data-bs-dismiss="modal"
             >
               Close
             </button>
@@ -92,12 +112,12 @@
 </template>
 
 <script>
-import Metadata from "@/components/Metadata";
+import MetaData from "@/components/MetaData";
 import CustomShortcut from "@/components/annotator/CustomShortcut";
 
 export default {
   name: "SettingsButton",
-  components: { CustomShortcut, Metadata },
+  components: { CustomShortcut, MetaData },
   props: {
     metadata: {
       type: Object,

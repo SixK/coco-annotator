@@ -10,7 +10,7 @@
       :max="max"
       :step="step"
       class="form-control tool-option-input"
-    />
+    >
   </div>
 </template>
 

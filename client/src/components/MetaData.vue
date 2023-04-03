@@ -6,19 +6,34 @@
       @click="createMetadata"
     />
 
-    <p class="title" style="margin: 0">{{ title }}</p>
+    <p
+      class="title"
+      style="margin: 0"
+    >
+      {{ title }}
+    </p>
 
     <div class="row">
       <div class="col-sm">
-        <p class="subtitle">{{ keyTitle }}</p>
+        <p class="subtitle">
+          {{ keyTitle }}
+        </p>
       </div>
       <div class="col-sm">
-        <p class="subtitle">{{ valueTitle }}</p>
+        <p class="subtitle">
+          {{ valueTitle }}
+        </p>
       </div>
     </div>
 
-    <ul class="list-group" style="height: 50%;">
-      <li v-if="metadataList.length == 0" class="list-group-item meta-item">
+    <ul
+      class="list-group"
+      style="height: 50%"
+    >
+      <li
+        v-if="metadataList.length == 0"
+        class="list-group-item meta-item"
+      >
         <i class="subtitle">No items in metadata.</i>
       </li>
       <li
@@ -26,14 +41,17 @@
         :key="index"
         class="list-group-item meta-item"
       >
-        <div class="row" style="cell">
+        <div
+          class="row"
+          style="cell"
+        >
           <div class="col-sm">
             <input
               v-model="object.key"
               type="text"
               class="meta-input"
               :placeholder="keyTitle"
-            />
+            >
           </div>
 
           <div class="col-sm">
@@ -42,7 +60,7 @@
               type="text"
               class="meta-input"
               :placeholder="valueTitle"
-            />
+            >
           </div>
         </div>
       </li>
@@ -52,39 +70,47 @@
 
 <script>
 export default {
-  name: "Metadata",
+  name: "MetaData",
   props: {
     metadata: {
       type: Object,
-      required: true
+      required: true,
     },
     title: {
       type: String,
-      default: "Metadata"
+      default: "Metadata",
     },
     keyTitle: {
       type: String,
-      default: "Keys"
+      default: "Keys",
     },
     valueTitle: {
       type: String,
-      default: "Values"
+      default: "Values",
     },
     exclude: {
       type: String,
-      default: ""
-    }
+      default: "",
+    },
   },
   data() {
     return {
-      metadataList: []
+      metadataList: [],
     };
+  },
+  watch: {
+    metadata() {
+      this.loadMetadata();
+    },
+  },
+  created() {
+    this.loadMetadata();
   },
   methods: {
     export() {
       let metadata = {};
 
-      this.metadataList.forEach(object => {
+      this.metadataList.forEach((object) => {
         if (object.key.length > 0) {
           if (!isNaN(object.value))
             metadata[object.key] = parseInt(object.value);
@@ -116,16 +142,8 @@ export default {
           this.metadataList.push({ key: key, value: value });
         }
       }
-    }
+    },
   },
-  watch: {
-    metadata() {
-      this.loadMetadata();
-    }
-  },
-  created() {
-    this.loadMetadata();
-  }
 };
 </script>
 

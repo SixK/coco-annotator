@@ -21,6 +21,31 @@ export default {
       loading: false
     };
   },
+  computed: {
+    name() {
+      if (!this.validUrl) return "Annotate url is invalid";
+      return "Annotate Image";
+    },
+    validUrl() {
+      if (typeof this.annotateUrl === "number") return false;
+      return this.annotateUrl.length > 2;
+    },
+  },
+  watch: {
+    loading() {
+      this.icon = this.loading ? "fa-spinner fa-spin" : "fa-cloud-download";
+    },
+    validUrl() {
+      this.disabled = !this.validUrl;
+    },
+    disabled() {
+      this.iconColor = this.disabled ? this.color.disabled : this.color.enabled;
+    },
+  },
+  created() {
+    this.iconColor = this.color.disabled;
+    this.disabled = !this.validUrl;
+  },
   methods: {
     execute() {
       if (!this.validUrl) return;
@@ -78,32 +103,7 @@ export default {
           })
           .finally(() => (this.loading = false));
       });
-    }
-  },
-  computed: {
-    name() {
-      if (!this.validUrl) return "Annotate url is invalid";
-      return "Annotate Image";
     },
-    validUrl() {
-      if (typeof this.annotateUrl === "number") return false;
-      return this.annotateUrl.length > 2;
-    }
   },
-  watch: {
-    loading() {
-      this.icon = this.loading ? "fa-spinner fa-spin" : "fa-cloud-download";
-    },
-    validUrl() {
-      this.disabled = !this.validUrl;
-    },
-    disabled() {
-      this.iconColor = this.disabled ? this.color.disabled : this.color.enabled;
-    }
-  },
-  created() {
-    this.iconColor = this.color.disabled;
-    this.disabled = !this.validUrl;
-  }
 };
 </script>

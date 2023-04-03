@@ -48,6 +48,60 @@ export default {
         tolerance: 10,
         match: hit => {
           return !hit.item.hasOwnProperty("indicator");
+        },
+      },
+    };
+  },
+  watch: {
+    keypoint(keypoint) {
+      this.clear();
+      if (!keypoint) return;
+      this.hoverText();
+    },
+    scale: {
+      handler(newScale) {
+        this.hover.rounded = newScale * 5;
+        this.hover.textShift = newScale * 40;
+        this.hover.fontSize = newScale * this.scaleFactor;
+        this.edit.distance = newScale * 40;
+        this.edit.indicatorSize = newScale * 10;
+        this.edit.indicatorWidth = newScale * 2;
+
+        if (this.edit.center && this.point != null) {
+          this.createPoint(this.edit.center);
+        }
+
+        if (this.hover.text != null) {
+          this.hover.text.fontSize = this.hover.fontSize;
+          this.hover.shift =
+            (this.hover.text.bounds.bottomRight.x -
+              this.hover.text.bounds.bottomLeft.x) /
+            2;
+          let totalShift = this.hover.shift + this.hover.textShift;
+          this.hover.text.position = this.hover.position.add(totalShift, 0);
+          this.hover.box.bounds = this.hover.text.bounds;
+        }
+      },
+      immediate: true,
+    },
+    isActive(active) {
+      if (active) {
+        this.tool.activate();
+      } else {
+        if (this.hover.text) {
+          this.hover.text.remove();
+          this.hover.box.remove();
+
+          this.hover.box = null;
+          this.hover.text = null;
+        }
+        if (this.point) {
+          this.point.remove();
+          this.point = null;
+          this.segment = null;
+        }
+        if (this.hover.annotation) {
+          this.hover.annotation.compoundPath.selected = false;
         }
       }
     };
@@ -259,9 +313,8 @@ export default {
           next.point = new paper.Point(next.point.x, event.point.y);
         } //getbbox here somehow
         this.segment.point = event.point;
-      }
-      else if (!this.keypoint) {
-        // the event point exists on a relative coordinate system (dependent on screen dimensions) 
+      } else if (!this.keypoint) {
+        // the event point exists on a relative coordinate system (dependent on screen dimensions)
         // however, the image on the canvas paper exists on an absolute coordinate system
         // thus, tracking mouse deltas from the previous point is necessary
         let delta_x = this.initPoint.x - event.point.x;
@@ -270,7 +323,6 @@ export default {
         let new_center = this.$parent.paper.view.center.add(center_delta);
         this.$parent.paper.view.setCenter(new_center);
       }
-      
     },
 
     onMouseUp(event) {
@@ -278,9 +330,9 @@ export default {
     },
 
     onMouseMove(event) {
-      // ensures that the initPoint is always tracked. 
+      // ensures that the initPoint is always tracked.
       // Necessary for the introduced pan functionality and fixes a bug with selecting and dragging bboxes, since initPoint is initially undefined
-      this.initPoint = event.point;  
+      this.initPoint = event.point;
 
       let hitResult = this.$parent.paper.project.hitTest(
         event.point,
@@ -356,61 +408,7 @@ export default {
       } else {
         this.clear();
       }
-    }
+    },
   },
-  watch: {
-    keypoint(keypoint) {
-      this.clear();
-      if (!keypoint) return;
-      this.hoverText();
-    },
-    scale: {
-      handler(newScale) {
-        this.hover.rounded = newScale * 5;
-        this.hover.textShift = newScale * 40;
-        this.hover.fontSize = newScale * this.scaleFactor;
-        this.edit.distance = newScale * 40;
-        this.edit.indicatorSize = newScale * 10;
-        this.edit.indicatorWidth = newScale * 2;
-
-        if (this.edit.center && this.point != null) {
-          this.createPoint(this.edit.center);
-        }
-
-        if (this.hover.text != null) {
-          this.hover.text.fontSize = this.hover.fontSize;
-          this.hover.shift =
-            (this.hover.text.bounds.bottomRight.x -
-              this.hover.text.bounds.bottomLeft.x) /
-            2;
-          let totalShift = this.hover.shift + this.hover.textShift;
-          this.hover.text.position = this.hover.position.add(totalShift, 0);
-          this.hover.box.bounds = this.hover.text.bounds;
-        }
-      },
-      immediate: true
-    },
-    isActive(active) {
-      if (active) {
-        this.tool.activate();
-      } else {
-        if (this.hover.text) {
-          this.hover.text.remove();
-          this.hover.box.remove();
-
-          this.hover.box = null;
-          this.hover.text = null;
-        }
-        if (this.point) {
-          this.point.remove();
-          this.point = null;
-          this.segment = null;
-        }
-        if (this.hover.annotation) {
-          this.hover.annotation.compoundPath.selected = false;
-        }
-      }
-    }
-  }
 };
 </script>

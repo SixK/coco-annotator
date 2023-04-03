@@ -6,7 +6,9 @@
       style="overflow: auto; height: calc(100vh - 55px)"
     >
       <div class="container">
-        <h2 class="text-center">Undo</h2>
+        <h2 class="text-center">
+          Undo
+        </h2>
         <p class="text-center">
           Total of <strong>{{ undos.length }}</strong> items can be undone.
         </p>
@@ -17,28 +19,52 @@
             role="group"
             style="padding-bottom: 20px"
           >
-            <button type="button" class="btn btn-success disabled">
+            <button
+              type="button"
+              class="btn btn-success disabled"
+            >
               Undo All
             </button>
-            <button type="button" class="btn btn-danger disabled">
+            <button
+              type="button"
+              class="btn btn-danger disabled"
+            >
               Delete All
             </button>
-            <button type="button" class="btn btn-secondary" @click="updatePage">
+            <button
+              type="button"
+              class="btn btn-secondary"
+              @click="updatePage"
+            >
               Refresh
             </button>
           </div>
         </div>
 
-        <div class="row justify-content-md-center" style="padding-bottom: 10px">
+        <div
+          class="row justify-content-md-center"
+          style="padding-bottom: 10px"
+        >
           <div class="col-md-2 text-right">
             <span>Instance Type</span>
           </div>
           <div class="col-md-2">
-            <select v-model="type" class="form-control form-control-sm">
-              <option value="all">All</option>
-              <option value="annotation">Annotations</option>
-              <option value="category">Categories</option>
-              <option value="dataset">Datasets</option>
+            <select
+              v-model="type"
+              class="form-control form-control-sm"
+            >
+              <option value="all">
+                All
+              </option>
+              <option value="annotation">
+                Annotations
+              </option>
+              <option value="category">
+                Categories
+              </option>
+              <option value="dataset">
+                Datasets
+              </option>
             </select>
           </div>
           <div class="col-md-2 text-right">
@@ -57,22 +83,48 @@
           </div>
         </div>
 
-        <p class="text-center" v-if="undos.length < 1">Nothing to undone!</p>
+        <p
+          v-if="undos.length < 1"
+          class="text-center"
+        >
+          Nothing to undone!
+        </p>
         <div v-else>
           <table class="table table-hover table-sm">
             <thead class="remove-top-border">
               <tr>
-                <th scope="col">Date</th>
-                <th scope="col">Instance Type</th>
-                <th scope="col">ID</th>
-                <th scope="col">Name</th>
-                <th class="text-center" scope="col">Rollback</th>
-                <th class="text-center" scope="col">Delete</th>
+                <th scope="col">
+                  Date
+                </th>
+                <th scope="col">
+                  Instance Type
+                </th>
+                <th scope="col">
+                  ID
+                </th>
+                <th scope="col">
+                  Name
+                </th>
+                <th
+                  class="text-center"
+                  scope="col"
+                >
+                  Rollback
+                </th>
+                <th
+                  class="text-center"
+                  scope="col"
+                >
+                  Delete
+                </th>
               </tr>
             </thead>
 
             <tbody>
-              <tr v-for="(undo, index) in undos" :key="index">
+              <tr
+                v-for="(undo, index) in undos"
+                :key="index"
+              >
                 <td>
                   {{ undo.ago.length > 0 ? undo.ago : 0 + " seconds" }} ago
                 </td>

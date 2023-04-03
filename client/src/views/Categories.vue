@@ -10,8 +10,8 @@
           Categories
           <i
             class="fa fa-question-circle help-icon"
-            data-toggle="modal"
-            data-target="#helpCategories"
+            data-bs-toggle="modal"
+            data-bs-target="#helpCategories"
             aria-hidden="true"
           />
         </h2>
@@ -29,24 +29,34 @@
             <button
               type="button"
               class="btn btn-success"
-              data-toggle="modal"
-              data-target="#createCategories"
+              data-bs-toggle="modal"
+              data-bs-target="#createCategories"
             >
               Create
             </button>
-            <button type="button" class="btn btn-secondary" @click="updatePage">
+            <button
+              type="button"
+              class="btn btn-secondary"
+              @click="updatePage"
+            >
               Refresh
             </button>
           </div>
         </div>
 
-        <hr />
+        <hr>
 
-        <p v-if="categories.length < 1" class="text-center">
+        <p
+          v-if="categories.length < 1"
+          class="text-center"
+        >
           You need to create a category!
         </p>
         <div v-else>
-          <Pagination :pages="pages" @pagechange="updatePage" />
+          <Pagination
+            :pages="pages"
+            @pagechange="updatePage"
+          />
 
           <div class="row">
             <CategoryCard
@@ -59,15 +69,25 @@
       </div>
     </div>
 
-    <div class="modal fade" tabindex="-1" role="dialog" id="createCategories">
-      <div class="modal-dialog" role="document">
+    <div
+      id="createCategories"
+      class="modal fade"
+      tabindex="-1"
+      role="dialog"
+    >
+      <div
+        class="modal-dialog"
+        role="document"
+      >
         <div class="modal-content">
           <div class="modal-header">
-            <h5 class="modal-title">Creating a Category</h5>
+            <h5 class="modal-title">
+              Creating a Category
+            </h5>
             <button
               type="button"
               class="close"
-              data-dismiss="modal"
+              data-bs-dismiss="modal"
               aria-label="Close"
             >
               <span aria-hidden="true">&times;</span>
@@ -80,10 +100,10 @@
                 <input
                   v-model="newCategoryName"
                   class="form-control"
-                  :class="{'is-invalid': newCategoryName.trim().length === 0}"
+                  :class="{ 'is-invalid': newCategoryName.trim().length === 0 }"
                   required="true"
                   placeholder="Name"
-                />
+                >
               </div>
 
               <div class="form-group">
@@ -92,22 +112,27 @@
                   v-model="newCategorySupercategory"
                   class="form-control"
                   placeholder="Supercategory"
-                />
+                >
               </div>
 
               <div class="form-group row">
                 <label class="col-sm-2 col-form-label">Color:</label>
                 <div class="col-sm-9">
-                  <input v-model="newCategoryColor" type="color" class="form-control" />
+                  <input
+                    v-model="newCategoryColor"
+                    type="color"
+                    class="form-control"
+                  >
                 </div>
               </div>
 
               <div class="form-group">
-                <KeypointsDefinition ref="keypoints"
+                <KeypointsDefinition
+                  ref="keypoints"
                   v-model="newCategoryKeypoint"
                   element-id="keypoints"
                   placeholder="Add a keypoint"
-                ></KeypointsDefinition>
+                />
               </div>
             </form>
           </div>
@@ -116,7 +141,7 @@
               type="button"
               class="btn btn-primary"
               :disabled="!isFormValid"
-              :class="{disabled: !isFormValid}"
+              :class="{ disabled: !isFormValid }"
               @click="createCategory"
             >
               Create Category
@@ -124,7 +149,7 @@
             <button
               type="button"
               class="btn btn-secondary"
-              data-dismiss="modal"
+              data-bs-dismiss="modal"
             >
               Close
             </button>
@@ -133,15 +158,25 @@
       </div>
     </div>
 
-    <div class="modal fade" tabindex="-1" role="dialog" id="helpCategories">
-      <div class="modal-dialog" role="document">
+    <div
+      id="helpCategories"
+      class="modal fade"
+      tabindex="-1"
+      role="dialog"
+    >
+      <div
+        class="modal-dialog"
+        role="document"
+      >
         <div class="modal-content">
           <div class="modal-header">
-            <h5 class="modal-title">Categories</h5>
+            <h5 class="modal-title">
+              Categories
+            </h5>
             <button
               type="button"
               class="close"
-              data-dismiss="modal"
+              data-bs-dismiss="modal"
               aria-label="Close"
             >
               <span aria-hidden="true">&times;</span>
@@ -149,13 +184,14 @@
           </div>
           <div class="modal-body">
             More information can be found in the
-            <a href="https://github.com/jsbroks/coco-annotator/wiki/Usage#creating-categories">
-              getting started section
-            </a>.
-            <hr />
+            <a
+              href="https://github.com/jsbroks/coco-annotator/wiki/Usage#creating-categories"
+            >
+              getting started section </a>.
+            <hr>
             <h6>What is a category?</h6>
 
-            <hr />
+            <hr>
             <h6>How do I create one?</h6>
             Click on the "Create" button found on this webpage. You must
             provided a name for the category.
@@ -164,7 +200,7 @@
             <button
               type="button"
               class="btn btn-secondary"
-              data-dismiss="modal"
+              data-bs-dismiss="modal"
             >
               Close
             </button>

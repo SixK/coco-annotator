@@ -1,12 +1,24 @@
 <template>
   <div>
-    <div class="bg-light" v-if="shortcut.title != null" style="font-size: 13px">
+    <div
+      v-if="shortcut.title != null"
+      class="bg-light"
+      style="font-size: 13px"
+    >
       {{ shortcut.title }}
     </div>
-    <div class="row" style="cell">
+    <div
+      class="row"
+      style="cell"
+    >
       <div class="col-sm text-left">
         {{ shortcut.name }}
-        <p v-show="readonly" class="mute">(readonly)</p>
+        <p
+          v-show="readonly"
+          class="mute"
+        >
+          (readonly)
+        </p>
       </div>
 
       <div class="col-sm">
@@ -16,7 +28,7 @@
           type="text"
           class="input"
           :readonly="readonly"
-        />
+        >
       </div>
     </div>
   </div>
@@ -37,6 +49,22 @@ export default {
       keysDown: [],
       readonly: this.shortcut.readonly == null ? false : this.shortcut.readonly
     };
+  },
+  computed: {
+    toggleKey() {
+      return this.keysDown.toString().replace(/,/g, "+");
+    },
+  },
+  created() {
+    window.addEventListener("keyup", (this.onKeyup = this.onkeyup.bind(this)));
+    window.addEventListener(
+      "keydown",
+      (this.onKeydown = this.onkeydown.bind(this))
+    );
+  },
+  unmounted() {
+    window.removeEventListener("keydown", this.onKeydown);
+    window.removeEventListener("keydup", this.onKeyup);
   },
   methods: {
     export() {
@@ -84,22 +112,6 @@ export default {
       return key;
     }
   },
-  computed: {
-    toggleKey() {
-      return this.keysDown.toString().replace(/,/g, "+");
-    }
-  },
-  created() {
-    window.addEventListener("keyup", (this.onKeyup = this.onkeyup.bind(this)));
-    window.addEventListener(
-      "keydown",
-      (this.onKeydown = this.onkeydown.bind(this))
-    );
-  },
-  destroyed() {
-    window.removeEventListener("keydown", this.onKeydown);
-    window.removeEventListener("keydup", this.onKeyup);
-  }
 };
 </script>
 

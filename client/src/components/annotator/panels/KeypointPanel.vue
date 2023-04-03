@@ -9,7 +9,11 @@
         {{ keypointLabel }}
       </div>
     </div>
-    <PanelInputDropdown name="Visibility" v-model="visibility" :values="visibilityOptions" />
+    <PanelInputDropdown
+      v-model="visibility"
+      name="Visibility"
+      :values="visibilityOptions"
+    />
   </div>
 </template>
 <script>
@@ -26,8 +30,8 @@ export default {
     },
     currentAnnotation: {
       required: true,
-      validator: prop => typeof prop === "object" || prop === undefined
-    }
+      validator: (prop) => typeof prop === "object" || prop === undefined,
+    },
   },
   data() {
     return {
