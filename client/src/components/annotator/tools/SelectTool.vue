@@ -104,7 +104,7 @@ export default {
           this.hover.annotation.compoundPath.selected = false;
         }
       }
-    };
+    },
   },
   methods: {
     export() {
