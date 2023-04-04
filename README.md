@@ -89,6 +89,17 @@ Several annotation tools are currently available, with most applications as a de
 
 For examples and more information check out the [wiki](https://github.com/jsbroks/coco-annotator/wiki).
 
+# Vue3 porting attempt
+
+- [x] Make source code work with Vue3 in Vue2 compatibility mode
+- [ ] convert mixins to composable API and components
+- [ ] Fix eslint errors
+- [ ] find a library to replace vue-touch for pinching
+- [ ] Make source code work without Vue2 compatibility mode
+
+At this state, source code tested only using docker-compose.dev.yml.
+Lot of eslint errors appears, but application is functionnal
+
 # Demo
 
 | Login Information      |
