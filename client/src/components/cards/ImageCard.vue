@@ -53,6 +53,7 @@
           <div
             class="dropdown-menu"
             :aria-labelledby="'dropdownImage' + image.id"
+            style="min-width: fit-content"
           >
             <button
               class="btn dropdown-item"
@@ -210,6 +211,12 @@ p {
   padding: 2px;
   background-color: #4b5162;
 }
+
+.icon-more::before{
+  float: right;
+  color: black;
+}
+
 .icon-more {
   position: absolute;
   right: 5px;
