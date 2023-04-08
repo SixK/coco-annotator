@@ -17,11 +17,14 @@
   </div>
 </template>
 <script>
-import PanelText from "@/components/PanelText";
-import PanelInputDropdown from "@/components/PanelInputDropdown";
-import { VisibilityOptions } from "@/libs/keypoints";
-export default {
-  name: "KeypointPanel",
+import { defineComponent, ref, computed } from 'vue';
+
+import PanelText from '@/components/PanelText';
+import PanelInputDropdown from '@/components/PanelInputDropdown';
+import { VisibilityOptions } from '@/libs/keypoints';
+
+export default defineComponent({
+  name: 'KeypointPanel',
   components: { PanelText, PanelInputDropdown },
   props: {
     keypoint: {
@@ -33,26 +36,29 @@ export default {
       validator: (prop) => typeof prop === "object" || prop === undefined,
     },
   },
-  data() {
-    return {
-      visibility: 2,
-      label: -1,
-      visibilityOptions: VisibilityOptions,
-    };
-  },
-  computed: {
-    keypointLabel() {
-      if (!this.currentAnnotation) return {};
-      let labelIndex = this.currentAnnotation.keypoint.next.label;
-      let labels = this.currentAnnotation.notUsedKeypointLabels;
+
+  setup(props) {
+    const visibility = ref(2);
+    const label = ref(-1);
+    const visibilityOptions = ref(VisibilityOptions);
+    const keypointLabel = computed(() => {
+      if (!props.currentAnnotation) return {};
+      let labelIndex = props.currentAnnotation.keypoint.next.label;
+      let labels = props.currentAnnotation.notUsedKeypointLabels;
       let labelKeys = Object.keys(labels);
       if ((labelIndex < 0 || labelIndex > labels) && labelKeys.length > 0) {
         return labels[labelKeys[0]];
       }
       return labels[labelIndex];
-    }
-  }
-};
+    });
+    return {
+      visibility,
+      label,
+      visibilityOptions,
+      keypointLabel,
+    };
+  },
+});
 </script>
 <style scoped>
 .tool-input-group {

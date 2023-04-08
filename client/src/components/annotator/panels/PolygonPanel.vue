@@ -43,19 +43,20 @@
 </template>
 
 <script>
+import { defineComponent } from "vue";
 import PanelButton from "@/components/PanelButton";
 import PanelToggle from "@/components/PanelToggle";
 import PanelInputString from "@/components/PanelInputString";
 import PanelInputNumber from "@/components/PanelInputNumber";
 
-export default {
+export default defineComponent({
   name: "PolygonPanel",
   components: { PanelButton, PanelToggle, PanelInputString, PanelInputNumber },
   props: {
     polygon: {
       type: Object,
-      required: true
-    }
-  }
-};
+      required: true,
+    },
+  },
+});
 </script>

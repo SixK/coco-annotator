@@ -8,16 +8,16 @@
 </template>
 
 <script>
+import { defineComponent } from 'vue';
 import PanelToggle from "@/components/PanelToggle";
-
-export default {
+export default defineComponent({
   name: "SelectPanel",
   components: { PanelToggle },
   props: {
     select: {
       type: Object,
-      required: true
-    }
-  }
-};
+      required: true,
+    },
+  },
+});
 </script>

@@ -95,6 +95,7 @@ For examples and more information check out the [wiki](https://github.com/jsbrok
 - [ ] Modify to Vuex4 style files using Vuex store
 - [ ] convert mixins to composable API and components 
 - [ ] Fix eslint errors 
+- [ ] Remove JQuery library
 - [ ] find a library to replace vue-touch for pinching
 - [ ] Make source code work without Vue2 compatibility mode
 

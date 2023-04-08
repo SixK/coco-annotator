@@ -18,16 +18,16 @@
 </template>
 
 <script>
+import { defineComponent } from "vue";
 import PanelInputNumber from "@/components/PanelInputNumber";
-
-export default {
+export default defineComponent({
   name: "DEXTRPanel",
   components: { PanelInputNumber },
   props: {
     dextr: {
       type: Object,
-      required: true
-    }
-  }
-};
+      required: true,
+    },
+  },
+});
 </script>

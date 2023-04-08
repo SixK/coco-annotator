@@ -18,16 +18,19 @@
 </template>
 
 <script>
-import PanelInputNumber from "@/components/PanelInputNumber";
+import { defineComponent } from 'vue';
+import PanelInputNumber from '@/components/PanelInputNumber';
 
-export default {
-  name: "MagicWandPanel",
-  components: { PanelInputNumber },
+export default defineComponent({
+  name: 'MagicWandPanel',
+  components: {
+    PanelInputNumber,
+  },
   props: {
     magicwand: {
       type: Object,
-      required: true
-    }
-  }
-};
+      required: true,
+    },
+  },
+});
 </script>

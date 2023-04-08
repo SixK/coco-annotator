@@ -21,20 +21,18 @@
 </template>
 
 <script>
+import { defineComponent } from "vue";
 import PanelButton from "@/components/PanelButton";
 import PanelToggle from "@/components/PanelToggle";
 import PanelInputString from "@/components/PanelInputString";
-// import PanelInputNumber from "@/components/PanelInputNumber";
-
-export default {
+export default defineComponent({
   name: "BBoxPanel",
-  // components: { PanelButton, PanelToggle, PanelInputString, PanelInputNumber },
   components: { PanelButton, PanelToggle, PanelInputString },
   props: {
     bbox: {
       type: Object,
-      required: true
-    }
-  }
-};
+      required: true,
+    },
+  },
+});
 </script>

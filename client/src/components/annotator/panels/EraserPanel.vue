@@ -15,17 +15,18 @@
 </template>
 
 <script>
+import { defineComponent } from "vue";
 import PanelInputString from "@/components/PanelInputString";
 import PanelInputNumber from "@/components/PanelInputNumber";
 
-export default {
+export default defineComponent({
   name: "EraserPanel",
   components: { PanelInputString, PanelInputNumber },
   props: {
     eraser: {
       type: Object,
-      required: true
-    }
-  }
-};
+      required: true,
+    },
+  },
+});
 </script>

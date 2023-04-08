@@ -15,17 +15,17 @@
 </template>
 
 <script>
+import { defineComponent } from 'vue';
 import PanelInputString from "@/components/PanelInputString";
 import PanelInputNumber from "@/components/PanelInputNumber";
-
-export default {
+export default defineComponent({
   name: "BrushPanel",
   components: { PanelInputString, PanelInputNumber },
   props: {
     brush: {
       type: Object,
-      required: true
-    }
-  }
-};
+      required: true,
+    },
+  },
+});
 </script>

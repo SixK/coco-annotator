@@ -1,45 +1,43 @@
-<script>
-import button from "@/mixins/toolBar/button";
+<template>
+<div>
+      <i v-tooltip.right="name" class="fa fa-x" :class="icon" :style="{ color: iconColor }" @click="click(execute, disabled)"></i><br>
+</div>
+</template>
 
-import { mapMutations } from "vuex";
+<script setup>
+import { computed, ref, watch } from "vue";
+import { useStore } from "vuex";
+import { useButton } from "@/composables/toolBar/button";
 
-export default {
-  name: "UndoButton",
-  mixins: [button],
-  data() {
-    return {
-      icon: "fa-undo",
-      disabled: true
-    };
-  },
-  methods: {
-    ...mapMutations(["undo"]),
-    execute() {
-      this.undo();
-    }
-  },
-  computed: {
-    name() {
-      let length = this.undoList.length;
-      if (length == 0) {
-        return "Nothing to undo";
-      }
+const store = useStore();
+const { iconColor, click, color } = useButton();
+const icon = ref("fa-undo");
+const disabled = ref(true);
+const undoList = computed(() => store.state.undo);
 
-      let last = this.undoList[length - 1];
-      return "Undo (Last Action: " + last.name + " " + last.action + ")";
-    },
-    undoList() {
-      return this.$store.state.undo;
-    }
-  },
-  watch: {
-    undoList() {
-      this.disabled = this.undoList.length === 0;
-      this.iconColor = this.disabled ? this.color.disabled : this.color.enabled;
-    }
-  },
-  created() {
-    this.iconColor = this.color.disabled;
+const name = computed(() => {
+  let length = undoList.value.length;
+  if (length == 0) {
+    return "Nothing to undo";
   }
+
+  let last = undoList.value[length - 1];
+  return "Undo (Last Action: " + last.name + " " + last.action + ")";
+});
+const execute = () => {
+  store.commit("undo");
 };
+
+watch(
+  undoList,
+  () => {
+    disabled.value = undoList.value.length === 0;
+    /*
+    iconColor.value = disabled.value
+      ? color.disabled
+      : color.enabled;*/
+  },
+  { immediate: true }
+  );
+  
 </script>
