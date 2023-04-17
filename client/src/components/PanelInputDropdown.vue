@@ -19,55 +19,47 @@
   </div>
 </template>
 
-<script>
-export default {
-  name: "PanelInputDropdown",
-  model: {
-    prop: "value",
-    event: "update"
+<script setup>
+import { ref, computed, watch, defineProps, defineEmits } from 'vue';
+
+
+const props = defineProps({
+  name: {
+    type: String,
+    required: true,
   },
-  props: {
-    name: {
-      type: String,
-      required: true
-    },
-    value: {
-      type: [Number, Array, Object, String],
-      required: true
-    },
-    values: {
-      type: Object,
-      required: true
-    }
+  value: {
+    type: [Number, Array, Object, String],
+    required: true,
   },
-  emits: ["update"],
-  data() {
-    return {
-      localValue: this.value
-    };
+  values: {
+    type: Object,
+    required: true,
   },
-  computed: {
-    options() {
-      let array = [];
-      Object.keys(this.values).forEach(k => {
-        array.push({
-          key: k,
-          value: this.values[k],
-          selected: this.value == k
-        });
-      });
-      return array;
-    },
-  },
-  watch: {
-    localValue() {
-      this.$emit("update", this.localValue);
-    },
-    value(newValue) {
-      this.localValue = newValue;
-    },
-  },
-};
+});
+
+
+const emits = defineEmits(['update-order']);
+const localValue = ref(props.value);
+
+const options = computed(() => {
+ console.log('inputdropdown:', props.values);
+  let array = [];
+  Object.keys(props.values).forEach((k) => {
+    array.push({
+      key: k,
+      value: props.values[k],
+      selected: props.value == k,
+    });
+  });
+  return array;
+});
+watch(localValue, () => {
+  emits('update-order', localValue.value);
+});
+watch(() => props.value, (newValue) => {
+  localValue.value = newValue;
+});
 </script>
 
 <style scoped>

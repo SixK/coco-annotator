@@ -6,41 +6,32 @@
     <input
       v-model="localValue"
       class="form-control tool-option-input"
-      @keyup.enter="$emit('submit')"
+      @keyup.enter="submit"
     >
   </div>
 </template>
-
-<script>
-export default {
-  name: "PanelInputString",
-  model: {
-    prop: "value",
-    event: "update"
+<script setup>
+import { ref, watch, defineProps, defineEmits } from 'vue';
+const props = defineProps({
+  name: {
+    type: String,
+    required: true,
   },
-  props: {
-    name: {
-      type: String,
-      required: true
-    },
-    value: {
-      type: String,
-      required: true
-    }
+  value: {
+    type: String,
+    required: true,
   },
-  data() {
-    return {
-      localValue: this.value
-    };
-  },
-  watch: {
-    localValue() {
-      this.$emit("update", this.localValue);
-    },
-    value(newValue) {
-      this.localValue = newValue;
-    }
-  }
+});
+const emit = defineEmits(['update', 'submit']);
+const localValue = ref(props.value);
+watch(localValue, () => {
+  emit('update', localValue.value);
+});
+watch(() => props.value, (newValue) => {
+  localValue.value = newValue;
+});
+const submit = () => {
+  emit('submit');
 };
 </script>
 

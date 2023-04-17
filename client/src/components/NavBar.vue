@@ -123,57 +123,39 @@
   </nav>
 </template>
 
-<script>
-import User from "@/components/User";
-import Status from "@/components/Status";
+<script setup>
+import { computed, watch, ref } from 'vue';
+import { useStore } from 'vuex';
 
-export default {
-  name: "NavBar",
-  components: { Status, User },
-  data() {
-    return {
-      color: "white",
-      backendStatus: "Connection unknown"
-    };
-  },
-  computed: {
-    version() {
-      return this.$store.state.info.version;
-    },
-    loginEnabled() {
-      return this.$store.state.info.loginEnabled;
-    },
-    name() {
-      return this.$store.state.info.name;
-    },
-    socket() {
-      return this.$store.state.info.socket;
-    },
-    dataset() {
-      let dataset = this.$store.state.dataset;
-      if (dataset == null) return { name: "", id: "" };
+import User from '@/components/User';
+import Status from '@/components/Status';
 
-      return dataset;
-    }
-  },
-  watch: {
-    socket(connected) {
-      if (connected == null) {
-        this.color = "white";
-        this.backendStatus = "Connection unknown";
-        return;
-      }
-
-      if (connected) {
-        this.color = "green";
-        this.backendStatus = "Connected to backend";
-      } else {
-        this.color = "red";
-        this.backendStatus = "Could not connect to backend";
-      }
-    }
+const store = useStore();
+const color = ref('white');
+const backendStatus = ref('Connection unknown');
+const version = computed(() => store.state.info.version);
+const loginEnabled = computed(() => store.state.info.loginEnabled);
+const name = computed(() => store.state.info.name);
+const socket = computed(() => store.state.info.socket);
+const dataset = computed(() => {
+  let dataset = store.state.dataset;
+  if (dataset == null) return { name: '', id: '' };
+  return dataset;
+});
+watch(socket, (connected) => {
+  if (connected == null) {
+    color.value = 'white';
+    backendStatus.value = 'Connection unknown';
+    return;
   }
-};
+  if (connected) {
+    color.value = 'green';
+    backendStatus.value = 'Connected to backend';
+  } else {
+    color.value = 'red';
+    backendStatus.value = 'Could not connect to backend';
+  }
+});
 </script>
 
 <style scoped>

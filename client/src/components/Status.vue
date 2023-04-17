@@ -22,54 +22,43 @@
   </div>
 </template>
 
-<script>
-export default {
-  name: "Status",
-  data() {
-    return {
-      lastProcess: ""
-    };
-  },
-  computed: {
-    buttonType() {
-      if (this.allLoaded) {
-        return "btn-outline-success";
-      }
-      return "btn-outline-danger";
-    },
-    process() {
-      return this.$store.state.process;
-    },
-    message() {
-      if (this.process.length > 1) {
-        return "Multiple tasks running ...";
-      }
-      if (this.process.length === 1) {
-        return this.process[0];
-      }
+<script setup>
+import { ref, computed, watchEffect } from 'vue';
+import { useStore } from 'vuex';
+const store = useStore();
 
-      if (this.lastProcess === "") {
-        return "Done";
-      }
+const lastProcess = ref('');
 
-      return (
-        "Done " +
-        this.lastProcess.charAt(0).toLowerCase() +
-        this.lastProcess.slice(1)
-      );
-    },
-    allLoaded() {
-      return this.process.length === 0;
-    }
-  },
-  watch: {
-    process() {
-      if (this.process.length === 1) {
-        this.lastProcess = this.process[0];
-      }
-    }
+const buttonType = computed(() => {
+  return store.state.process.length === 0 ? 'btn-outline-success' : 'btn-outline-danger';
+});
+
+const process = computed(() => { 
+            console.log(store.state.process.length);
+            return store.state.process;});
+
+const message = computed(() => {
+  if (process.value.length > 1) {
+    return 'Multiple tasks running ...';
   }
-};
+  if (process.value.length === 1) {
+    return process.value[0];
+  }
+  if (lastProcess.value === '') {
+    return 'Done';
+  }
+  return (
+    'Done ' +
+    lastProcess.value.charAt(0).toLowerCase() +
+    lastProcess.value.slice(1)
+  );
+});
+const allLoaded = computed(() => process.value.length === 0);
+watchEffect(() => {
+  if (process.value.length === 1) {
+    lastProcess.value = process.value[0];
+  }
+});
 </script>
 
 <style scoped>

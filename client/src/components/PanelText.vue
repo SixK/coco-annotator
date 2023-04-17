@@ -3,17 +3,15 @@
     <p>{{ name }}</p>
   </div>
 </template>
+<script setup>
+import { defineProps } from 'vue'
 
-<script>
-export default {
-  name: "PanelButton",
-  props: {
-    name: {
-      type: String,
-      required: true
-    }
-  }
-};
+const props = defineProps({
+  name: {
+    type: String,
+    required: true,
+  },
+});
 </script>
 
 <style scoped>

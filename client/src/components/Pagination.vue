@@ -1,14 +1,8 @@
 <template>
   <div class="row align-items-center justify-content-center bg-light">
     <ul class="pagination text-center">
-      <li
-        class="page-item"
-        @click="previousPage"
-      >
-        <a
-          class="page-link"
-          aria-label="Previous"
-        >
+      <li class="page-item" @click="previousPage">
+        <a class="page-link" aria-label="Previous">
           <span aria-hidden="true">&laquo;</span>
           <span class="sr-only">Previous</span>
         </a>
@@ -18,10 +12,7 @@
         :key="pageIndex"
         :class="{ 'page-item': true, active: pageIndex + startPage == page }"
       >
-        <a
-          class="page-link"
-          @click="page = pageIndex + startPage"
-        >{{
+        <a class="page-link" @click="page = pageIndex + startPage">{{
           pageIndex + startPage
         }}</a>
       </li>
@@ -29,10 +20,7 @@
         :class="{ 'page-item': true, disabled: page == pages }"
         @click="nextPage"
       >
-        <a
-          class="page-link"
-          aria-label="Next"
-        >
+        <a class="page-link" aria-label="Next">
           <span aria-hidden="true">&raquo;</span>
           <span class="sr-only">Next</span>
         </a>
@@ -41,68 +29,67 @@
   </div>
 </template>
 
-<script>
-export default {
-  name: "Pagination",
-  props: {
-    pages: {
-      type: Number,
-      required: true
-    }
-  },
-  data() {
-    return {
-      range: 11,
-      page: 1,
-      timer: null
-    };
-  },
-  computed: {
-    startPage() {
-      if (this.range > this.pages) {
-        return 0;
-      }
+<script setup>
+import { defineProps, defineEmits, ref, computed, watch, onUnmounted, onMounted} from 'vue';
 
-      let range = Math.round(this.range / 2);
-      let start = this.page - range;
+const props = defineProps({
+  pages: {
+    type: Number,
+    required: true
+  }
+});
 
-      if (start < 0) return 0;
+const pages = ref(props.pages);
+const range = ref(11);
+const page = ref(1);
+let timer = null;
+const emit  = defineEmits(['pagechange']);
 
-      if (start > this.pages || start + this.range > this.pages) {
-        return this.pages - this.range;
-      }
-
-      return start;
-    },
-  },
-  watch: {
-    page(newPage, oldPage) {
-      if (newPage === oldPage) return;
-
-      clearTimeout(this.timer);
-      this.timer = setTimeout(() => this.$emit("pagechange", this.page), 0);
-    },
-  },
-  created() {
-    if (this.range > this.pages) {
-      this.range = this.pages;
-    }
-  },
-  methods: {
-    previousPage() {
-      this.page -= 1;
-      if (this.page < 1) {
-        this.page = 1;
-      }
-    },
-    nextPage() {
-      this.page += 1;
-      if (this.page > this.pages) {
-        this.page = this.pages;
-      }
-    },
-  },
+const previousPage = () => {
+  page.value -= 1;
+  if (page.value < 1) {
+    page.value = 1;
+  }
 };
+
+const nextPage = () => {
+  page.value += 1;
+  if (page.value > props.pages) {
+    page.value = props.pages;
+  }
+};
+
+watch(page, (newPage, oldPage) => {
+  if (newPage === oldPage) return
+  clearTimeout(timer)
+  timer = setTimeout(() => emit('pagechange', page.value), 0)
+});
+
+const startPage = computed(() => {
+  console.log('rng:', range.value, props.pages);
+  if (range.value > props.pages) {
+    return 0;
+  }
+
+  let rangeValue = Math.round(range.value / 2);
+  let start = page.value - rangeValue;
+  if (start < 0) return 0;
+  if (start > props.pages || start + range.value > props.pages) {
+    return props.pages - range.value;
+  }
+  return start;
+});
+
+onMounted(() => {
+      if (range.value > pages.value) {
+        range.value = pages.value;
+      }
+});
+
+onUnmounted(() => {
+  clearTimeout(timer)
+});
+
 </script>
 
 <style>

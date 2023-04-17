@@ -14,49 +14,41 @@
   </div>
 </template>
 
-<script>
-export default {
-  name: "PanelInputNumber",
-  model: {
-    prop: "value",
-    event: "update"
+<script setup>
+import { ref, watch } from 'vue';
+
+const props = defineProps({
+  name: {
+    type: String,
+    required: true,
   },
-  props: {
-    name: {
-      type: String,
-      required: true
-    },
-    value: {
-      type: Number,
-      required: true
-    },
-    max: {
-      type: String,
-      default: "10"
-    },
-    min: {
-      type: String,
-      default: "1"
-    },
-    step: {
-      type: String,
-      default: "1"
-    }
+  value: {
+    type: Number,
+    required: true,
   },
-  data() {
-    return {
-      localValue: this.value
-    };
+  max: {
+    type: String,
+    default: '10',
   },
-  watch: {
-    localValue() {
-      this.$emit("update", this.localValue);
-    },
-    value(newValue) {
-      this.localValue = newValue;
-    }
-  }
-};
+  min: {
+    type: String,
+    default: '1',
+  },
+  step: {
+    type: String,
+    default: '1',
+  },
+});
+
+const emit = defineEmits(['update']);
+const localValue = ref(props.value);
+
+watch(localValue, () => {
+  emit('update', localValue.value);
+});
+watch(() => props.value, (newValue) => {
+  localValue.value = newValue;
+});
 </script>
 
 <style scoped>

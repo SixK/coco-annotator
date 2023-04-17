@@ -2,30 +2,31 @@
   <button
     class="btn btn-outline-light tool-input-button"
     :class="{ active: value }"
-    @click="$emit('update', !value)"
+    @click="toggleValue"
   >
     {{ name }}
   </button>
 </template>
 
-<script>
-export default {
-  name: "ToggleButton",
-  model: {
-    prop: "value",
-    event: "update"
+<script setup>
+import { defineProps, defineEmits } from 'vue'
+
+const props = defineProps({
+  name: {
+    type: String,
+    required: true,
   },
-  props: {
-    name: {
-      type: String,
-      required: true
-    },
-    value: {
-      type: Boolean,
-      required: true
-    }
-  }
-};
+  value: {
+    type: Boolean,
+    required: true,
+  },
+})
+
+const emit = defineEmits(['update'])
+
+const toggleValue = () => {
+  emit('update', !props.value)
+}
 </script>
 
 <style scoped>

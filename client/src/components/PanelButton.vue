@@ -6,17 +6,17 @@
     {{ name }}
   </button>
 </template>
+<script setup>
+import { defineEmits, defineProps } from 'vue'
 
-<script>
-export default {
-  name: "PanelButton",
-  props: {
-    name: {
-      type: String,
-      required: true
-    }
-  }
-};
+const props = defineProps({
+  name: {
+    type: String,
+    required: true,
+  },
+});
+
+const emit = defineEmits(['click'])
 </script>
 
 <style scoped>

@@ -484,15 +484,18 @@
         <PanelToggle
           v-model="panel.showAnnotated"
           name="Show Annotated"
+          @update="panel.showAnnotated = $event"
         />
         <PanelToggle
           v-model="panel.showNotAnnotated"
           name="Show Not Annotated"
+          @update="panel.showAnnotated = $event"
         />
         <PanelDropdown
           v-model="order"
           name="Order"
           :values="orderTypes"
+          @update-order="updateOrder"
         />
       </div>
       <div
@@ -800,6 +803,9 @@ export default {
   },
   methods: {
     ...mapMutations(["addProcess", "removeProcess"]),
+    updateOrder(newOrder) {
+      this.order = newOrder;
+    },
     generateDataset() {
       if (this.keyword.length === 0) return;
 

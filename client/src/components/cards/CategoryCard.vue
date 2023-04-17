@@ -72,6 +72,7 @@
       ref="category_settings"
       class="modal fade"
       role="dialog"
+      @hidden="resetCategorySettings"
     >
       <div
         class="modal-dialog"
@@ -166,9 +167,6 @@ import axios from "axios";
 import toastrs from "@/mixins/toastrs";
 // import TagsInput from "@/components/TagsInput";
 import KeypointsDefinition from "@/components/KeypointsDefinition";
-import JQuery from "jquery";
-
-let $ = JQuery;
 
 export default {
   name: "CategoryCard",
@@ -210,10 +208,6 @@ export default {
     this.resetCategorySettings();
   },
   mounted() {
-    $(this.$refs.category_settings).on(
-      "hidden.bs.modal",
-      this.resetCategorySettings
-    );
     this.isMounted = true;
   },
   methods: {
