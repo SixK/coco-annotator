@@ -256,7 +256,7 @@ export default {
           this.increamentUserCount();
           this.$router.push(this.redirect);
         },
-        errorCallback: error =>
+        errorCallback: (error) =>
           this.axiosReqestError(
             "User Registration",
             error.response.data.message
@@ -282,8 +282,8 @@ export default {
           loader.hide();
           this.$router.push(this.redirect);
         },
-        errorCallback: error =>
-          this.axiosReqestError("User Login", error.response.data.message)
+        errorCallback: (error) =>
+          this.axiosReqestError("User Login", error.response.data.message),
       };
       this.login(data);
     },

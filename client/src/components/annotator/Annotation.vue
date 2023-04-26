@@ -274,7 +274,7 @@ import MetaData from "@/components/MetaData";
 let $ = JQuery;
 
 export default {
-  name: "Annotation",
+  name: "AppAnnotation",
   components: {
     MetaData,
     // TagsInput
@@ -487,7 +487,7 @@ export default {
       this.$parent.category.annotations.splice(this.index, 1);
       if (this.compoundPath != null) this.compoundPath.remove();
       if (this.keypoints != null) {
-        this.keypoints._keypoints.forEach( keypoint => {
+        this.keypoints._keypoints.forEach((keypoint) => {
           this.keypoints.deleteKeypoint(keypoint);
         });
         this.keypoints.remove();
@@ -503,7 +503,7 @@ export default {
     },
     onAnnotationKeypointClick(labelIndex) {
       if (this.isKeypointLabeled(labelIndex)) {
-        this.keypoint.tag = [String(labelIndex+1)];
+        this.keypoint.tag = [String(labelIndex + 1)];
         this.currentKeypoint = this.keypoints._labelled[this.keypoint.tag];
       }
       if (this.isVisible) {
@@ -511,7 +511,7 @@ export default {
       }
     },
     onAnnotationKeypointSettingsClick(labelIndex) {
-      this.keypoint.tag = [String(labelIndex+1)];
+      this.keypoint.tag = [String(labelIndex + 1)];
       let indexLabel = parseInt(String(this.keypoint.tag));
       if (this.keypoints && indexLabel in this.keypoints._labelled) {
         let labelled = this.keypoints._labelled[indexLabel];
@@ -577,10 +577,10 @@ export default {
       }
 
       let newChildren = [];
-      this.compoundPath.children.forEach(path => {
+      this.compoundPath.children.forEach((path) => {
         let points = [];
 
-        path.segments.forEach(seg => {
+        path.segments.forEach((seg) => {
           points.push({ x: seg.point.x, y: seg.point.y });
         });
         points = simplifyjs(points, simplify, true);
@@ -615,7 +615,7 @@ export default {
         indexLabel: label || -1,
         fillColor: this.keypointColors[label - 1],
         radius: this.scale * 6,
-        onClick: event => {
+        onClick: (event) => {
           if (!["Select", "Keypoints"].includes(this.activeTool)) return;
 
           let keypoint = event.target.keypoint;
@@ -644,7 +644,7 @@ export default {
 
           this.currentKeypoint = keypoint;
         },
-        onDoubleClick: event => {
+        onDoubleClick: (event) => {
           if (!this.$parent.isCurrent) return;
           if (!["Select", "Keypoints"].includes(this.activeTool)) return;
           this.currentKeypoint = event.target.keypoint;
@@ -656,7 +656,7 @@ export default {
 
           $(id).modal("show");
         },
-        onMouseDrag: event => {
+        onMouseDrag: (event) => {
           let keypoint = event.target.keypoint;
           if (!["Select", "Keypoints"].includes(this.activeTool)) return;
 
@@ -758,20 +758,20 @@ export default {
     },
     export() {
       if (this.compoundPath == null) this.createCompoundPath();
-      let metadata = this.$refs.metadata.export();
+      let metadata = this.$refs.metadata.exportMetadata();
       if (this.name.length > 0) metadata.name = this.name;
       let annotationData = {
         id: this.annotation.id,
         isbbox: this.annotation.isbbox,
         color: this.color,
-        metadata: metadata
+        metadata: metadata,
       };
 
       this.simplifyPath();
       this.compoundPath.fullySelected = false;
       let json = this.compoundPath.exportJSON({
         asString: false,
-        precision: 1
+        precision: 1,
       });
 
       if (!this.keypoints.isEmpty()) {
@@ -996,7 +996,7 @@ export default {
     },
     keypointEdges(newEdges) {
       this.keypoints.color = this.darkHSL;
-      newEdges.forEach(e => this.keypoints.addEdge(e));
+      newEdges.forEach((e) => this.keypoints.addEdge(e));
     },
     scale: {
       immediate: true,

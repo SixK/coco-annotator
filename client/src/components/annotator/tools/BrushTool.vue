@@ -1,157 +1,197 @@
-<script>
-import paper from "paper";
-import tool from "@/mixins/toolBar/tool";
+<template>
+  <div>
+    <i v-tooltip.right="tooltip" class='fa fa-x' :class="icon" :style="{ color: iconColor }" @click="click"></i>
+    <br>
+  </div>
+</template>
+<script setup>
+import { ref, computed, watch, inject, onMounted, provide, defineEmits } from 'vue'
+import { useTools } from "@/composables/toolBar/tools";
+import paper from 'paper';
 
-export default {
-  name: "EraserTool",
-  mixins: [tool],
-  props: {
-    scale: {
+const emits = defineEmits(['update']);
+
+const emitUpdate = (value) => {
+    emits('update',  value);
+}
+
+const props = defineProps({
+  scale: {
       type: Number,
-      default: 1
+      default: 1,
+   }
+});
+
+const uniteCurrentAnnotation = inject('uniteCurrentAnnotation');
+
+const {
+    click,
+    state,
+    iconColor,
+    tooltip,
+    name,
+    cursor
+  }= useTools(emits);
+
+name.value = "Brush";
+cursor.value = "none";
+const scale = ref(props.scale);
+const icon = ref("fa-paint-brush");
+const scaleFactor = 3;
+
+const brush = ref({
+  path: null,
+  pathOptions: {
+    strokeColor: "white",
+    strokeWidth: 1,
+    radius: 30,
+  },
+});
+const selection = ref(null);
+
+const isDisabled = computed(() => {
+  return state.isDisabled;
+})
+
+const isActive = computed(() => {
+  return state.isActive;
+});
+
+watch(
+  () => brush.value.pathOptions.radius,
+  () => {
+    if (brush.value.path == null) return;
+    let position = brush.value.path.position;
+    brush.value.path.remove();
+    createBrush(position);
+  }
+);
+
+watch(
+  () => brush.value.pathOptions.strokeColor,
+  (newColor) => {
+    if (brush.value.path == null) return;
+    brush.value.path.strokeColor = newColor;
+  }
+);
+
+
+watch(
+  () => state.isActive,
+  (active) => {
+    if (brush.value.path != null) {
+      brush.value.path.visible = active;
     }
-  },
-  data() {
-    return {
-      icon: "fa-paint-brush",
-      name: "Brush",
-      cursor: "none",
-      scaleFactor: 3,
-      brush: {
-        path: null,
-        pathOptions: {
-          strokeColor: "white",
-          strokeWidth: 1,
-          radius: 30
-        }
-      },
-      selection: null
-    };
-  },
-  computed: {
-    isDisabled() {
-      return this.$parent.current.annotation == -1;
-    },
-  },
-  watch: {
-    "brush.pathOptions.radius"() {
-      if (this.brush.path == null) return;
+    if (active) {
+      state.tool.activate();
+      localStorage.setItem('editorTool', name.value);
+    }
+  }
+);
 
-      let position = this.brush.path.position;
-      this.brush.path.remove();
-      this.createBrush(position);
-    },
-    "brush.pathOptions.strokeColor"(newColor) {
-      if (this.brush.path == null) return;
 
-      this.brush.path.strokeColor = newColor;
-    },
-    isActive(active) {
-      if (this.brush.path != null) {
-        this.brush.path.visible = active;
-      }
+watch(
+  () => props.scale,
+  (newScale) => {
+    brush.value.pathOptions.strokeWidth = newScale * scaleFactor;    
+    if (brush.value.path != null)
+      brush.value.path.strokeWidth = newScale * scaleFactor;
+  }
+);
 
-      if (active) {
-        this.tool.activate();
-        localStorage.setItem("editorTool", this.name);
-      }
-    },
-    /**
-     * Change width of stroke based on zoom of image
-     */
-    scale(newScale) {
-      this.brush.pathOptions.strokeWidth = newScale * this.scaleFactor;
-      if (this.brush.path != null)
-        this.brush.path.strokeWidth = newScale * this.scaleFactor;
-    },
-  },
-  mounted() {},
-  methods: {
-    removeBrush() {
-      if (this.brush.path != null) {
-        this.brush.path.remove();
-        this.brush.path = null;
-      }
-    },
-    removeSelection() {
-      if (this.selection != null) {
-        this.selection.remove();
-        this.selection = null;
-      }
-    },
-    moveBrush(point) {
-      if (this.brush.path == null) this.createBrush();
+const draw = () => {
+      let newSelection = selection.value.unite(brush.value.path);
 
-      this.brush.path.bringToFront();
-      this.brush.path.position = point;
-    },
-    createBrush(center) {
-      center = center || new paper.Point(0, 0);
-
-      this.brush.path = new paper.Path.Circle({
-        strokeColor: this.brush.pathOptions.strokeColor,
-        strokeWidth: this.brush.pathOptions.strokeWidth,
-        radius: this.brush.pathOptions.radius,
-        center: center
-      });
-    },
-    createSelection() {
-      this.selection = new paper.Path({
-        strokeColor: this.brush.pathOptions.strokeColor,
-        strokeWidth: this.brush.pathOptions.strokeWidth
-      });
-    },
-    onMouseMove(event) {
-      this.moveBrush(event.point);
-    },
-    onMouseDown() {
-      this.createSelection();
-      this.draw();
-    },
-    onMouseUp() {
-      this.merge();
-      this.removeSelection();
-    },
-    onMouseDrag(event) {
-      this.moveBrush(event.point);
-      this.draw();
-    },
-
-    /**
-     * Unites current brush with selection
-     */
-    draw() {
-      let newSelection = this.selection.unite(this.brush.path);
-
-      this.selection.remove();
-      this.selection = newSelection;
-    },
-    /**
-     * Unites current selection with selected annotation
-     */
-    merge() {
-      this.$parent.uniteCurrentAnnotation(this.selection);
-    },
-    decreaseRadius() {
-      if (!this.isActive) return;
-      this.brush.pathOptions.radius -= 2;
-    },
-    increaseRadius() {
-      if (!this.isActive) return;
-      this.brush.pathOptions.radius += 2;
-    },
-    export() {
-      return {
-        strokeColor: this.brush.pathOptions.strokeColor,
-        radius: this.brush.pathOptions.radius
-      };
-    },
-    setPreferences(pref) {
-      this.brush.pathOptions.strokeColor =
-        pref.strokeColor || this.brush.pathOptions.strokeColor;
-      this.brush.pathOptions.radius =
-        pref.radius || this.brush.pathOptions.radius;
-    },
-  },
+      selection.value.remove();
+      selection.value = newSelection;
 };
+const removeBrush = () => {
+  if (brush.value.path != null) {
+    brush.value.path.remove();
+    brush.value.path = null;
+  }
+};
+
+const removeSelection = () => {
+  if (selection.value != null) {
+    selection.value.remove();
+    selection.value = null;
+  }
+};
+
+const moveBrush = (point) => {
+  if (brush.value.path == null) createBrush();
+  brush.value.path.bringToFront();
+  brush.value.path.position = point;
+};
+
+const createBrush = (center) => {
+  center = center || new paper.Point(0, 0);
+  brush.value.path = new paper.Path.Circle({
+    strokeColor: brush.value.pathOptions.strokeColor,
+    strokeWidth: brush.value.pathOptions.strokeWidth,
+    radius: brush.value.pathOptions.radius,
+    center: center,
+  });
+};
+
+const createSelection = () => {
+  selection.value = new paper.Path({
+    strokeColor: brush.value.pathOptions.strokeColor,
+    strokeWidth: brush.value.pathOptions.strokeWidth,
+  });
+};
+
+const onMouseMove = (event) => {
+  moveBrush(event.point);
+};
+
+const onMouseDown = () => {
+  createSelection();
+  draw();
+};
+
+const onMouseUp = () => {
+  merge();
+  removeSelection();
+};
+
+const onMouseDrag = (event) => {
+  moveBrush(event.point);
+  draw();
+};
+
+const merge = () => {
+  uniteCurrentAnnotation(selection.value);
+};
+const decreaseRadius = () => {
+  if (!state.isActive) return;
+  brush.value.pathOptions.radius -= 2;
+};
+const increaseRadius = () => {
+  if (!state.isActive) return;
+  brush.value.pathOptions.radius += 2;
+};
+const exportBrush = () => {
+  return {
+    strokeColor: brush.value.pathOptions.strokeColor,
+    radius: brush.value.pathOptions.radius,
+  };
+};
+const setPreferences = (pref) => {
+  brush.value.pathOptions.strokeColor =
+    pref.strokeColor || brush.value.pathOptions.strokeColor;
+  brush.value.pathOptions.radius =
+    pref.radius || brush.value.pathOptions.radius;
+};
+
+onMounted(() => {
+    state.tool.onMouseDown = onMouseDown;
+    state.tool.onMouseDrag = onMouseDrag;
+    state.tool.onMouseMove = onMouseMove;
+    state.tool.onMouseUp = onMouseUp;
+})
+
+defineExpose({exportBrush, increaseRadius, decreaseRadius, setPreferences, brush, name});
+
 </script>

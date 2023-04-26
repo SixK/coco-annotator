@@ -106,81 +106,74 @@
 </template>
 
 <script setup>
-import VLazyImage from "v-lazy-image";
-</script>
-
-<script>
 import axios from "axios";
+import VLazyImage from "v-lazy-image";
+import { ref, computed} from "vue";
+import { useRouter } from 'vue-router';
 
-export default {
-  name: "ImageCard",
-  props: {
+const router = useRouter();
+const emit = defineEmits(['updatePage']);
+
+const props = defineProps({
     image: {
       type: Object,
       required: true
     }
-  },
-  data() {
-    return {
-      hover: false,
-      showAnnotations: true,
-      loaderUrl: require("@/assets/loader.gif")
-    };
-  },
-  computed: {
-    imageUrl() {
-      let d = new Date();
-      if (this.showAnnotations) {
-        return `/api/image/${
-          this.image.id
-        }?width=250&thumbnail=true&dummy=${d.getTime()}`;
-      } else {
-        return "/api/image/" + this.image.id + "?width=250";
-      }
-    },
-    annotated() {
-      if (!this.image.annotating) return 0;
-      return this.image.annotating.length > 0;
-    },
-  },
-  methods: {
-    downloadURI(uri, exportName) {
-      let link = document.createElement("a");
-      link.href = uri;
-      link.download = exportName;
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-    },
-    openAnnotator() {
-      this.$router.push({
-        name: "annotate",
-        params: { identifier: this.image.id }
-      });
-    },
-    onDownloadClick() {
-      this.downloadURI(
-        "/api/image/" + this.image.id + "?asAttachment=true",
-        this.image.file_name
-      );
+});
 
-      axios.get("/api/image/" + this.image.id + "/coco").then(reponse => {
-        let dataStr =
-          "data:text/json;charset=utf-8," +
-          encodeURIComponent(JSON.stringify(reponse.data));
-        this.downloadURI(
-          dataStr,
-          this.image.file_name.replace(/\.[^/.]+$/, "") + ".json"
-        );
-      });
-    },
-    onDeleteClick() {
-      axios.delete("/api/image/" + this.image.id).then(() => {
-        this.$parent.updatePage();
-      });
-    },
-  },
+const hover = ref(false);
+const showAnnotations = ref(true);
+const loaderUrl = require("@/assets/loader.gif");
+const imageUrl = computed(() => {
+      let d = new Date();
+      if (showAnnotations.value) {
+        return `/api/image/${props.image.id}?width=250&thumbnail=true&dummy=${d.getTime()}`;
+      } else {
+        return "/api/image/" + props.image.id + "?width=250";
+      }
+});
+    
+const annotated = computed(() => {
+      if (!props.image.annotating) return 0;
+      return props.image.annotating.length > 0;
+});
+
+const downloadURI = (uri, exportName) => {
+  let link = document.createElement("a");
+  link.href = uri;
+  link.download = exportName;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
 };
+
+const openAnnotator = () => {
+  router.push({
+    name: "annotate",
+    params: { identifier: props.image.id }
+  });
+};
+
+const onDownloadClick = () => {
+  downloadURI("/api/image/" + props.image.id + "?asAttachment=true", props.image.file_name);
+  
+  axios.get("/api/image/" + props.image.id + "/coco").then(response => {
+    let dataStr =
+      "data:text/json;charset=utf-8," +
+      encodeURIComponent(JSON.stringify(response.data));
+    downloadURI(
+      dataStr,
+      props.image.file_name.replace(/\.[^/.]+$/, "") + ".json"
+    );
+  });
+}
+
+const onDeleteClick = () => {
+  axios.delete(`/api/image/${props.image.id}`);
+  // $parent.updatePage();
+  emit('updatePage');
+};
+
 </script>
 
 <style scoped>
@@ -228,4 +221,5 @@ p {
   float: left;
   margin: 0 2px 5px 0;
 }
+
 </style>

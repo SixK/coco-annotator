@@ -1,7 +1,7 @@
 <template>
   <button
     class="btn btn-outline-light tool-input-button"
-    :class="{ active: value }"
+    :class="{ active: showText }"
     @click="toggleValue"
   >
     {{ name }}
@@ -16,16 +16,16 @@ const props = defineProps({
     type: String,
     required: true,
   },
-  value: {
+  showText: {
     type: Boolean,
     required: true,
-  },
+  }
 })
 
-const emit = defineEmits(['update'])
+const emit = defineEmits(['update:showText'])
 
 const toggleValue = () => {
-  emit('update', !props.value)
+  emit('update:showText', !props.showText);
 }
 </script>
 

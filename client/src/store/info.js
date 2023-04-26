@@ -24,7 +24,7 @@ const mutations = {
     state.loading = true;
     axios
       .get("/api/info/")
-      .then(response => {
+      .then((response) => {
         state.loading = false;
         state.success = true;
 

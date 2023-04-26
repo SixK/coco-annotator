@@ -34,85 +34,91 @@
   </div>
 </template>
 
-<script>
-export default {
-  name: "CustomShortcut",
-  props: {
-    shortcut: {
-      type: Object,
-      required: true
-    }
+<script setup>
+import { reactive, ref, computed, onMounted, onUnmounted, defineExpose,toRef } from 'vue';
+import { useRoute } from 'vue-router';
+
+const route = useRoute();
+
+const props = defineProps({
+  shortcut: {
+    type: Object,
+    required: true,
   },
-  data() {
-    return {
-      keys: this.shortcut.default,
-      keysDown: [],
-      readonly: this.shortcut.readonly == null ? false : this.shortcut.readonly
-    };
-  },
-  computed: {
-    toggleKey() {
-      return this.keysDown.toString().replace(/,/g, "+");
-    },
-  },
-  created() {
-    window.addEventListener("keyup", (this.onKeyup = this.onkeyup.bind(this)));
-    window.addEventListener(
-      "keydown",
-      (this.onKeydown = this.onkeydown.bind(this))
-    );
-  },
-  unmounted() {
-    window.removeEventListener("keydown", this.onKeydown);
-    window.removeEventListener("keydup", this.onKeyup);
-  },
-  methods: {
-    export() {
+});
+
+const _uid = reactive(`input-${Date.now()}-${Math.random()}`);
+const keys = ref(props.shortcut.default);
+const keysDown = ref([]);
+const readonly = ref(props.shortcut.readonly == null ? false : props.shortcut.readonly);
+const toggleKey = computed(() => {
+  return keysDown.value.toString().replace(/,/g, '+');
+});
+
+
+const myexport = (() => {
+      console.log('in myexport');
       return {
-        name: this.shortcut.name,
-        keys: this.keys
+        name: props.shortcut.name,
+        keys: keys.value,
       };
-    },
-    function(e) {
+});
+
+const myfunction = ((e) => {
       let target = e.target.tagName.toLowerCase();
 
       if (target === "input") return;
       if (target === "textarea") return;
 
       e.preventDefault();
-      this.shortcut.function();
-    },
-    onkeydown(e) {
-      if (this.readonly) {
+      props.shortcut.function();
+});
+
+const keyCorrections = ((key) => {
+      if (key == " ") return "space";
+      return key;
+});
+
+const onKeyup = ((e) => {
+      window.addEventListener('keyup: ', e, onKeyup);
+      let key = keyCorrections(e.key.toLowerCase());
+      if (key === " ") key = "space";
+      keysDown.value = keysDown.value.filter((a) => a !== key);
+});
+const onKeydown = ((e) => {
+      if (readonly.value) {
         return;
       }
 
-      let key = this.keyCorrections(e.key.toLowerCase());
+      let key = keyCorrections(e.key.toLowerCase());
 
-      if (this.keysDown.indexOf(key) === -1) {
-        this.keysDown.push(key);
+      if (keysDown.value.indexOf(key) === -1) {
+        keysDown.value.push(key);
       }
 
-      if (parseInt(e.target.id) === this._uid) {
+      // if (parseInt(e.target.id) === _uid) {
+      if (e.target.id === _uid) {
         e.preventDefault();
-        this.keys = this.keysDown;
-      } else if (this.$route.name === "annotate") {
-        if (this.keysDown.sort().join(",") === this.keys.sort().join(",")) {
-          this.function(e);
+        keys.value = keysDown.value;
+      } else if (route.name === "annotate") {
+        if (keysDown.value.sort().join(",") === keys.value.sort().join(",")) {
+            console.log('here...');
+          myfunction(e);
         }
       }
-    },
-    onkeyup(e) {
-      let key = this.keyCorrections(e.key.toLowerCase());
-      if (key === " ") key = "space";
-      this.keysDown = this.keysDown.filter(a => a !== key);
-    },
-    keyCorrections(key) {
-      if (key == " ") return "space";
-      return key;
-    }
-  },
-};
+});
+
+onMounted(() => {
+  window.addEventListener('keyup', onKeyup);
+  window.addEventListener('keydown', onKeydown);
+});
+onUnmounted(() => {
+  window.removeEventListener('keydown', onKeydown);
+  window.removeEventListener('keyup', onKeyup);
+});
+
+defineExpose({myexport});
+
 </script>
 
 <style scoped>

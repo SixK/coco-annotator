@@ -1,11 +1,12 @@
 <template>
-  <div v-show="magicwand.isActive">
+  <div v-show="showme">
     <PanelInputNumber
       v-model="magicwand.wand.threshold"
       name="Threshold"
       min="0"
       max="1000"
       step="5"
+      @update="magicwand.wand.threshold"
     />
     <PanelInputNumber
       v-model="magicwand.wand.blur"
@@ -13,24 +14,28 @@
       min="0"
       max="1000"
       step="5"
+      @update="magicwand.wand.blur"
     />
   </div>
 </template>
 
-<script>
-import { defineComponent } from 'vue';
+<script setup>
 import PanelInputNumber from '@/components/PanelInputNumber';
+import { defineProps, ref, inject, watchEffect } from 'vue';
 
-export default defineComponent({
-  name: 'MagicWandPanel',
-  components: {
-    PanelInputNumber,
-  },
-  props: {
-    magicwand: {
-      type: Object,
-      required: true,
-    },
+const props = defineProps({
+  magicwand: {
+    type: Object,
+    required: true,
   },
 });
+
+const magicwand = ref(props.magicwand);
+const showme = ref('false');
+const getActiveTool = inject('getActiveTool');
+
+watchEffect(() => {
+    showme.value = magicwand.value.name === getActiveTool();
+});
+
 </script>

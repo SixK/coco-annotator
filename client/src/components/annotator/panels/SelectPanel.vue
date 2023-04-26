@@ -1,23 +1,29 @@
 <template>
-  <div v-show="select.isActive">
+  <div v-show="showme">
     <PanelToggle
-      v-model="select.hover.showText"
+      v-model:show-text="select.hover.showText"
       name="Show Hover Text"
     />
   </div>
 </template>
 
-<script>
-import { defineComponent } from 'vue';
+<script setup>
+import { defineProps, ref, inject, watchEffect } from 'vue';
 import PanelToggle from "@/components/PanelToggle";
-export default defineComponent({
-  name: "SelectPanel",
-  components: { PanelToggle },
-  props: {
-    select: {
-      type: Object,
-      required: true,
-    },
+
+const props = defineProps({
+  select: {
+    type: Object,
+    required: true,
   },
 });
+
+const select = ref(props.select);
+const showme = ref('false');
+const getActiveTool = inject('getActiveTool');
+
+watchEffect(() => {
+    showme.value = select.value.name === getActiveTool();
+});
+
 </script>

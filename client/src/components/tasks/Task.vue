@@ -68,12 +68,12 @@
 import Tasks from "@/models/tasks";
 
 export default {
-  name: "Task",
+  name: "AppTask",
   props: {
     task: {
       type: Object,
-      required: true
-    }
+      required: true,
+    },
   },
   data() {
     return {
@@ -81,7 +81,7 @@ export default {
       showLogs: false,
       highlight: false,
       onlyErrors: false,
-      onlyWarnings: false
+      onlyWarnings: false,
     };
   },
   sockets: {
@@ -134,7 +134,7 @@ export default {
         setTimeout(() => {
           this.highlight = true;
           this.$el.scrollIntoView({
-            behavior: "smooth"
+            behavior: "smooth",
           });
           setTimeout(() => (this.highlight = false), 1000);
         }, 200);

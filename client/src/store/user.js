@@ -52,7 +52,7 @@ const mutations = {
     state.isAuthenticatePending = true;
     axios
       .get("/api/user/")
-      .then(response => {
+      .then((response) => {
         state.user = response.data.user;
         state.isAuthenticated = true;
         state.isAuthenticatePending = false;
@@ -75,12 +75,12 @@ const actions = {
       .post("/api/user/register", {
         ...user
       })
-      .then(response => {
+      .then((response) => {
         commit("loggedIn", response.data.user);
         if (successCallback != null) successCallback(response);
         return true;
       })
-      .catch(error => {
+      .catch((error) => {
         commit("error", error);
         if (errorCallback != null) errorCallback(error);
         return false;
@@ -96,12 +96,12 @@ const actions = {
       .post("/api/user/login", {
         ...user
       })
-      .then(response => {
+      .then((response) => {
         commit("loggedIn", response.data.user);
         if (successCallback != null) successCallback(response);
         return true;
       })
-      .catch(error => {
+      .catch((error) => {
         commit("error", error);
         if (errorCallback != null) errorCallback(error);
         return false;
@@ -119,7 +119,7 @@ const actions = {
         commit("loggedOut");
         return true;
       })
-      .catch(error => {
+      .catch((error) => {
         commit("error", error);
         return false;
       });

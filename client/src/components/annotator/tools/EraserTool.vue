@@ -1,133 +1,184 @@
-<script>
-import paper from "paper";
-import tool from "@/mixins/toolBar/tool";
+<template>
+  <div>
+    <i v-tooltip.right="tooltip" class='fa fa-x' :class="icon" :style="{ color: iconColor }" @click="click"></i>
+    <br>
+  </div>
+</template>
 
-export default {
-  name: "EraserTool",
-  mixins: [tool],
-  props: {
-    scale: {
+<script setup>
+import { ref, computed, watch, inject, watchEffect, onMounted, provide, defineEmits } from 'vue'
+import { useTools } from "@/composables/toolBar/tools";
+import paper from 'paper';
+
+const emits = defineEmits(['update']);
+
+const emitUpdate = (value) => {
+    emits('update',  value);
+}
+
+const props = defineProps({
+  scale: {
       type: Number,
-      default: 1
+      default: 1,
+   }
+});
+
+const getCurrentAnnotation = inject('getCurrentAnnotation');
+
+const {
+    click,
+    state,
+    iconColor,
+    tooltip,
+    name,
+    cursor
+  }= useTools(emits);
+
+name.value = "Eraser";
+cursor.value = "none";
+const scale = ref(props.scale);
+const icon = ref("fa-eraser");
+const scaleFactor = 3;
+const localCurrentAnnotation=ref('');
+
+const eraser = ref({
+  brush: null,
+  minimumArea: 10,
+  pathOptions: {
+    strokeColor: "white",
+    strokeWidth: 1,
+    radius: 30,
+  },
+});
+
+const isDisabled = computed(() => {
+  return state.isDisabled;
+})
+
+watch(
+  () => getCurrentAnnotation(),
+  (value) => {
+      localCurrentAnnotation.value=value;
+  }
+);
+
+watch(
+  () => eraser.value.pathOptions.radius,
+  () => {
+    if (eraser.value.brush == null) return;
+    let position = eraser.value.brush.position;
+    eraser.value.brush.remove();
+    createBrush(position);
+  }
+);
+
+watch(
+  () => eraser.value.pathOptions.strokeColor,
+  (newColor) => {
+    if (eraser.value.brush == null) return;
+    eraser.value.brush.strokeColor = newColor;
+  }
+);
+
+watch(
+  () => state.isActive,
+  (active) => {
+    if (eraser.value.brush != null) {
+      eraser.value.brush.visible = active;
     }
-  },
-  data() {
-    return {
-      icon: "fa-eraser",
-      name: "Eraser",
-      cursor: "none",
-      scaleFactor: 3,
-      eraser: {
-        brush: null,
-        minimumArea: 10,
-        pathOptions: {
-          strokeColor: "white",
-          strokeWidth: 1,
-          radius: 30
-        }
+    if (active) {
+      state.tool.activate();
+      localStorage.setItem('editorTool', name.value);
+    }
+  }
+);
+
+watch(
+    () => props.scale, 
+    (newScale) => {
+      eraser.value.pathOptions.strokeWidth = newScale * scaleFactor;
+      if (eraser.value.brush != null)
+        eraser.value.brush.strokeWidth = newScale * scaleFactor;
+});
+
+const removeBrush = () => {
+      if (eraser.value.brush != null) {
+        eraser.value.brush.remove();
+        eraser.value.brush = null;
       }
-    };
-  },
-  computed: {
-    isDisabled() {
-      return this.$parent.current.annotation == -1;
-    },
-  },
-  watch: {
-    "eraser.pathOptions.radius"() {
-      if (this.eraser.brush == null) return;
-
-      let position = this.eraser.brush.position;
-      this.eraser.brush.remove();
-      this.createBrush(position);
-    },
-    "eraser.pathOptions.strokeColor"(newColor) {
-      if (this.eraser.brush == null) return;
-
-      this.eraser.brush.strokeColor = newColor;
-    },
-    isActive(active) {
-      if (this.eraser.brush != null) {
-        this.eraser.brush.visible = active;
-      }
-
-      if (active) {
-        this.tool.activate();
-        localStorage.setItem("editorTool", this.name);
-      }
-    },
-    /**
-     * Change width of stroke based on zoom of image
-     */
-    scale(newScale) {
-      this.eraser.pathOptions.strokeWidth = newScale * this.scaleFactor;
-      if (this.eraser.brush != null)
-        this.eraser.brush.strokeWidth = newScale * this.scaleFactor;
-    },
-  },
-  mounted() {},
-  methods: {
-    removeBrush() {
-      if (this.eraser.brush != null) {
-        this.eraser.brush.remove();
-        this.eraser.brush = null;
-      }
-    },
-    moveBrush(point) {
-      if (this.eraser.brush == null) this.createBrush();
-
-      this.eraser.brush.bringToFront();
-      this.eraser.brush.position = point;
-    },
-    createBrush(center) {
-      center = center || new paper.Point(0, 0);
-
-      this.eraser.brush = new paper.Path.Circle({
-        strokeColor: this.eraser.pathOptions.strokeColor,
-        strokeWidth: this.eraser.pathOptions.strokeWidth,
-        radius: this.eraser.pathOptions.radius,
-        center: center
-      });
-    },
-    onMouseMove(event) {
-      this.moveBrush(event.point);
-    },
-    onMouseDrag(event) {
-      this.moveBrush(event.point);
-      this.erase();
-    },
-    onMouseDown() {
-      this.$parent.currentAnnotation.createUndoAction("Subtract");
-      this.erase();
-    },
-    onMouseUp() {
-      this.$parent.currentAnnotation.simplifyPath();
-    },
-    erase() {
-      // Undo action, will be handled on mouse down
-      // Simplify, will be handled on mouse up
-      this.$parent.currentAnnotation.subtract(this.eraser.brush, false, false);
-    },
-    decreaseRadius() {
-      if (!this.isActive) return;
-      this.eraser.pathOptions.radius -= 2;
-    },
-    increaseRadius() {
-      if (!this.isActive) return;
-      this.eraser.pathOptions.radius += 2;
-    },
-    export() {
-      return {
-        strokeColor: this.eraser.pathOptions.strokeColor,
-        radius: this.eraser.pathOptions.radius
-      };
-    },
-    setPreferences(pref) {
-      this.eraser.pathOptions.strokeColor =
-        pref.strokeColor || this.eraser.pathOptions.strokeColor;
-      this.eraser.pathOptions.radius =
-        pref.radius || this.eraser.pathOptions.radius;
-    },
-  },
 };
+const moveBrush = (point) => {
+      if (eraser.value.brush == null) createBrush();
+      eraser.value.brush.bringToFront();
+      eraser.value.brush.position = point;
+};
+
+const createBrush = (center) => {
+  center = center || new paper.Point(0, 0);
+  eraser.value.brush = new paper.Path.Circle({
+    strokeColor: eraser.value.pathOptions.strokeColor,
+    strokeWidth: eraser.value.pathOptions.strokeWidth,
+    radius: eraser.value.pathOptions.radius,
+    center: center,
+  });
+};
+
+const onMouseMove = (event) => {
+  moveBrush(event.point);
+};
+
+const onMouseDrag = (event) => {
+  moveBrush(event.point);
+  erase();
+};
+
+const onMouseDown = () => {
+  // $parent.currentAnnotation.createUndoAction('Subtract');
+  localCurrentAnnotation.value.createUndoAction('Subtract');
+  erase();
+};
+
+const onMouseUp = () => {
+  // $parent.currentAnnotation.simplifyPath();
+  localCurrentAnnotation.value.simplifyPath();
+};
+
+const erase = () => {
+  // $parent.currentAnnotation.subtract(eraser.value.brush, false, false);
+    localCurrentAnnotation.value.subtract(eraser.value.brush, false, false);
+};
+
+const decreaseRadius = () => {
+      if (!isActive.value) return;
+      eraser.value.pathOptions.radius -= 2;
+};
+
+const increaseRadius = () => {
+      if (!isActive.value) return;
+      eraser.value.pathOptions.radius += 2;
+};
+
+const exportEraser = () => {
+      return {
+        strokeColor: eraser.value.pathOptions.strokeColor,
+        radius: eraser.value.pathOptions.radius,
+      };
+};
+    
+const setPreferences = (pref) => {
+      eraser.value.pathOptions.strokeColor =
+        pref.strokeColor || eraser.value.pathOptions.strokeColor;
+      eraser.value.pathOptions.radius =
+        pref.radius || eraser.value.pathOptions.radius;
+};
+
+onMounted(() => {
+    state.tool.onMouseDown = onMouseDown;
+    state.tool.onMouseDrag = onMouseDrag;
+    state.tool.onMouseMove = onMouseMove;
+    state.tool.onMouseUp = onMouseUp;
+})
+
+defineExpose({exportEraser, increaseRadius, decreaseRadius, setPreferences, eraser, name});
+
 </script>

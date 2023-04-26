@@ -1,19 +1,22 @@
-<script>
-import button from "@/mixins/toolBar/button";
+<template>
+  <div>
+    <i v-tooltip.right="name" class='fa fa-x' :class="icon" :style="{ color: iconColor }" @click="click(execute, disabled)"></i>
+    <br>
+  </div>
+</template>
+<script setup>
+import { ref, computed, watch, inject, onMounted, provide, defineEmits } from 'vue'
+import { useButton } from "@/composables/toolBar/button";
 
-export default {
-  name: "CenterButton",
-  mixins: [button],
-  data() {
-    return {
-      name: "Center Image",
-      icon: "fa-align-center"
-    };
-  },
-  methods: {
-    execute() {
-      this.$parent.fit();
-    }
-  }
-};
+const { iconColor, click } = useButton();
+
+const fit = inject('fit');
+
+const name =  ref("Center Image");
+const icon = ref("fa-align-center");
+
+const execute = () => {
+    fit();
+}
+
 </script>

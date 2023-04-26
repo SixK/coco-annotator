@@ -1,70 +1,75 @@
-<script>
-import toastrs from "@/mixins/toastrs";
-import button from "@/mixins/toolBar/button";
+<template>
+  <div>
+    <i v-tooltip.right="name" class='fa fa-x' :class="icon" :style="{ color: iconColor }" @click="click(execute, disabled)"></i>
+    <br>
+  </div>
+</template>
+<script setup>
 import axios from "axios";
+import { ref, computed, watch, inject, onMounted, provide, defineEmits } from 'vue'
+import { useButton } from "@/composables/toolBar/button";
+import useAxiosRequest from "@/composables/axiosRequest";
 
-export default {
-  name: "AnnotateButton",
-  mixins: [button, toastrs],
-  props: {
-    annotateUrl: {
-      required: true,
-      type: [String, Number]
-    }
-  },
-  data() {
-    return {
-      icon: "fa-cloud-download",
-      cursor: "copy",
-      iconColor: "white",
-      disabled: true,
-      loading: false
-    };
-  },
-  computed: {
-    name() {
-      if (!this.validUrl) return "Annotate url is invalid";
-      return "Annotate Image";
-    },
-    validUrl() {
-      if (typeof this.annotateUrl === "number") return false;
-      return this.annotateUrl.length > 2;
-    },
-  },
-  watch: {
-    loading() {
-      this.icon = this.loading ? "fa-spinner fa-spin" : "fa-cloud-download";
-    },
-    validUrl() {
-      this.disabled = !this.validUrl;
-    },
-    disabled() {
-      this.iconColor = this.disabled ? this.color.disabled : this.color.enabled;
-    },
-  },
-  created() {
-    this.iconColor = this.color.disabled;
-    this.disabled = !this.validUrl;
-  },
-  methods: {
-    execute() {
-      if (!this.validUrl) return;
+const {axiosReqestError, axiosReqestSuccess} = useAxiosRequest();
 
-      let canvas = this.$parent.image.raster.canvas;
+const addAnnotation = inject('addAnnotation');
+const getImageRaster = inject('getImageRaster');
 
-      let data = new FormData();
-      canvas.toBlob(blob => {
-        data.append("image", blob);
-        this.loading = true;
+const { iconColor, click } = useButton();
 
+
+const props = defineProps({
+  annotateUrl: {
+    required: true,
+    type: [String, Number],
+  },
+})
+
+
+const cursor = ref("copy");
+const icon = ref('fa-cloud-download')
+const disabled = ref(true);
+const loading = ref(false);
+
+
+const name = computed(() => {
+  if (!validUrl.value) return 'Annotate url is invalid'
+  return 'Annotate Image'
+})
+
+
+const validUrl = computed(() => {
+  if (typeof props.annotateUrl === 'number') return false
+  return props.annotateUrl.length > 2
+});
+
+watch(
+      [() => loading.value, validUrl],
+      ([loading, validUrl]) => {
+        icon.value = loading ? 'fa-spinner fa-spin' : 'fa-cloud-download';
+        disabled.value = !validUrl;
+      }
+);
+
+
+const execute = () => {
+      if (!validUrl.value) return;
+      
+      // const canvas = this.$parent.image.raster.canvas;
+      const canvas = getImageRaster().canvas;
+      const data = new FormData();
+      canvas.toBlob((blob) => {
+        data.append('image', blob);
+        loading.value = true;
         axios
-          .post(this.annotateUrl, data, {
+          .post(props.annotateUrl, data, {
             headers: {
-              "Content-Type": "multipart/form-data"
-            }
+              'Content-Type': 'multipart/form-data',
+            },
           })
-          .then(response => {
-            let coco = response.data.coco || {};
+          .then((response) => {
+
+           let coco = response.data.coco || {};
 
             let images = coco.images || [];
             let categories = coco.categories || [];
@@ -80,17 +85,17 @@ export default {
             }
             // Index categoires
             let indexedCategories = {};
-            categories.forEach(category => {
+            categories.forEach((category) => {
               indexedCategories[category.id] = category;
             });
 
-            annotations.forEach(annotation => {
+            annotations.forEach((annotation) => {
               let keypoints = annotation.keypoints || [];
               let segmentation = annotation.segmentation || [];
               let category = indexedCategories[annotation.category_id];
               let isbbox = annotation.isbbox || false;
 
-              this.$parent.addAnnotation(
+              addAnnotation(
                 category.name,
                 segmentation,
                 keypoints,
@@ -98,12 +103,13 @@ export default {
               );
             });
           })
-          .catch(() => {
-            this.axiosReqestError("Annotator", "Could not read data from URL");
+          .catch((error) => {
+            axiosReqestError("Annotator", "Could not read data from URL");
           })
-          .finally(() => (this.loading = false));
+          .finally(() => {
+            loading.value = false;
+          });
       });
-    },
-  },
 };
+
 </script>

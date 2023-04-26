@@ -162,107 +162,115 @@
   </div>
 </template>
 
-<script>
-import axios from "axios";
-import toastrs from "@/mixins/toastrs";
-// import TagsInput from "@/components/TagsInput";
-import KeypointsDefinition from "@/components/KeypointsDefinition";
+<script setup>
 
-export default {
-  name: "CategoryCard",
-  components: { KeypointsDefinition },
-  mixins: [toastrs],
-  props: {
-    category: {
-      type: Object,
-      required: true,
-    },
+import { ref, toRefs, reactive, onMounted, computed} from "vue";
+
+import axios from "axios";
+import KeypointsDefinition from "@/components/KeypointsDefinition";
+import useAxiosRequest from "@/composables/axiosRequest";
+
+
+const {axiosReqestError, axiosReqestSuccess} = useAxiosRequest();
+
+const emit = defineEmits(['updatePage']);
+const keypoints = ref([]);
+
+const props = defineProps({
+  category: {
+    type: Object,
+    required: true,
   },
-  data() {
-    return {
-      group: null,
-      supercategory: this.category.supercategory,
-      color: this.category.color,
-      metadata: [],
-      keypoint: {
-        labels: [...this.category.keypoint_labels],
-        edges: [...this.category.keypoint_edges],
-        colors: [...this.category.keypoint_colors],
-      },
-      name: this.category.name,
-      isMounted: false,
-    };
+});
+
+const category = ref(props.category);
+
+const state = reactive({
+  group: null,
+  supercategory: props.category.supercategory,
+  color: props.category.color,
+  metadata: [],
+  keypoint: {
+    labels: [...props.category.keypoint_labels],
+    edges: [...props.category.keypoint_edges],
+    colors: [...props.category.keypoint_colors],
   },
-  computed: {
-    isFormValid() {
-      return (
-        this.isMounted &&
-        this.name.length !== 0 &&
-        this.$refs &&
-        this.$refs.keypoints &&
-        this.$refs.keypoints.valid
-      );
-    }
-  },
-  created() {
-    this.resetCategorySettings();
-  },
-  mounted() {
-    this.isMounted = true;
-  },
-  methods: {
-    resetCategorySettings() {
-      this.name = this.category.name;
-      this.supercategory = this.category.supercategory;
-      this.color = this.category.color;
-      this.keypoint = {
-        labels: [...this.category.keypoint_labels],
-        edges: [...this.category.keypoint_edges],
-        colors: [...this.category.keypoint_colors],
+  name: props.category.name,
+  isMounted: false,
+});
+
+const { group, supercategory, color, metadata, keypoint, name } = toRefs(state);
+defineExpose({ group, supercategory, color, metadata, keypoint, name });
+
+
+onMounted(() => {
+  state.isMounted = true;
+  resetCategorySettings();
+});
+
+const isFormValid = computed(() => {
+  return (
+    state.isMounted &&
+    name.value.length !== 0 &&
+    keypoints.value &&
+    keypoints.value.valid
+  );
+});
+
+    const resetCategorySettings = () => {
+      name.value = props.category.name;
+      supercategory.value = props.category.supercategory;
+      color.value = props.category.color;
+      keypoint.value = {
+        labels: [...props.category.keypoint_labels],
+        edges: [...props.category.keypoint_edges],
+        colors: [...props.category.keypoint_colors],
       };
-    },
-    onCardClick() {},
-    onDownloadClick() {},
-    onDeleteClick() {
-      axios.delete("/api/category/" + this.category.id).then(() => {
-        this.$parent.updatePage();
-      });
-    },
-    onUpdateClick() {
-      axios
-        .put("/api/category/" + this.category.id, {
-          name: this.name,
-          color: this.color,
-          supercategory: this.supercategory,
-          metadata: this.metadata,
-          keypoint_edges: this.keypoint.edges,
-          keypoint_labels: this.keypoint.labels,
-          keypoint_colors: this.keypoint.colors,
-        })
-        .then(() => {
-          this.axiosReqestSuccess(
-            "Updating Category",
-            "Category successfully updated"
-          );
-          this.category.name = this.name;
-          this.category.supercategory = this.supercategory;
-          this.category.color = this.color;
-          this.category.metadata = { ...this.metadata };
-          this.category.keypoint_edges = [...this.keypoint.edges];
-          this.category.keypoint_labels = [...this.keypoint.labels];
-          this.category.keypoint_colors = [...this.keypoint.colors];
-          this.$parent.updatePage();
-        })
-        .catch(error => {
-          this.axiosReqestError(
-            "Updating Category",
-            error.response.data.message
-          );
-          this.$parent.updatePage();
+    };
+    const onCardClick = () => {};
+    const onDownloadClick = () => {};
+    const onDeleteClick = async () => {
+      await axios.delete("/api/category/" + props.category.id);
+      emit('updatePage');
+    };
+
+
+    const onUpdateClick = () => {
+      try {
+        axios.put('/api/category/' + category.value.id, {
+          name: name.value,
+          color: color.value,
+          supercategory: supercategory.value,
+          metadata: metadata.value,
+          keypoint_edges: keypoint.value.edges,
+          keypoint_labels: keypoint.value.labels,
+          keypoint_colors: keypoint.value.colors,
         });
-    }
-  },
-};
+        console.log('axios put');
+        axiosReqestSuccess(
+          'Updating Category',
+          'Category successfully updated'
+        );
+
+        console.log('axiosReqSuccess');
+        category.value.name = name.value;
+        category.value.supercategory = supercategory.value;
+        category.value.color = color.value;
+        category.value.metadata = { ...metadata.value };
+        category.value.keypoint_edges = [...keypoint.value.edges];
+        category.value.keypoint_labels = [...keypoint.value.labels];
+        category.value.keypoint_colors = [...keypoint.value.colors];
+        emit('updatePage');
+      } catch (error) {
+          console.log('sooooo:',    error.message);
+        axiosReqestError(
+          'Updating Category',
+          // error.response.data.message
+          error.message
+        );
+        emit('updatePage');
+      }
+    };
 </script>
 
 <style scoped>

@@ -10,7 +10,9 @@ import { useStore } from "vuex";
 import { useButton } from "@/composables/toolBar/button";
 
 const store = useStore();
-const { iconColor, click, color } = useButton();
+// const { iconColor, click, color } = useButton();
+const { iconColor, click } = useButton();
+
 const icon = ref("fa-undo");
 const disabled = ref(true);
 const undoList = computed(() => store.state.undo);

@@ -68,83 +68,86 @@
   </div>
 </template>
 
-<script>
-export default {
-  name: "MetaData",
-  props: {
-    metadata: {
-      type: Object,
-      required: true,
-    },
-    title: {
-      type: String,
-      default: "Metadata",
-    },
-    keyTitle: {
-      type: String,
-      default: "Keys",
-    },
-    valueTitle: {
-      type: String,
-      default: "Values",
-    },
-    exclude: {
-      type: String,
-      default: "",
-    },
-  },
-  data() {
-    return {
-      metadataList: [],
-    };
-  },
-  watch: {
-    metadata() {
-      this.loadMetadata();
-    },
-  },
-  created() {
-    this.loadMetadata();
-  },
-  methods: {
-    export() {
-      let metadata = {};
+<script setup>
 
-      this.metadataList.forEach((object) => {
-        if (object.key.length > 0) {
-          if (!isNaN(object.value))
-            metadata[object.key] = parseInt(object.value);
-          else if (
-            object.value.toLowerCase() === "true" ||
-            object.value.toLowerCase() === "false"
-          )
-            metadata[object.key] = object.value.toLowerCase() === "true";
-          else metadata[object.key] = object.value;
-        }
-      });
+import { ref, watchEffect, onMounted, defineExpose } from 'vue';
 
-      return metadata;
-    },
-    createMetadata() {
-      this.metadataList.push({ key: "", value: "" });
-    },
-    loadMetadata() {
-      if (this.metadata != null) {
-        for (var key in this.metadata) {
-          if (!this.metadata.hasOwnProperty(key)) continue;
-          if (key === this.exclude) continue;
-
-          let value = this.metadata[key];
-
-          if (value == null) value = "";
-          else value = value.toString();
-
-          this.metadataList.push({ key: key, value: value });
-        }
-      }
-    },
+const props = defineProps({
+  metadata: {
+    type: Object,
+    required: true,
   },
+  title: {
+    type: String,
+    default: "Metadata",
+  },
+  keyTitle: {
+    type: String,
+    default: "Keys",
+  },
+  valueTitle: {
+    type: String,
+    default: "Values",
+  },
+  exclude: {
+    type: String,
+    default: "",
+  },
+});
+
+const metadataList = ref([]);
+const metadata = ref([]);
+
+watchEffect(() => {
+    loadMetadata();
+});
+
+
+onMounted(() => {
+    // loadMetadata();
+});
+
+const exportMetadata = () => {
+  let new_metadata = {};
+  metadataList.value.forEach((object) => {
+    console.log('each metadata list:',object);
+
+    if (object.key.length > 0) {
+      if (!isNaN(object.value))
+        new_metadata[object.key] = parseInt(object.value);
+      else if (
+        object.value.toLowerCase() === "true" ||
+        object.value.toLowerCase() === "false"
+      )
+        new_metadata[object.key] = object.value.toLowerCase() === "true";
+      else new_metadata[object.key] = object.value;
+    }
+  });
+
+  return new_metadata;
 };
+
+const createMetadata = () => {
+  metadataList.value.push({ key: "", value: "" });
+};
+
+function loadMetadata() {
+    if (props.metadata != null && props.metadata['metadata'] == null) {
+      for (let key in props.metadata) {
+        if (!Object.prototype.hasOwnProperty.call(props.metadata, key)) {
+          continue;
+        }
+        if (key === props.exclude) continue;
+        let value = props.metadata[key];
+        if (value == null) value = '';
+        else value = value.toString();
+        metadataList.value.push({ key: key, value: value });
+      }
+    }
+};
+
+defineExpose({exportMetadata, metadataList});
+
 </script>
 
 <style scoped>

@@ -83,365 +83,324 @@
   </div>
 </template>
 
-<script>
-export default {
-  props: {
-    elementId: {
+<script setup>
+import { nextTick } from 'vue';
+import { ref, computed, watch, onMounted } from 'vue';
+
+const emit = defineEmits(["update:modelValue", "initialized", 
+                                                     "tag-added", "tags-updated", "tag-removed"]);
+
+const props = defineProps({
+      elementId: {
       type: String,
-      required: true
+      required: true,
     },
     existingTags: {
       type: Object,
       default: () => {
         return {};
-      }
+      },
     },
-    value: {
+    selectedCategories: {
       type: [Array, String],
       default: () => {
         return [];
-      }
+      },
     },
     typeahead: {
       type: Boolean,
-      default: false
+      default: false,
     },
     typeaheadStyle: {
       type: String,
-      default: "badges"
+      default: "badges",
     },
     typeaheadActivationThreshold: {
       type: Number,
-      default: 1
+      default: 1,
     },
     typeaheadMaxResults: {
       type: Number,
-      default: 0
+      default: 0,
     },
     placeholder: {
       type: String,
-      default: "Add a category"
+      default: "Add a category",
     },
     limit: {
       type: Number,
-      default: 0
+      default: 0,
     },
     onlyExistingTags: {
       type: Boolean,
-      default: false
+      default: false,
     },
     deleteOnBackspace: {
       type: Boolean,
-      default: true
+      default: true,
     },
     allowDuplicates: {
       type: Boolean,
-      default: false
+      default: false,
     },
     validate: {
       type: Function,
-      default: () => true
+      default: () => true,
     },
-
     addTagsOnComma: {
       type: Boolean,
-      default: false
+      default: false,
     },
-
     wrapperClass: {
       type: String,
-      default: "tags-input-wrapper-default"
-    }
-  },
-
-  data() {
-    return {
-      badgeId: 0,
-      tagBadges: [],
-      tags: [],
-
-      input: "",
-      oldInput: "",
-      hiddenInput: "",
-
-      searchResults: [],
-      searchSelection: 0
-    };
-  },
-
-  computed: {
-    showPlaceholder() {
-      if (this.onlyExistingTags) {
-        if (this.value.length === Object.keys(this.existingTags).length) {
-          return false;
-        }
-      }
-      return true;
-    }
-  },
-
-  watch: {
-    tags() {
-      // Updating the hidden input
-      this.hiddenInput = this.tags.join(",");
-
-      // Update the bound v-model value
-      this.$emit("input", this.tags);
+      default: "tags-input-wrapper-default",
     },
+});
 
-    value() {
-      this.tagsFromValue();
-    },
-  },
+const badgeId = ref(0);
+const tagBadges = ref([]);
+const tags = ref([]);
+const input = ref("");
+const oldInput = ref("");
+const hiddenInput = ref("");
+const searchResults = ref([]);
+const searchSelection = ref(0);
+const typeaheadActivationThreshold = ref(props.typeaheadActivationThreshold);
+// const existingTags = ref(props.existingTags);
+const typeaheadMaxResults = ref(props.typeaheadMaxResults);
+const deleteOnBackspace = ref(props.deleteOnBackspace);
+const taginput = ref(null);
+// const validate = props.validate;
 
-  created() {
-    this.tagsFromValue();
 
-    // Emit an event
-    this.$emit("initialized");
-  },
+const showPlaceholder = computed(() => {
+  if (props.onlyExistingTags) {
+    if (props.selectedCategories.length === Object.keys(props.existingTags).length) {
+      return false;
+    }
+  }
+  return true;
+});
 
-  methods: {
-    escapeRegExp(string) {
+watch(
+  () => tags.value,
+  () => {
+    // Updating the hidden input
+    hiddenInput.value = tags.value.join(",");
+    // Update the bound v-model value
+    emit("update:selectedCategories", tags.value);
+  }
+);
+
+watch(
+  () => props.selectedCategories,
+  () => {
+    tagsFromValue();
+  }
+);
+
+onMounted(() => {
+  tagsFromValue();
+  // Emit an event
+  emit("initialized");
+});
+
+const escapeRegExp = (string) => {
       return string.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-    },
+};
 
-    tagFromInput() {
-      // If we're choosing a tag from the search results
-      let hasSpace = this.input.trim() !== this.input;
-
-      if (this.searchResults.length && this.searchSelection >= 0 && !hasSpace) {
-        this.tagFromSearch(this.searchResults[this.searchSelection]);
-
-        this.input = "";
+const tagFromInput = () => {
+      let hasSpace = input.value.trim() !== input.value;
+      if (searchResults.value.length && searchSelection.value >= 0 && !hasSpace) {
+        tagFromSearch(searchResults.value[searchSelection.value]);
+        input.value = "";
       } else {
-        // If we're adding an unexisting tag
-        let text = this.input.trim();
-
-        // If the new tag is not an empty string and passes validation
-        if (!this.onlyExistingTags && text.length && this.validate(text)) {
-          this.input = "";
-
-          // Determine the tag's slug and text depending on if the tag exists
-          // on the site already or not
-          let slug = this.makeSlug(text);
-          let existingTag = this.existingTags[slug];
-
+        let text = input.value.trim();
+        if (!props.onlyExistingTags && text.length && props.validate(text)) {
+          input.value = "";
+          let slug = makeSlug(text);
+          let existingTag = props.existingTags[slug];
           slug = existingTag ? slug : text;
           text = existingTag ? existingTag : text;
-
-          this.addTag(slug, text);
+          addTag(slug, text);
         }
       }
-    },
+};
 
-    tagFromSearchOnClick(tag) {
-      this.tagFromSearch(tag);
 
-      this.$refs["taginput"].blur();
-    },
+const tagFromSearchOnClick = (tag) => {
+      tagFromSearch(tag);
+      
+      // this.$refs["taginput"].blur();
+      taginput.value.blur();
+};
 
-    tagFromSearch(tag) {
-      this.searchResults = [];
-      this.input = "";
-      this.oldInput = "";
+const tagFromSearch = (tag) => {
+      searchResults.value = [];
+      input.value = "";
+      oldInput.value = "";
+      addTag(tag.slug, tag.text);
+};
 
-      this.addTag(tag.slug, tag.text);
-    },
-
-    makeSlug(value) {
+const makeSlug = (value) => {
       return value.toLowerCase().replace(/\s/g, "-");
-    },
+};
 
-    addTag(slug, text) {
-      // Check if the limit has been reached
-      if (this.limit > 0 && this.tags.length >= this.limit) {
-        return false;
-      }
+const addTag = (slug, text) => {
+  if (props.limit > 0 && tags.value.length >= props.limit) {
+    return false;
+  }
+  if (!tagSelected(slug)) {
+    tagBadges.value.push(text.replace(/\s/g, "&nbsp;"));
+    tags.value.push(slug);
+  }
+  emit("tag-added", slug);
+  emit("tags-updated");
+}
 
-      // Attach the tag if it hasn't been attached yet
-      if (!this.tagSelected(slug)) {
-        this.tagBadges.push(text.replace(/\s/g, "&nbsp;"));
-        this.tags.push(slug);
-      }
+const removeLastTag = () => {
+  if (!input.value.length && deleteOnBackspace.value) {
+    removeTag(tags.value.length - 1);
+  }
+}
 
-      // Emit events
-      this.$emit("tag-added", slug);
-      this.$emit("tags-updated");
-    },
+const removeTag = (index) => {
+  let slug = tags.value[index];
 
-    removeLastTag() {
-      if (!this.input.length && this.deleteOnBackspace) {
-        this.removeTag(this.tags.length - 1);
-      }
-    },
+  tags.value.splice(index, 1);
+  tagBadges.value.splice(index, 1);
 
-    removeTag(index) {
-      let slug = this.tags[index];
+  // Emit events
+  emit("tag-removed", slug);
+  emit("tags-updated");
+};
 
-      this.tags.splice(index, 1);
-      this.tagBadges.splice(index, 1);
-
-      // Emit events
-      this.$emit("tag-removed", slug);
-      this.$emit("tags-updated");
-    },
-
-    searchTag() {
-      if (this.typeahead === true) {
+const searchTag = () => {
+    if (props.typeahead === true) {
+      if (
+        oldInput.value != input.value ||
+        (!searchResults.value.length && typeaheadActivationThreshold.value == 0)
+      ) {
+        searchResults.value = [];
+        searchSelection.value = 0;
+        let inputValue = input.value.trim();
         if (
-          this.oldInput != this.input ||
-          (!this.searchResults.length && this.typeaheadActivationThreshold == 0)
+          (inputValue.length && inputValue.length >= typeaheadActivationThreshold.value) ||
+          typeaheadActivationThreshold.value == 0
         ) {
-          this.searchResults = [];
-          this.searchSelection = 0;
-          let input = this.input.trim();
-
-          if (
-            (input.length &&
-              input.length >= this.typeaheadActivationThreshold) ||
-            this.typeaheadActivationThreshold == 0
-          ) {
-            for (let slug in this.existingTags) {
-              let text = this.existingTags[slug].toLowerCase();
-
-              if (
-                text.search(this.escapeRegExp(input.toLowerCase())) > -1 &&
-                !this.tagSelected(slug)
-              ) {
-                this.searchResults.push({
-                  slug,
-                  text: this.existingTags[slug]
-                });
-              }
-            }
-
-            // Sort the search results alphabetically
-            this.searchResults.sort((a, b) => {
-              if (a.text < b.text) return -1;
-              if (a.text > b.text) return 1;
-
-              return 0;
-            });
-
-            // Shorten Search results to desired length
-            if (this.typeaheadMaxResults > 0) {
-              this.searchResults = this.searchResults.slice(
-                0,
-                this.typeaheadMaxResults
-              );
+          for (let slug in props.existingTags) {
+            let text = props.existingTags[slug].toLowerCase();
+            if (
+              text.search(escapeRegExp(inputValue.toLowerCase())) > -1 &&
+              !tagSelected(slug)
+            ) {
+              searchResults.value.push({
+                slug,
+                text: props.existingTags[slug],
+              });
             }
           }
-
-          this.oldInput = this.input;
+          searchResults.value.sort((a, b) => {
+            if (a.text < b.text) return -1;
+            if (a.text > b.text) return 1;
+            return 0;
+          });
+          if (typeaheadMaxResults.value > 0) {
+            searchResults.value = searchResults.value.slice(
+              0,
+              typeaheadMaxResults.value
+            );
+          }
         }
+        oldInput.value = input.value;
       }
-    },
+    }
+};
 
-    onFocus() {
-      this.searchTag();
-    },
+const onFocus = () => {
+      searchTag();
+};
 
-    hideTypeahead() {
-      if (!this.input.length) {
-        this.$nextTick(() => {
-          this.ignoreSearchResults();
+const hideTypeahead = () => {
+      if (!input.value.length) {
+        nextTick(() => {
+            ignoreSearchResults();
         });
       }
-    },
+};
 
-    nextSearchResult() {
-      if (this.searchSelection + 1 <= this.searchResults.length - 1) {
-        this.searchSelection++;
-      }
-    },
+const nextSearchResult = () => {
+  if (searchSelection.value + 1 <= searchResults.value.length - 1) {
+    searchSelection.value++;
+  }
+};
 
-    prevSearchResult() {
-      if (this.searchSelection > 0) {
-        this.searchSelection--;
-      }
-    },
+const prevSearchResult = () => {
+  if (searchSelection.value > 0) {
+    searchSelection.value--;
+  }
+};
 
-    ignoreSearchResults() {
-      this.searchResults = [];
-      this.searchSelection = 0;
-    },
+const ignoreSearchResults = () => {
+  searchResults.value = [];
+  searchSelection.value = 0;
+};
 
-    /**
-     * Clear the list of selected tags
-     */
-    clearTags() {
-      this.tags.splice(0, this.tags.length);
-      this.tagBadges.splice(0, this.tagBadges.length);
-    },
+function clearTags() {
+  tags.value.splice(0, tags.value.length);
+  tagBadges.value.splice(0, tagBadges.value.length);
+}
 
-    /**
-     * Replace the currently selected tags with the tags from the value
-     */
-    tagsFromValue() {
-      if (this.value && this.value.length) {
-        let tags = Array.isArray(this.value)
-          ? this.value
-          : this.value.split(",");
-
-        if (this.tags == tags) {
+function tagsFromValue() {
+      if (props.selectedCategories && props.selectedCategories.length) {
+        const newTags = Array.isArray(props.selectedCategories)
+          ? props.selectedCategories
+          : props.selectedCategories.split(',');
+        if (JSON.stringify(newTags) === JSON.stringify(tags.value)) {
           return;
         }
-
-        this.clearTags();
-
-        tags.forEach(slug => {
-          let existingTag = this.existingTags[slug];
-          let text = existingTag ? existingTag : slug;
-
-          this.addTag(slug, text);
+        clearTags();
+        newTags.forEach((slug) => {
+          const existingTag = props.existingTags[slug];
+          const text = existingTag ? existingTag : slug;
+          addTag(slug, text);
         });
       } else {
-        if (this.tags.length == 0) {
+        if (tags.value.length === 0) {
           return;
         }
-
-        this.clearTags();
+        clearTags();
       }
-    },
+};
 
-    /**
-     * Check if the tag with the provided slug is already selected
-     */
-    tagSelected(slug) {
-      if (this.allowDuplicates) {
-        return false;
-      }
+const tagSelected = (slug) => {
+  if (props.allowDuplicates) {
+    return false;
+  }
 
-      if (!slug) {
-        return false;
-      }
+  if (!slug) {
+    return false;
+  }
+  let searchSlug = makeSlug(slug);
+  let found = tags.value.find((value) => {
+    return searchSlug == makeSlug(value);
+  });
+  return !!found;
+}
 
-      let searchSlug = this.makeSlug(slug);
-      let found = this.tags.find(value => {
-        return searchSlug == this.makeSlug(value);
-      });
-
-      return !!found;
-    },
-
-    /**
-     * Process all the keydown events
-     */
-    onKeyDown(e) {
-      // Insert a new tag on comma keydown if the option is enabled
-      if (e.key == ",") {
-        if (this.addTagsOnComma) {
-          // The comma shouldn't actually be inserted
-          e.preventDefault();
-
-          // Add the inputed tag
-          this.tagFromInput();
-        }
-      }
+const onKeyDown = (e) => {
+  // Insert a new tag on comma keydown if the option is enabled
+  if (e.key === ",") {
+    if (addTagsOnComma) {
+      // The comma shouldn't actually be inserted
+      e.preventDefault();
+      // Add the inputed tag
+      tagFromInput();
     }
   }
 };
+
+
 </script>
 
 <style>

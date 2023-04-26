@@ -56,31 +56,47 @@
   </div>
 </template>
 
-<script>
-import { mapActions } from "vuex";
+<script setup>
+import { computed, defineExpose } from "vue";
+import { useStore } from "vuex";
+import { useRouter, useRoute } from 'vue-router';
 
-export default {
-  name: "User",
-  methods: {
-    ...mapActions("user", ["logout"]),
-    logoutButton() {
-      if (this.$route.name === "annotate") {
-        this.$router.replace({ name: "datasets" }, this.logout);
+    const store = useStore();
+    const router = useRouter();
+    const route = useRoute();
+    
+    const logout = () => {
+      store.dispatch("user/logout");
+    };
+    
+    const logoutButton = () => {
+      if (route.name === "annotate") {
+        // alert('Need to fix behaviour here');
+
+        router.replace({ name: "datasets" }, logout);
         return;
       }
-      this.logout();
-    }
-  },
-  computed: {
-    user() {
-      return this.$store.state.user.user;
-    },
-    display() {
-      if (!this.user) return "";
-      return this.user.name.length === 0 ? this.user.username : this.user.name;
-    }
-  }
-};
+      logout();
+    };
+    const user = computed(() => {
+      return store.state.user.user;
+    });
+    const display = computed(() => {
+      if (!user.value) return "";
+      return user.value.name.length === 0
+        ? user.value.username
+        : user.value.name;
+    });
+    
+    defineExpose({logoutButton, user, display});
+    /*
+    return {
+      logoutButton,
+      user,
+      display,
+    };
+  },*/
+
 </script>
 
 <style scoped>

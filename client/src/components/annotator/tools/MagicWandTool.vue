@@ -1,12 +1,18 @@
-<script>
+<template>
+  <div>
+    <i v-tooltip.right="tooltip" class='fa fa-x' :class="icon" :style="{ color: iconColor }" @click="click"></i>
+    <br>
+  </div>
+</template>
+<script setup>
 import paper from "paper";
-import tool from "@/mixins/toolBar/tool";
 import MagicWand from "./magic-wand";
+import { ref, computed, watch, inject, onMounted, provide, defineEmits, defineProps } from 'vue'
+import { useTools } from "@/composables/toolBar/tools";
 
-export default {
-  name: "MagicWand",
-  mixins: [tool],
-  props: {
+const getCurrentAnnotation = inject('getCurrentAnnotation');
+
+const props = defineProps({
     width: {
       type: null,
       required: true
@@ -19,113 +25,169 @@ export default {
       required: true,
       validator: prop => typeof prop === "object" || prop === null
     }
-  },
-  data() {
-    return {
-      icon: "fa-magic",
-      name: "Magic Wand",
-      imageInfo: {},
-      cursor: "crosshair",
-      wand: {
-        threshold: 30,
-        blur: 40
-      }
-    };
-  },
-  computed: {
-    isDisabled() {
-      return this.$parent.current.annotation === -1;
-    },
-  },
-  watch: {
-    isActive(active) {
-      if (active) {
-        this.tool.activate();
-        localStorage.setItem("editorTool", this.name);
-      }
-    }
-  },
-  methods: {
-    /**
-     * Exports settings
-     * @returns {object} current settings
-     */
-    export() {
-      return {
-        threshold: this.wand.threshold,
-        blur: this.wand.blur
-      };
-    },
-    setPreferences(pref) {
-      this.wand.threshold = pref.threshold || this.wand.threshold;
-      this.wand.blur = pref.blur || this.wand.blur;
-    },
-    /**
-     * Creates MagicWand selection
-     * @param {number} x x position
-     * @param {number} y y position
-     * @param {number} thr threashold
-     * @param {number} rad radius blur
-     * @returns {paper.CompoundPath} create selection
-     */
-    flood(x, y, thr, rad) {
-      if (this.imageData == null) return;
+});
 
-      let image = {
-        data: this.imageData.data,
-        width: this.width,
-        height: this.height,
-        bytes: 4
-      };
-      let mask = MagicWand.floodFill(image, x, y, thr);
-      rad = rad < 1 ? 1 : Math.abs(rad);
-      mask = MagicWand.gaussBlurOnlyBorder(mask, rad);
+const emits = defineEmits(['update']);
 
-      let contours = MagicWand.traceContours(mask).filter(x => !x.inner);
+const emitUpdate = (value) => {
+    emits('update',  value);
+}
 
-      if (contours[0]) {
-        let centerX = image.width / 2;
-        let centerY = image.height / 2;
+const {
+    click,
+    state,
+    iconColor,
+    tooltip,
+    name,
+    cursor
+  }= useTools(emits);
 
-        let points = contours[0].points;
-        points = points.map(pt => ({
-          x: pt.x + 0.5 - centerX,
-          y: pt.y + 0.5 - centerY
-        }));
+name.value = 'Magic Wand';
+cursor.value = 'crosshair';
 
-        let polygon = new paper.Path(points);
-        polygon.closed = true;
+const icon = ref('fa-magic');
+const imageInfo = ref({});
 
-        return polygon;
-      }
-      return null;
-    },
-    onMouseUp() {
-      // this.$parent.currentAnnotation.simplifyPath();
-    },
-    onMouseDown(event) {
-      let x = Math.round(this.width / 2 + event.point.x);
-      let y = Math.round(this.height / 2 + event.point.y);
+const wand = ref({
+  threshold: 30,
+  blur: 40,
+});
+
+const width = ref(props.width);
+const height = ref(props.height);
+const imageData = ref(props.imageData);
+
+const localCurrentAnnotation=ref(null);
+
+watch(
+  () => props.width,
+  (value) => {
+      width.value = value;
+  }
+);
+
+watch(
+  () => props.height,
+  (value) => {
+      height.value = value;
+  }
+);
+
+watch(
+  () => props.imageData,
+  (value) => {
+      imageData.value = value;
+  }
+);
+
+
+watch(
+  () => getCurrentAnnotation(),
+  (value) => {
+      localCurrentAnnotation.value=value;
+  }
+);
+
+const isDisabled = computed(() => {
+  return state.isDisabled;
+});
+
+const isActive = computed(() => {
+  return state.isActive;
+});
+
+watch(
+   () => state.isActive, (active) => {
+  if (active) {
+    state.tool.activate();
+    localStorage.setItem("editorTool", name.value);
+  }
+});
+
+const exportWand = () => {
+  return {
+    threshold: wand.value.threshold,
+    blur: wand.value.blur,
+  };
+};
+
+const setPreferences = (pref) => {
+  wand.value.threshold = pref.threshold || wand.value.threshold;
+  wand.value.blur = pref.blur || wand.value.blur;
+};
+
+
+/**
+ * Creates MagicWand selection
+ * @param {number} x x position
+ * @param {number} y y position
+ * @param {number} thr threashold
+ * @param {number} rad radius blur
+ * @returns {paper.CompoundPath} create selection
+ */
+const flood = (x, y, thr, rad) => {
+  if (imageData.value == null) return;
+
+  let image = {
+    data: imageData.value.data,
+    width: width.value,
+    height: height.value,
+    bytes: 4,
+  };
+  let mask = MagicWand.floodFill(image, x, y, thr);
+  rad = rad < 1 ? 1 : Math.abs(rad);
+  mask = MagicWand.gaussBlurOnlyBorder(mask, rad);
+  let contours = MagicWand.traceContours(mask).filter((x) => !x.inner);
+  if (contours[0]) {
+    let centerX = image.width / 2;
+    let centerY = image.height / 2;
+    let points = contours[0].points;
+    points = points.map((pt) => ({
+      x: pt.x + 0.5 - centerX,
+      y: pt.y + 0.5 - centerY,
+    }));
+    let polygon = new paper.Path(points);
+    polygon.closed = true;
+    return polygon;
+  }
+  return null;
+};
+
+const onMouseDown = (event) => {
+    console.log('width:', width, props.width);
+      let x = Math.round(width.value / 2 + event.point.x);
+      let y = Math.round(height.value / 2 + event.point.y);
 
       // Check if valid coordinates
-      if (x > this.width || y > this.height || x < 0 || y < 0) {
+      if (x > width.value || y > height.value || x < 0 || y < 0) {
         return;
       }
 
       // Create shape and apply to current annotation
-      let path = this.flood(x, y, this.wand.threshold, this.wand.blur);
+      let path = flood(x, y, wand.value.threshold, wand.value.blur);
 
       if (event.modifiers.shift) {
-        this.$parent.currentAnnotation.subtract(path);
+        // this.$parent.currentAnnotation.subtract(path);
+        localCurrentAnnotation.value.subtract(path);
       } else {
-        this.$parent.currentAnnotation.unite(path);
+        // this.$parent.currentAnnotation.unite(path);
+        localCurrentAnnotation.value.unite(path);
       }
 
       if (path != null) path.remove();
-    },
-    onMouseDrag(event) {
-      this.onMouseDown(event);
-    }
-  },
 };
+
+const onMouseDrag = (event) => {
+      onMouseDown(event);
+};
+
+onMounted(() => {
+    state.tool.onMouseDown = onMouseDown;
+    state.tool.onMouseDrag = onMouseDrag;
+    // state.tool.onMouseMove = onMouseMove;
+    // state.tool.onMouseUp = onMouseUp;
+})
+
+defineExpose({exportWand, setPreferences, wand, name});
+
 </script>

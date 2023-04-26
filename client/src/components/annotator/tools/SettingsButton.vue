@@ -33,7 +33,7 @@
             <button
               type="button"
               class="close"
-              data-dismiss="modal"
+              data-bs-dismiss="modal"
               aria-label="Close"
             >
               <span aria-hidden="true">&times;</span>
@@ -64,7 +64,7 @@
 
             <MetaData
               ref="metadata"
-              :metadata="metadata"
+              :metadata="props.metadata"
             />
 
             <p style="margin: 30px 0 0 0">
@@ -111,41 +111,45 @@
   </div>
 </template>
 
-<script>
-import MetaData from "@/components/MetaData";
-import CustomShortcut from "@/components/annotator/CustomShortcut";
+<script setup>
+import MetaData from "@/components/MetaData.vue";
+import CustomShortcut from "@/components/annotator/CustomShortcut.vue";
+import { ref, reactive } from 'vue';
 
-export default {
-  name: "SettingsButton",
-  components: { CustomShortcut, MetaData },
-  props: {
+const props= defineProps({
     metadata: {
       type: Object,
-      required: true
+      required: true,
     },
     commands: {
       type: Array,
-      required: true
-    }
-  },
-  data() {
-    return {
-      name: "Image Settings"
-    };
-  },
-  methods: {
-    exportMetadata() {
-      return this.$refs.metadata.export();
+      required: true,
     },
-    export() {
+});
+
+const metadata = ref(props.metadata);
+const name = ref("Image Settings");
+const shortcuts = ref(null); 
+
+
+const exportMetadata = (() => {
+      // return props.$refs.metadata.export();
+      // return {};
+      return metadata.value.exportMetadata();
+    });
+    
+const exportSettings = (() => {
       let data = { shortcuts: [] };
-      this.$refs.shortcuts.forEach(shortcut => {
-        data.shortcuts.push(shortcut.export());
+      
+      // shortcuts.value.shortcuts.forEach((shortcut) => {
+      shortcuts.value.forEach((shortcut) => {
+          data.shortcuts.push(shortcut.myexport());
       });
       return data;
-    }
-  }
-};
+});
+
+defineExpose({exportSettings, exportMetadata});
+
 </script>
 
 <style scoped>

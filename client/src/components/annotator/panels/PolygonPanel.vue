@@ -1,5 +1,5 @@
 <template>
-  <div v-show="polygon.isActive">
+  <div v-show="showme">
     <PanelButton
       name="Close Polygon"
       @click="polygon.complete"
@@ -9,20 +9,20 @@
       @click="polygon.deletePolygon"
     />
     <PanelToggle
-      v-model="polygon.polygon.guidance"
+      v-model:show-text="polygon.polygon.guidance"
       name="Guidance"
     />
     <PanelToggle
-      v-model="polygon.color.auto"
+      v-model:show-text="polygon.color.auto"
       name="Auto Select Color"
     />
     <PanelToggle
       v-show="polygon.color.auto"
-      v-model="polygon.color.blackOrWhite"
+      v-model:show-text="polygon.color.blackOrWhite"
       name="Only Black or White"
     />
     <PanelInputString
-      v-model="polygon.polygon.pathOptions.strokeColor"
+      v-model:input-string="polygon.polygon.pathOptions.strokeColor"
       name="Stroke Color"
     />
     <PanelInputNumber
@@ -31,6 +31,7 @@
       min="0"
       max="1000"
       step="5"
+      @update="polygon.polygon.completeDistance = $event"
     />
     <PanelInputNumber
       v-model="polygon.polygon.minDistance"
@@ -38,25 +39,31 @@
       min="0"
       max="500"
       step="2"
+      @update="polygon.polygon.minDistance = $event"
     />
   </div>
 </template>
 
-<script>
-import { defineComponent } from "vue";
+<script setup>
 import PanelButton from "@/components/PanelButton";
 import PanelToggle from "@/components/PanelToggle";
 import PanelInputString from "@/components/PanelInputString";
 import PanelInputNumber from "@/components/PanelInputNumber";
+import { defineProps, ref, inject, watchEffect } from 'vue';
 
-export default defineComponent({
-  name: "PolygonPanel",
-  components: { PanelButton, PanelToggle, PanelInputString, PanelInputNumber },
-  props: {
-    polygon: {
-      type: Object,
-      required: true,
-    },
+const props = defineProps({
+  polygon: {
+    type: Object,
+    required: true,
   },
 });
+
+const polygon = ref(props.polygon);
+const showme = ref('false');
+const getActiveTool = inject('getActiveTool');
+
+watchEffect(() => {
+    showme.value = polygon.value.name === getActiveTool();
+});
+
 </script>

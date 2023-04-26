@@ -31,7 +31,7 @@ export function useButton(){
     return {
       iconColor,
       click,
-      color,
+      // color,
     };
 
 };

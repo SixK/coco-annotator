@@ -111,6 +111,7 @@
                 v-for="image in images"
                 :key="image.id"
                 :image="image"
+                @update-page="updatePage"
               />
             </div>
             <Pagination
@@ -482,12 +483,12 @@
           @submit="updatePage"
         />
         <PanelToggle
-          v-model="panel.showAnnotated"
+          v-model:show-text="panel.showAnnotated"
           name="Show Annotated"
           @update="panel.showAnnotated = $event"
         />
         <PanelToggle
-          v-model="panel.showNotAnnotated"
+          v-model:show-text="panel.showNotAnnotated"
           name="Show Not Annotated"
           @update="panel.showAnnotated = $event"
         />
@@ -505,7 +506,7 @@
         <div class="form-group">
           <label>Show Annotated Categories </label>
           <TagsInput
-            v-model="selected.categories"
+            v-model:selectedCategories="selected.categories"
             element-id="selectedCategories"
             title="Only shows images annotated with the selected categories for 'Show Annotated' button. Leave empty to show all annotated images."
             :existing-tags="categoryTags"

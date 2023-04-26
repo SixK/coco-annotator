@@ -131,7 +131,7 @@
               <div class="form-group">
                 <label>Default Categories</label>
                 <TagsInput
-                  v-model="selectedCategories"
+                  v-model:selectedCategories="selectedCategories"
                   element-id="changeDataset"
                   :existing-tags="categoryTags"
                   :typeahead="true"
@@ -231,157 +231,189 @@
   </div>
 </template>
 
-<script>
+<script setup>
 import axios from "axios";
 import MetaData from "@/components/MetaData";
-
 import TagsInput from "@/components/TagsInput";
 
-import { mapMutations } from "vuex";
+import { ref, computed, inject, watch, onMounted } from "vue";
+import { useRouter } from 'vue-router';
+import { useStore } from 'vuex';
 
-export default {
-  name: "DatasetCard",
-  components: { MetaData, TagsInput },
-  props: {
-    dataset: {
-      type: Object,
-      required: true
-    },
-    categories: {
-      type: Array,
-      required: true
-    }
+const store = useStore();
+const router = useRouter();
+const emit = defineEmits(['updatePage']);
+
+const getUsers = inject('getUsers');
+
+const addProcess = (process) => store.commit('addProcess', {process});
+const removeProcess = (process) => store.commit('removeProcess', {process});
+
+const props = defineProps({
+  dataset: {
+    type: Object,
+    required: true,
   },
-  data() {
-    return {
-      imageError: false,
-      selectedCategories: [],
-      defaultMetadata: this.dataset.default_annotation_metadata,
-      noImageUrl: require("@/assets/no-image.png"),
-      notFoundImageUrl: require("@/assets/404-image.png"),
-      sharedUsers: []
-    };
+  categories: {
+    type: Array,
+    required: true,
   },
-  methods: {
-    ...mapMutations(["addProcess", "removeProcess"]),
-    onImageClick() {
-      let identifier = this.dataset.id;
-      this.$router.push({ name: "dataset", params: { identifier } });
-    },
-    onShare() {
-      this.dataset.users = this.sharedUsers;
-      axios
-        .post("/api/dataset/" + this.dataset.id + "/share", {
-          users: this.sharedUsers
-        })
-        .then(() => {
-          this.$parent.updatePage();
-        });
-    },
-    onCocoDownloadClick() {
-      let process = "Generating COCO for " + this.dataset.name;
-      this.addProcess(process);
+});
 
-      axios
-        .get("/api/dataset/" + this.dataset.id + "/coco")
-        .then(reponse => {
-          let dataStr =
-            "data:text/json;charset=utf-8," +
-            encodeURIComponent(JSON.stringify(reponse.data));
+const imageError = ref(false);
+const selectedCategories = ref([]);
+const defaultMetadata = ref(props.dataset.default_annotation_metadata);
+const noImageUrl = require("@/assets/no-image.png");
+const notFoundImageUrl = require("@/assets/404-image.png");
+const sharedUsers = ref([]);
+const localUsers = ref([]);
+const dataset = ref(props.dataset);
+const categories = ref(props.categories);
+const defaultAnnotation = ref(null);
 
-          this.downloadURI(dataStr, this.dataset.name + ".json");
-        })
-        .finally(() => this.removeProcess(process));
-    },
-    onDeleteClick() {
-      axios.delete("/api/dataset/" + this.dataset.id).then(() => {
-        this.$parent.updatePage();
-      });
-    },
-    onSave() {
-      this.dataset.categories = this.selectedCategories;
+watch(
+  () => getUsers(),
+  (value) => {
+      localUsers.value=value;
+  }
+);
 
-      axios
-        .post("/api/dataset/" + this.dataset.id, {
-          categories: this.selectedCategories,
-          default_annotation_metadata: this.$refs.defaultAnnotation.export()
-        })
-        .then(() => {
-          this.$parent.updatePage();
-        });
-    },
-    downloadURI(uri, exportName) {
-      let link = document.createElement("a");
-      link.href = uri;
-      link.download = exportName;
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-    },
-    createSelectedCategories() {
-      let tagValues = Array.from([]);
-      this.listCategories.forEach(category => {
-        tagValues.push(category.name);
-      });
-      this.selectedCategories = tagValues;
-    },
-    createSelectedUsers() {
-      this.sharedUsers = this.dataset.users;
-    }
-  },
-  computed: {
-    percent() {
-      return 100 * (this.dataset.numberAnnotated / this.dataset.numberImages);
-    },
-    imageUrl() {
-      if (this.imageError) {
-        return this.notFoundImageUrl;
-      }
-      if (this.dataset.numberImages > 0) {
-        return "/api/image/" + this.dataset.first_image_id + "?width=250";
-      }
 
-      return this.noImageUrl;
-    },
-    listCategories() {
-      let list = [];
-      if (!this.dataset.hasOwnProperty("categories")) return [];
-      if (this.dataset.categories.length === 0) return [];
+const onImageClick = () => {
+  let identifier = dataset.value.id;
+  router.push({ name: 'dataset', params: { identifier } });
+};
 
-      this.dataset.categories.forEach(category => {
-        let elements = this.categories.filter(
-          element => element.id === category
-        );
+const onShare = () => {
+  dataset.value.users = sharedUsers;
 
-        if (elements.length === 1) {
-          list.push(elements[0]);
-        }
-      });
+  axios
+    .post('/api/dataset/' + dataset.value.id + '/share', {
+      users: sharedUsers.value,
+    })
+    .then(() => {
+          emit('updatePage');
 
-      return list;
-    },
-    categoryTags() {
-      let tags = {};
-      this.categories.forEach(category => {
-        tags[category.name] = category.name;
-      });
+      // $parent.updatePage();
+    });
+};
 
-      return tags;
-    },
-    users() {
-      let users = {};
-      this.$parent.users.forEach(user => {
-        users[user.username] = user.username;
-      });
 
-      return users;
-    }
-  },
-  mounted() {
-    this.createSelectedCategories();
-    this.createSelectedUsers();
+const onCocoDownloadClick = () => {
+  const process = `Generating COCO for ${dataset.value.name}`;
+  addProcess(process);
+  try {
+    const response = axios.get(`/api/dataset/${dataset.value.id}/coco`);
+    const dataStr = `data:text/json;charset=utf-8,${encodeURIComponent(JSON.stringify(response.data))}`;
+    downloadURI(dataStr, `${dataset.value.name}.json`);
+  } catch (error) {
+    console.error(error);
+  } finally {
+    removeProcess(process);
   }
 };
+
+const onDeleteClick = () => {
+  try {
+    axios.delete(`/api/dataset/${dataset.value.id}`);
+    // $parent.updatePage();
+    emit('updatePage');
+  } catch (error) {
+    console.error(error);
+  }
+};
+
+const onSave = () => {
+  dataset.value.categories = selectedCategories.value;
+
+  axios
+    .post("/api/dataset/" + dataset.value.id, {
+      categories: selectedCategories.value,
+      default_annotation_metadata: defaultAnnotation.value.exportMetadata(),
+    })
+    .then(() => {
+        emit('updatePage');
+    });
+};
+
+const downloadURI = (uri, exportName) => {
+  let link = document.createElement("a");
+  link.href = uri;
+  link.download = exportName;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+};
+
+const createSelectedCategories = () => {
+      listCategories.value.forEach((category) => {
+        selectedCategories.value.push(category.name);
+      });
+};
+
+const createSelectedUsers = () => {
+      sharedUsers.value.users = dataset.value.users;
+};
+
+const percent = computed(() => {
+  return 100 * (dataset.value.numberAnnotated / dataset.value.numberImages);
+});
+
+const imageUrl = computed(() => {
+  if (imageError.value) {
+    return notFoundImageUrl;
+  }
+  if (dataset.value.numberImages > 0) {
+    return "/api/image/" + dataset.value.first_image_id + "?width=250";
+  }
+  return noImageUrl;
+});
+
+// const listCategories = computed(() => {
+const listCategories = computed(() => {
+  let list = [];
+  console.log('listCategories 1: ', dataset.value.hasOwnProperty("categories"));
+  if (!dataset.value.hasOwnProperty("categories")) return [];
+  console.log('listCategories 2: ', dataset.value.categories.length);
+  if (dataset.value.categories.length === 0) return [];
+  
+  console.log('listCategories 3: ', dataset.value.categories, categories);
+  dataset.value.categories.forEach((category) => {
+    let elements = categories.value.filter(
+      // quick and dirty fix for categories initiated with id and returned by TagsInput as name
+      // (element) => element.id === category
+      (element) => element.id === category || element.name === category
+    );
+    if (elements.length === 1) {
+      list.push(elements[0]);
+    }
+  });
+  return list;
+});
+
+const categoryTags = computed(() => {
+  let tags = {};
+  categories.value.forEach((category) => {
+    tags[category.name] = category.name;
+  });
+  return tags;
+});
+
+const users = computed(() => {
+  let users = {};
+  // this.$parent.users.forEach((user) => {
+  localUsers.value.forEach((user) => {
+    users[user.username] = user.username;
+  });
+  return users;
+});
+
+onMounted(() => {
+  createSelectedCategories();
+  createSelectedUsers();
+});
+
+
 </script>
 
 <style scoped>

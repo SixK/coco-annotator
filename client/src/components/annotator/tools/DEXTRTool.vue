@@ -1,60 +1,117 @@
-<script>
+<template>
+  <div>
+    <i v-tooltip.right="tooltip" class='fa fa-x' :class="icon" :style="{ color: iconColor }" @click="click"></i>
+    <br>
+  </div>
+</template>
+<script setup>
 import paper from "paper";
-import tool from "@/mixins/toolBar/tool";
+import { useTools } from "@/composables/toolBar/tools";
 import axios from "axios";
+import { ref, computed, watch, inject, onMounted, provide, defineEmits, defineProps } from 'vue'
 
-export default {
-  name: "DEXTRTool",
-  mixins: [tool],
-  props: {
-    scale: {
+const getCurrentAnnotation = inject('getCurrentAnnotation');
+const getImageRaster = inject('getImageRaster');
+const getImageId = inject('getImageId');
+
+const emits = defineEmits(['update']);
+
+const emitUpdate = (value) => {
+    console.log('try to emit:', value);
+    emits('update',  value);
+}
+
+const {
+    click,
+    state,
+    iconColor,
+    tooltip,
+    name,
+    cursor
+  }= useTools(emits);
+
+const props = defineProps({
+  scale: {
       type: Number,
-      default: 1
+      default: 1,
+   }
+});
+
+name.value = "DEXTR";
+cursor.value = "crosshair";
+const scale = ref(props.scale);
+const icon = ref("fa-crosshairs");
+
+const settings = ref({
+      padding: 50,
+      threshold: 80,
+});
+
+const points = ref([]);
+
+const localCurrentAnnotation=ref(null);
+const localImageRaster=ref(null);
+
+watch(
+  () => getImageRaster(),
+  (value) => {
+      localImageRaster.value=value;
+  }
+);
+
+watch(
+  () => getCurrentAnnotation(),
+  (value) => {
+      localCurrentAnnotation.value=value;
+  }
+);
+
+const isDisabled = computed(() => {
+  return state.isDisabled;
+})
+
+const isActive = computed(() => {
+  return state.isActive;
+});
+
+function createPoint(point) {
+      let paperPoint = new paper.Path.Circle(point, 5);
+      paperPoint.fillColor = localCurrentAnnotation.value.color;
+      paperPoint.data.point = point;
+      points.value.push(paperPoint);
+}
+
+function onMouseDown(event) {
+    if(state.isActive)
+    {
+      createPoint(event.point);
+      checkPoints(points.value);
     }
-  },
-  data() {
-    return {
-      icon: "fa-crosshairs",
-      name: "DEXTR",
-      cursor: "crosshair",
-      settings: {
-        padding: 50,
-        threshold: 80
-      },
-      points: []
-    };
-  },
-  computed: {
-    isDisabled() {
-      return this.$parent.current.annotation == -1;
-    }
-  },
-  watch: {
-    points(newPoints) {
-      if (newPoints.length == 4) {
-        let points = this.points;
-        this.points = [];
+}
 
-        let currentAnnotation = this.$parent.currentAnnotation;
-        let pointsList = [];
-        let width = this.$parent.image.raster.width / 2;
-        let height = this.$parent.image.raster.height / 2;
 
-        points.forEach(point => {
-          let pt = point.position;
-
-          pointsList.push([
-            Math.round(width + pt.x),
-            Math.round(height + pt.y)
-          ]);
-        });
+// original code was watching for new points, but it seem's to be a bug between Vue3 and paper.js.
+// so we call function directly
+function checkPoints(newPoints) {
+  if (newPoints.length == 4) {
+    let currentAnnotation = localCurrentAnnotation.value;
+    let pointsList = [];
+    let width = localImageRaster.value.width / 2;
+    let height = localImageRaster.value.height / 2;
+    newPoints.forEach((point) => {
+      let pt = point.position;
+      pointsList.push([
+        Math.round(width + pt.x),
+        Math.round(height + pt.y),
+      ]);
+    });
 
         axios
-          .post(`/api/model/dextr/${this.$parent.image.id}`, {
+          .post(`/api/model/dextr/${getImageId()}`, {
             points: pointsList,
-            ...this.settings
+            ...settings.value,
           })
-          .then(response => {
+          .then((response) => {
             let segments = response.data.segmentaiton;
             let center = new paper.Point(width, height);
 
@@ -73,20 +130,29 @@ export default {
 
             currentAnnotation.unite(compoundPath);
           })
-          .finally(() => points.forEach(point => point.remove()));
-      }
-    },
-  },
-  methods: {
-    createPoint(point) {
-      let paperPoint = new paper.Path.Circle(point, 5);
-      paperPoint.fillColor = this.$parent.currentAnnotation.color;
-      paperPoint.data.point = point;
-      this.points.push(paperPoint);
-    },
-    onMouseDown(event) {
-      this.createPoint(event.point);
-    },
-  },
+          .finally(() => points.value = [] );
+          // .finally(() => points.value.forEach((point) => point.remove()));
+    }
 };
+
+
+watch(
+  () => isActive.value,
+  (active) => {
+    if (active) {
+      state.tool.activate();
+      localStorage.setItem('editorTool', name.value);
+    }
+  }
+);
+
+onMounted(() => {
+    state.tool.onMouseDown = onMouseDown;
+    // state.tool.onMouseDrag = onMouseDrag;
+    // state.tool.onMouseMove = onMouseMove;
+    // state.tool.onMouseUp = onMouseUp;
+})
+
+defineExpose({points, settings, name});
+
 </script>

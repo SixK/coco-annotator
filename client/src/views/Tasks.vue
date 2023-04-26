@@ -49,7 +49,7 @@ export default {
       let process = "Loading tasks";
       this.addProcess(process);
       Tasks.all()
-        .then(response => {
+        .then((response) => {
           this.tasks = response.data;
           if (this.taskToShow != null) {
             this.showTask(this.taskToShow);
@@ -60,7 +60,7 @@ export default {
     showTask(taskId) {
       if (taskId == null) return;
 
-      let task = this.tasks.find(t => t.id == taskId);
+      let task = this.tasks.find((t) => t.id == taskId);
       if (task == null) return;
       task.show = true;
     },
@@ -81,7 +81,7 @@ export default {
     groupping() {
       let groupping = {};
 
-      this.tasks.forEach(task => {
+      this.tasks.forEach((task) => {
         if (task.hasOwnProperty("group")) {
           let group = task.group;
 

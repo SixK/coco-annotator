@@ -175,7 +175,7 @@ export default {
       this.addProcess(process);
 
       Undo.all(this.limit, this.type)
-        .then(response => {
+        .then((response) => {
           this.undos = response.data;
         })
         .finally(() => this.removeProcess(process));

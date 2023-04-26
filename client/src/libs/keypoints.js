@@ -22,7 +22,7 @@ export class Keypoints extends paper.Group {
     this.lineWidth = args.strokeWidth || 4;
 
     edges = edges || [];
-    edges.forEach(e => this.addEdge(e));
+    edges.forEach((e) => this.addEdge(e));
   }
 
   isEmpty() {
@@ -52,8 +52,8 @@ export class Keypoints extends paper.Group {
 
   bringToFront() {
     super.bringToFront();
-    Object.values(this._lines).forEach(l => l.bringToFront());
-    this._keypoints.forEach(k => k.path.bringToFront());
+    Object.values(this._lines).forEach((l) => l.bringToFront());
+    this._keypoints.forEach((k) => k.path.bringToFront());
   }
 
   addKeypoint(keypoint) {
@@ -82,9 +82,9 @@ export class Keypoints extends paper.Group {
       delete this._labelled[indexLabel];
     }
     if (this._edges.hasOwnProperty(indexLabel)) {
-      this._edges[indexLabel].forEach(e => this.removeLine([e, indexLabel]));
+      this._edges[indexLabel].forEach((e) => this.removeLine([e, indexLabel]));
     }
-    let index = this._keypoints.findIndex(k => k == keypoint);
+    let index = this._keypoints.findIndex((k) => k == keypoint);
     if (index > -1) this._keypoints.splice(index, 1);
     keypoint.path.remove();
   }
@@ -94,7 +94,7 @@ export class Keypoints extends paper.Group {
     let edges = this._edges[indexLabel];
 
     if (edges) {
-      edges.forEach(i => {
+      edges.forEach((i) => {
         let line = this.getLine([i, indexLabel]);
         if (line) {
           // We need to move the line aswell
@@ -114,8 +114,8 @@ export class Keypoints extends paper.Group {
 
   set visible(val) {
     this._visible = val;
-    this._keypoints.forEach(k => (k.visible = val));
-    Object.values(this._lines).forEach(l => (l.visible = val));
+    this._keypoints.forEach((k) => (k.visible = val));
+    Object.values(this._lines).forEach((l) => (l.visible = val));
   }
 
   get visible() {
@@ -125,11 +125,11 @@ export class Keypoints extends paper.Group {
   set color(val) {
     this._color = val;
     this.strokeColor = val;
-    this._keypoints.forEach(k => {
+    this._keypoints.forEach((k) => {
       k.fillColor = this.colors[k.indexLabel];
       k.strokeColor = val;
     });
-    Object.values(this._lines).forEach(l => (l.strokeColor = val));
+    Object.values(this._lines).forEach((l) => (l.strokeColor = val));
   }
 
   get color() {
@@ -139,8 +139,8 @@ export class Keypoints extends paper.Group {
   set lineWidth(val) {
     this._lineWidth = val;
     this.strokeWidth = val;
-    this._keypoints.forEach(k => (k.path.storkeWidth = val));
-    Object.values(this._lines).forEach(l => (l.strokeWidth = val));
+    this._keypoints.forEach((k) => (k.path.storkeWidth = val));
+    Object.values(this._lines).forEach((l) => (l.strokeWidth = val));
   }
 
   get lineWidth() {
@@ -149,7 +149,7 @@ export class Keypoints extends paper.Group {
 
   set radius(val) {
     this._radius = val;
-    this._keypoints.forEach(k => (k.radius = val));
+    this._keypoints.forEach((k) => (k.radius = val));
   }
 
   get radius() {
@@ -165,7 +165,7 @@ export class Keypoints extends paper.Group {
       array[j + 2] = 0;
     }
 
-    this._keypoints.forEach(k => {
+    this._keypoints.forEach((k) => {
       let center = new paper.Point(width / 2, height / 2);
       let point = k.clone().add(center);
       let index = k.indexLabel;
@@ -184,7 +184,7 @@ export class Keypoints extends paper.Group {
   }
 
   contains(point) {
-    return this._keypoints.findIndex(k => k.path.contains(point)) > -1;
+    return this._keypoints.findIndex((k) => k.path.contains(point)) > -1;
   }
 
   edges() {
@@ -229,7 +229,7 @@ export class Keypoints extends paper.Group {
   }
 
   getLabelIndex(label) {
-    return this.labels.find(l => l == label);
+    return this.labels.find((l) => l == label);
   }
 
   _addEdgeIndex(index1, index2) {
@@ -248,7 +248,7 @@ export class Keypoints extends paper.Group {
     if (!this._edges.hasOwnProperty(keypoint.indexLabel)) return;
 
     let otherIndices = this._edges[keypoint.indexLabel];
-    otherIndices.forEach(i => {
+    otherIndices.forEach((i) => {
       let k2 = this._labelled[i];
       if (!k2) return;
 

@@ -70,7 +70,7 @@
       <div v-show="mode == 'segment'">
         <CopyAnnotationsButton
           :categories="categories"
-          :image-id="image.id"
+          :imageId="image.id"
           :next="image.next"
           :previous="image.previous"
         />
@@ -85,7 +85,7 @@
 
       <DownloadButton :image="image" />
       <SaveButton />
-      <ModeButton v-model="mode" />
+      <ModeButton v-model:mode="mode" />
       <SettingsButton
         ref="settings"
         :metadata="image.metadata"
@@ -161,6 +161,7 @@
             :key="category.id + '-label'"
             v-model="image.categoryIds"
             :category="category"
+            :categoryIds="image.categoryIds"
             :search="search"
           />
         </div>
@@ -258,8 +259,10 @@
 <script>
 import paper from "paper";
 import axios from "axios";
+import useAxiosRequest from "@/composables/axiosRequest";
 
-import toastrs from "@/mixins/toastrs";
+
+// import toastrs from "@/mixins/toastrs";
 import shortcuts from "@/mixins/shortcuts";
 
 import FileTitle from "@/components/annotator/FileTitle";
@@ -297,6 +300,7 @@ import EraserPanel from "@/components/annotator/panels/EraserPanel";
 import KeypointPanel from "@/components/annotator/panels/KeypointPanel";
 import DEXTRPanel from "@/components/annotator/panels/DEXTRPanel";
 
+import { nextTick, markRaw, toRef, computed } from 'vue';
 import { mapMutations } from "vuex";
 
 export default {
@@ -333,14 +337,17 @@ export default {
     DEXTRTool,
     DEXTRPanel
   },
-  mixins: [toastrs, shortcuts],
+//   mixins: [toastrs, shortcuts],
+  mixins: [shortcuts],
   props: {
     identifier: {
       type: [Number, String],
-      required: true
-    }
+      required: true,
+    },
   },
   data() {
+    const {axiosReqestError, axiosReqestSuccess} = useAxiosRequest();
+
     return {
       activeTool: "Select",
       paper: null,
@@ -400,8 +407,52 @@ export default {
       }
     };
   },
+  provide() {
+        return {
+            setCursor: this.setCursor,
+            updateCurrentAnnotation: this.updateCurrentAnnotation,
+            save: this.save,
+            getData: this.getData,
+            activateTools: this.activateTools,
+            current:  this.current,
+            setActiveTool: this.setActiveTool,
+            getActiveTool: this.getActiveTool,
+            uniteCurrentAnnotation: this.uniteCurrentAnnotation,
+//            currentAnnotation: this.currentAnnotation,
+            getCurrentAnnotation: this.getCurrentAnnotation,
+            getCurrentCategory: this.getCurrentCategory,
+            imageRaster: this.image.raster,
+            getImageRaster: this.getImageRaster,
+            getCategory: this.getCategory,
+            getPaper: this.getPaper,
+            getHover: this.getHover,
+            getImageId: this.getImageId,
+            addAnnotation: this.addAnnotation,
+            showAll: this.showAll,
+            hideAll: this.hideAll,
+            fit: this.fit,
+        };
+  },
   methods: {
     ...mapMutations(["addProcess", "removeProcess", "resetUndo", "setDataset"]),
+    setActiveTool(tool) {
+        this.activeTool = tool;
+    },
+    getImageId() {
+        console.log('image id:', this.image.id);
+        return this.image.id;
+    },
+    getHover() {
+        console.log('annot Hover:', this.hover);
+        return this.hover;
+    },    
+    getPaper() {
+        console.log('annot paper:', this.paper);
+        return this.paper;
+    },
+    getActiveTool() {
+        return this.activeTool;
+    },
     save(callback) {
       let process = "Saving";
       this.addProcess(process);
@@ -410,13 +461,13 @@ export default {
       let data = {
         mode: this.mode,
         user: {
-          bbox: this.$refs.bbox.export(),
-          polygon: this.$refs.polygon.export(),
-          eraser: this.$refs.eraser.export(),
-          brush: this.$refs.brush.export(),
-          magicwand: this.$refs.magicwand.export(),
-          select: this.$refs.select.export(),
-          settings: this.$refs.settings.export()
+          bbox: this.$refs.bbox.exportBBox(),
+          polygon: this.$refs.polygon.exportPolygon(),
+          eraser: this.$refs.eraser.exportEraser(),
+          brush: this.$refs.brush.exportBrush(),
+          magicwand: this.$refs.magicwand.exportWand(),
+          select: this.$refs.select.exportSelect(),
+          settings: this.$refs.settings.exportSettings(),
         },
         dataset: this.dataset,
         image: {
@@ -437,7 +488,7 @@ export default {
 
       if (refs.category != null && this.mode === "segment") {
         this.image.categoryIds = [];
-        refs.category.forEach(category => {
+        refs.category.forEach((category) => {
           let categoryData = category.export();
           data.categories.push(categoryData);
 
@@ -607,13 +658,16 @@ export default {
       refs.brush.setPreferences(preferences.brush || {});
       refs.eraser.setPreferences(preferences.eraser || {});
     },
+    updateCurrentAnnotation(value) {
+        this.current.annotation = -1;
+    },
     getData(callback) {
       let process = "Loading annotation data";
       this.addProcess(process);
       this.loading.data = true;
       axios
         .get("/api/annotator/data/" + this.image.id)
-        .then(response => {
+        .then((response) => {
           let data = response.data;
 
           this.loading.data = false;
@@ -631,7 +685,6 @@ export default {
           this.categories = data.categories;
 
           // Update status
-
           this.setDataset(this.dataset);
 
           let preferences = data.preferences;
@@ -641,17 +694,20 @@ export default {
             this.text.topLeft.content = this.image.filename;
           }
 
-          this.$nextTick(() => {
+          nextTick(() => {
             this.showAll();
           });
 
           if (callback != null) callback();
         })
         .catch(() => {
-          this.axiosReqestError(
+            console.log('reactivate once in vue3');
+            console.log('will go back to previous menu !??');
+            /*
+          axiosReqestError(
             "Could not find requested image",
             "Redirecting to previous page."
-          );
+          );*/
           this.$router.go(-1);
         })
         .finally(() => this.removeProcess(process));
@@ -688,7 +744,14 @@ export default {
       }
     },
     onKeypointsComplete() {
-      this.currentAnnotation.keypoint.next.label = -1;
+       /********* Remove me when this.currentAnnotation will not be empty at start ********/ 
+      if(!this.currentAnnotation) {
+          console.log('should remove this condition in onKeypointsComplete()')
+           return
+       }else {
+         this.currentAnnotation.keypoint.next.label = -1;
+       }
+       /********* Remove me when this.currentAnnotation will not be empty at start ********/
       this.activeTool = this.$refs.select;
       this.activeTool.click();
     },
@@ -721,7 +784,15 @@ export default {
     selectLastEditorTool() {
       this.activeTool = localStorage.getItem("editorTool") || "Select";
     },
-
+    getImageRaster(){
+        return this.image.raster;
+    },
+    getCurrentCategory(){
+        return this.currentCategory;
+    },
+    getCurrentAnnotation(){
+        return this.currentAnnotation;
+    },
     setCursor(newCursor) {
       this.cursor = newCursor;
     },
@@ -909,21 +980,21 @@ export default {
     showAll() {
       if (this.$refs.category == null) return;
 
-      this.$refs.category.forEach(category => {
+      this.$refs.category.forEach((category) => {
         category.isVisible = category.category.annotations.length > 0;
       });
     },
     hideAll() {
       if (this.$refs.category == null) return;
 
-      this.$refs.category.forEach(category => {
+      this.$refs.category.forEach((category) => {
         category.isVisible = false;
         category.showAnnotations = false;
       });
     },
     findCategoryByName(categoryName) {
       let categoryComponent = this.$refs.category.find(
-        category =>
+        (category) =>
           category.category.name.toLowerCase() === categoryName.toLowerCase()
       );
       if (!categoryComponent) return null;
@@ -943,8 +1014,8 @@ export default {
         category_id: category.id,
         segmentation: segments,
         keypoints: keypoints,
-        isbbox: isbbox
-      }).then(response => {
+        isbbox: isbbox,
+      }).then((response) => {
         let annotation = response.data;
         category.annotations.push(annotation);
       });
@@ -955,7 +1026,7 @@ export default {
       if (!newCategory || !annotation) return;
 
       Annotations.update(annotation.id, { category_id: newCategory.id }).then(
-        response => {
+        (response) => {
           let newAnnotation = {
             ...response.data,
             ...annotation,
@@ -965,7 +1036,7 @@ export default {
 
           if (newAnnotation) {
             oldCategory.annotations = oldCategory.annotations.filter(
-              a => a.id !== annotation.id
+              (a) => a.id !== annotation.id
             );
             newCategory.annotations.push(newAnnotation);
           }
@@ -991,6 +1062,9 @@ export default {
     },
   },
   computed: {
+    activateTools() {
+        return this.current.annotation !== -1;
+    },
     doneLoading() {
       return !this.loading.image && !this.loading.data;
     },
@@ -1112,7 +1186,7 @@ export default {
   beforeRouteLeave(to, from, next) {
     this.current.annotation = -1;
 
-    this.$nextTick(() => {
+    nextTick(() => {
       this.$socket.emit("annotating", {
         image_id: this.image.id,
         active: false

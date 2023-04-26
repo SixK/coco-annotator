@@ -1,56 +1,63 @@
-<script>
-import button from "@/mixins/toolBar/button";
+<template>
+  <div>
+    <i v-tooltip.right="name" class='fa fa-x' :class="icon" :style="{ color: iconColor }" @click="click(execute, disabled)"></i>
+    <br>
+  </div>
+</template>
+<script setup>
 import axios from "axios";
+import { ref, computed, watch, inject, onMounted, provide, defineEmits } from 'vue'
+import { useButton } from "@/composables/toolBar/button";
 
-export default {
-  name: "DownloadButton",
-  mixins: [button],
-  props: {
-    image: {
+const { iconColor, click } = useButton();
+
+const save = inject('save');
+
+const props = defineProps({
+  image: {
       type: Object,
-      required: true
-    }
-  },
-  data() {
-    return {
-      name: "Download COCO",
-      icon: "fa-download",
-      include: {
-        image: true,
-        coco: true
-      }
-    };
-  },
-  methods: {
-    downloadURI(uri, exportName) {
-      let link = document.createElement("a");
-      link.href = uri;
-      link.download = exportName;
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
+      required: true,
     },
-    download() {
-      if (this.include.image) {
-        let url = "/api/image/" + this.image.id + "?asAttachment=true";
-        this.downloadURI(url, this.image.filename);
-      }
-      if (this.include.coco) {
-        let url = "/api/image/" + this.image.id + "/coco";
+});
 
-        axios.get(url).then(response => {
-          let dataStr =
-            "data:text/json;charset=utf-8," +
-            encodeURIComponent(JSON.stringify(response.data));
-          let filename = this.image.filename.replace(/\.[^/.]+$/, "") + ".json";
-          this.downloadURI(dataStr, filename);
-        });
-      }
-    },
-    // Download function
-    execute() {
-      this.$parent.save(this.download);
-    }
+
+const name =  ref("Download COCO");
+const icon = ref("fa-download");
+const include = {
+        image: true,
+        coco: true,
+      };
+const image=ref(props.image);
+
+const  downloadURI = (uri, exportName) => {
+  let link = document.createElement('a');
+  link.href = uri;
+  link.download = exportName;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+};
+
+const download = () => {
+  if (include.image) {
+    let url = '/api/image/' + image.value.id + '?asAttachment=true';
+    downloadURI(url, image.value.filename);
+  }
+  if (include.coco) {
+    let url = '/api/image/' + image.value.id + '/coco';
+    axios.get(url).then((response) => {
+      let dataStr =
+        'data:text/json;charset=utf-8,' +
+        encodeURIComponent(JSON.stringify(response.data));
+      let filename =
+        image.value.filename.replace(/\.[^/.]+$/, '') + '.json';
+      downloadURI(dataStr, filename);
+    });
   }
 };
+
+const execute = () => {
+    save(download);
+}
+
 </script>

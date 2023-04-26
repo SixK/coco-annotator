@@ -96,7 +96,7 @@ export default {
             "Password has been changed"
           );
         })
-        .catch(error => {
+        .catch((error) => {
           this.axiosReqestError(
             "Changing Password",
             error.response.data.message

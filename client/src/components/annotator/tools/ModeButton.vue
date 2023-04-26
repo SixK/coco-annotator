@@ -1,44 +1,58 @@
-<script>
-import button from "@/mixins/toolBar/button";
+<template>
+  <div>
+    <i v-tooltip.right="name" class='fa fa-x' :class="icon" :style="{ color: iconColor }" @click="click(execute, disabled)"></i>
+    <br>
+  </div>
+</template>
+<script setup>
+import { ref, computed, watch, inject, onMounted, provide, defineEmits } from 'vue'
+import { useButton } from "@/composables/toolBar/button";
 
-export default {
-  name: "ModeButton",
-  mixins: [button],
-  model: {
-    prop: "mode",
-    event: "update"
+const { iconColor, click } = useButton();
+
+const emit = defineEmits(["update:mode"]);
+
+const props = defineProps({
+  mode: {
+    type: String,
+    required: true,
   },
-  props: {
-    mode: {
-      type: String,
-      required: true
-    }
-  },
-  data() {
-    return {
-      name: "Mode: " + this.mode
-    };
-  },
-  computed: {
-    icon() {
-      if (this.mode == "segment") return "fa-pencil-square-o";
-      if (this.mode == "label") return "fa-tags";
-      return "";
-    },
-  },
-  watch: {
-    mode() {
-      this.name = "Mode: " + this.mode;
-    },
-  },
-  methods: {
-    next() {
-      if (this.mode == "segment") return "label";
-      return "segment";
-    },
-    execute() {
-      this.$emit("update", this.next());
-    }
-  }
+});
+
+const mode = ref(props.mode);
+
+const name = ref("Mode: "+props.mode);
+
+const icon = computed(() => {
+  if (props.mode === 'segment') return 'fa-pencil-square-o';
+  if (props.mode === 'label') return 'fa-tags';
+  return '';
+});
+
+/*
+const toggleMode = () => {
+  const newMode = props.mode === 'segment' ? 'label' : 'segment';
+  // Emit the update event to sync with the parent component
+  emit('update', newMode);
 };
+*/
+
+watch(
+   () => props.mode, 
+   (newVal) => {
+       console.log('mode: ', newVal);
+        name.value = "Mode: " + newVal;
+        mode.value = newVal;
+    }
+);
+
+const next = () => {
+  if (mode.value === "segment") return "label";
+  return "segment";
+};
+
+const execute = () => {
+  emit("update:mode", next());
+};
+
 </script>

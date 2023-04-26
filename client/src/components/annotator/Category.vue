@@ -101,6 +101,7 @@
       class="modal fade"
       tabindex="-1"
       role="dialog"
+      @hidden="resetCategorySettings"
     >
       <div
         class="modal-dialog"
@@ -183,9 +184,11 @@ import paper from "paper";
 import Annotations from "@/models/annotations";
 import Annotation from "@/components/annotator/Annotation";
 import KeypointsDefinition from "@/components/KeypointsDefinition";
-import JQuery from "jquery";
 
-let $ = JQuery;
+import { nextTick } from 'vue';
+// import JQuery from "jquery";
+
+// let $ = JQuery;
 
 export default {
   name: "Category",
@@ -329,10 +332,11 @@ export default {
   },
   mounted() {
     this.initCategory();
+    /*
     $(this.$refs.category_settings).on(
       "hidden.bs.modal",
       this.resetCategorySettings
-    );
+    );*/
     this.isMounted = true;
   },
   methods: {
@@ -358,7 +362,7 @@ export default {
       Annotations.create({
         image_id: parent.image.id,
         category_id: this.category.id,
-      }).then(response => {
+      }).then((response) => {
         this.$socket.emit("annotation", {
           action: "create",
           category_id: this.category.id,
@@ -368,7 +372,7 @@ export default {
         this.category.annotations.push(response.data);
 
         this.selectedAnnotation = annotationId;
-        this.$nextTick(() => {
+        nextTick(() => {
           this.$parent.selectLastEditorTool();
           this.$emit("click", {
             annotation: annotationId,
@@ -421,7 +425,7 @@ export default {
       };
 
       if (refs.hasOwnProperty("annotation")) {
-        refs.annotation.forEach(annotation => {
+        refs.annotation.forEach((annotation) => {
           categoryData.annotations.push(annotation.export());
         });
       }
@@ -433,7 +437,7 @@ export default {
       this.keypoint.edges.push(edge);
     },
     removeKeypointEdge(edge) {
-      let index = this.keypoint.edges.findIndex(e => {
+      let index = this.keypoint.edges.findIndex((e) => {
         let i1 = Math.min(edge[0], edge[1]) == Math.min(e[0], e[1]);
         let i2 = Math.max(edge[0], edge[1]) == Math.max(e[0], e[1]);
 
@@ -445,7 +449,7 @@ export default {
         this.keypoint.edges.splice(index, 1);
         let annotations = this.$refs.annotation;
         if (annotations) {
-          annotations.forEach(a => a.keypoints.removeLine(edge));
+          annotations.forEach((a) => a.keypoints.removeLine(edge));
         }
       }
     },
@@ -489,7 +493,7 @@ export default {
       let indices = {
         annotation: index,
         category: this.index,
-        keypoint: -1 
+        keypoint: -1
       };
       this.selectedAnnotation = index;
       this.showAnnotations = true;
@@ -539,9 +543,9 @@ export default {
       if (!this.isVisible) return;
 
       if (this.showAnnotations) {
-        annotations.forEach(a => a.setColor());
+        annotations.forEach((a) => a.setColor());
       } else {
-        annotations.forEach(a => {
+        annotations.forEach((a) => {
           a.compoundPath.fillColor = this.color;
           a.keypoints.color = this.darkHSL;
           a.keypoints.bringToFront();
@@ -572,7 +576,7 @@ export default {
       if (annotation.category_id != this.category.id) return;
 
       let found = this.category.annotations.findIndex(
-        a => a.id == annotation.id
+        (a) => a.id == annotation.id
       );
 
       if (found == -1) {

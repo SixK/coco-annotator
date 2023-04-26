@@ -11,28 +11,34 @@
   </div>
 </template>
 <script setup>
-import { ref, watch, defineProps, defineEmits } from 'vue';
+import { ref, watch, defineProps, defineEmits, onMounted } from 'vue';
 const props = defineProps({
   name: {
     type: String,
     required: true,
   },
-  value: {
+  inputString: {
     type: String,
     required: true,
   },
 });
-const emit = defineEmits(['update', 'submit']);
+// const emit = defineEmits(['update', 'submit']);
+const emit = defineEmits(['update:inputString', 'submit']);
 const localValue = ref(props.value);
 watch(localValue, () => {
-  emit('update', localValue.value);
+  emit('update:inputString', localValue.value);
 });
-watch(() => props.value, (newValue) => {
+watch(() => props.inputString, (newValue) => {
   localValue.value = newValue;
 });
 const submit = () => {
   emit('submit');
 };
+
+onMounted(() => {
+  localValue.value  = props.inputString;
+})
+
 </script>
 
 <style scoped>

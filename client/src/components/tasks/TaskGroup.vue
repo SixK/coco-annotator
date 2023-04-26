@@ -19,7 +19,7 @@
         v-show="showTasks"
         class="card-body"
       >
-        <Task
+        <AppTask
           v-for="(task, index) in tasks"
           :key="index"
           :task="task"
@@ -30,31 +30,31 @@
 </template>
 
 <script>
-import Task from "@/components/tasks/Task";
+import AppTask from "@/components/tasks/Task";
 
 export default {
   name: "TaskGroup",
-  components: { Task },
+  components: { AppTask },
   props: {
     tasks: {
       type: Array,
-      required: true
+      required: true,
     },
     name: {
       type: String,
-      required: true
-    }
+      required: true,
+    },
   },
   data() {
     return {
-      showTasks: true
+      showTasks: true,
     };
   },
   computed: {
     runningTasks() {
-      return this.tasks.filter(t => t.progress < 100);
-    }
-  }
+      return this.tasks.filter((t) => t.progress < 100);
+    },
+  },
 };
 </script>
 

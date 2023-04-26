@@ -27,41 +27,51 @@
   </div>
 </template>
 
-<script>
-export default {
-  name: "FileTitle",
-  props: {
-    filename: {
-      type: String,
-      required: true
-    },
-    previousimage: {
-      type: Number,
-      default: null
-    },
-    nextimage: {
-      type: Number,
-      default: null
-    }
+
+<script setup>
+import { ref, onMounted, inject, defineExpose } from 'vue';
+import { useRouter } from 'vue-router';
+import { nextTick } from 'vue';
+
+const props = defineProps({
+  filename: {
+    type: String,
+    required: true,
   },
-  methods: {
+  previousimage: {
+    type: Number,
+    default: null,
+  },
+  nextimage: {
+    type: Number,
+    default: null,
+  },
+});
+
+// Provide/Inject mechanism
+const save = inject('save');
+const updateCurrentAnnotation = inject('updateCurrentAnnotation');
+const router = useRouter();
+
     /**
      * Navigates to image with provided ID
      *
      * @param {Number} identifer id of a file
      */
-    route(identifier) {
+const route = (identifier) => {
       // Make sure we pop the latest session before annotations
-      this.$parent.current.annotation = -1;
+      // this.$parent.current.annotation = -1;
+      updateCurrentAnnotation(-1);
 
-      this.$nextTick(() => {
-        this.$parent.save(() => {
-          this.$router.push({ name: "annotate", params: { identifier } });
+      nextTick(() => {
+        save(() => {
+          router.push({ name: "annotate", params: { identifier } });
         });
       });
-    }
-  }
 };
+
+defineExpose({route});
+
 </script>
 
 <style scoped>

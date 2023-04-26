@@ -32,51 +32,47 @@
   </div>
 </template>
 
-<script>
-export default {
-  name: "Label",
-  model: {
-    prop: "categoryIds",
-    event: "update"
+<script setup>
+import { ref, computed, toRef } from 'vue';
+
+const props = defineProps({
+  category: {
+    type: Object,
+    required: true,
   },
-  props: {
-    category: {
-      type: Object,
-      required: true
-    },
-    categoryIds: {
-      type: Array,
-      required: true
-    },
-    search: {
-      type: String,
-      required: true
-    }
+  categoryIds: {
+    type: Array,
+    required: true,
   },
-  data() {
-    return {};
+  search: {
+    type: String,
+    required: true,
   },
-  computed: {
-    show() {
-      let search = this.search.toLowerCase();
-      if (search.length === 0) return true;
-      return this.category.name.toLowerCase().includes(search);
-    },
-    isSelected() {
-      return this.categoryIds.indexOf(this.category.id) > -1;
-    }
-  },
-  methods: {
-    click() {
-      let copy = this.categoryIds.slice();
-      if (!this.isSelected) {
-        copy.push(this.category.id);
-      } else {
-        copy.splice(copy.indexOf(this.category.id), 1);
-      }
-      this.$emit("update", copy);
-    }
+});
+
+const emit = defineEmits(['update']);
+const search = toRef(props, 'search');
+const category = toRef(props, 'category');
+const categoryIds = toRef(props, 'categoryIds');
+
+const show = computed(() => {
+  let searchLower = search.value.toLowerCase();
+  if (searchLower.length === 0) return true;
+  return category.value.name.toLowerCase().includes(searchLower);
+});
+const isSelected = computed(() => {
+  if (categoryIds.value == undefined) return false;
+  return categoryIds.value.indexOf(category.value.id) > -1;
+});
+const click = () => {
+  console.log('label clicked:', categoryIds.value);
+  let copy = categoryIds.value.slice();
+  if (!isSelected.value) {
+    copy.push(category.value.id);
+  } else {
+    copy.splice(copy.indexOf(category.value.id), 1);
   }
+  emit('update', copy);
 };
 </script>
 

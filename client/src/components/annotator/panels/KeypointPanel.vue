@@ -16,48 +16,34 @@
     />
   </div>
 </template>
-<script>
-import { defineComponent, ref, computed } from 'vue';
-
+<script setup>
+import { ref, computed } from 'vue';
 import PanelText from '@/components/PanelText';
 import PanelInputDropdown from '@/components/PanelInputDropdown';
 import { VisibilityOptions } from '@/libs/keypoints';
 
-export default defineComponent({
-  name: 'KeypointPanel',
-  components: { PanelText, PanelInputDropdown },
-  props: {
-    keypoint: {
-      type: Object,
-      required: true
-    },
-    currentAnnotation: {
-      required: true,
-      validator: (prop) => typeof prop === "object" || prop === undefined,
-    },
+const props = defineProps({
+  keypoint: {
+    type: Object,
+    required: true,
   },
-
-  setup(props) {
-    const visibility = ref(2);
-    const label = ref(-1);
-    const visibilityOptions = ref(VisibilityOptions);
-    const keypointLabel = computed(() => {
-      if (!props.currentAnnotation) return {};
-      let labelIndex = props.currentAnnotation.keypoint.next.label;
-      let labels = props.currentAnnotation.notUsedKeypointLabels;
-      let labelKeys = Object.keys(labels);
-      if ((labelIndex < 0 || labelIndex > labels) && labelKeys.length > 0) {
-        return labels[labelKeys[0]];
-      }
-      return labels[labelIndex];
-    });
-    return {
-      visibility,
-      label,
-      visibilityOptions,
-      keypointLabel,
-    };
+  currentAnnotation: {
+    required: true,
+    validator: (prop) => typeof prop === 'object' || prop === undefined,
   },
+});
+const visibility = ref(2);
+const label = ref(-1);
+const visibilityOptions = ref(VisibilityOptions);
+const keypointLabel = computed(() => {
+  if (!props.currentAnnotation) return {};
+  let labelIndex = props.currentAnnotation.keypoint.next.label;
+  let labels = props.currentAnnotation.notUsedKeypointLabels;
+  let labelKeys = Object.keys(labels);
+  if ((labelIndex < 0 || labelIndex > labels) && labelKeys.length > 0) {
+    return labels[labelKeys[0]];
+  }
+  return labels[labelIndex];
 });
 </script>
 <style scoped>

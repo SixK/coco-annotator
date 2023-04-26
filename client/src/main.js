@@ -5,7 +5,9 @@ import Vue from "vue";
 import App from "./App.vue";
 import router from "./router";
 import store from "./store";
-import VueToastr2 from "vue-toastr-2";
+// import VueToastr2 from "vue-toastr-2";
+// import {useToast} from 'vue-toast-notification';
+import {VueToast} from 'vue-toast-notification';
 import paper from "paper";
 import VTooltip from "v-tooltip";
 import Loading from "vue-loading-overlay";
@@ -15,12 +17,13 @@ import VueSocketIO from "vue-socket.io";
 
 import "bootstrap";
 import "bootstrap/dist/css/bootstrap.min.css";
-import "vue-toastr-2/dist/vue-toastr-2.min.css";
+//import "vue-toastr-2/dist/vue-toastr-2.min.css";
+import 'vue-toast-notification/dist/theme-bootstrap.css';
 import "vue-loading-overlay/dist/vue-loading.css";
 
 Vue.config.productionTip = false;
 
-window.toastr = require("toastr");
+// window.toastr = require("toastr");
 
 const socketio = new VueSocketIO({
   debug: true,
@@ -31,7 +34,11 @@ const app = createApp({
   render: () => h(App),
 });
 
-app.use(VueToastr2);
+// app.use(VueToastr2);
+app.use(VueToast, {
+    // One of the options
+    position: 'top'
+})
 app.use(VTooltip);
 app.use(router);
 app.use(store);

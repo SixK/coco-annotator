@@ -209,7 +209,7 @@ export default {
           color: this.value.colors[i],
         });
       }
-      this.value.edges.forEach(edge => {
+      this.value.edges.forEach((edge) => {
         let label0 = edge[0] - 1;
         let label1 = edge[0] - 1;
         keypoints[label0].edges.push(this.value.labels[label1]);
@@ -245,7 +245,7 @@ export default {
           }
         }
 
-        this.value.edges.forEach(edge => {
+        this.value.edges.forEach((edge) => {
           let label0 = edge[0] - 1;
           let label1 = edge[1] - 1;
           if (label0 < keypoints.length && label1 < keypoints.length) {
@@ -291,7 +291,7 @@ export default {
           for (let i = 0; i < this.keypoints.length; ++i) {
             if (i !== index) {
               let kp = this.keypoints[i];
-              kp.edges = kp.edges.map(edge => {
+              kp.edges = kp.edges.map((edge) => {
                 return edge === previous_label ? label : edge;
               });
             }
@@ -303,7 +303,7 @@ export default {
         for (let i = 0; i < this.keypoints.length; ++i) {
           if (i !== index) {
             let kp = this.keypoints[i];
-            kp.edges = kp.edges.filter(edge => {
+            kp.edges = kp.edges.filter((edge) => {
               return edge != previous_label;
             });
           }
@@ -314,7 +314,7 @@ export default {
       let new_edges = new Set(edges);
       let current_kp = this.keypoints[index];
       // need to update the keypoints on the other end of the edges
-      this.keypoints.forEach(kp => {
+      this.keypoints.forEach((kp) => {
         if (kp.label !== current_kp.label) {
           // edges go both ways; sync other end
           let kp_edges = new Set(kp.edges);
@@ -346,14 +346,14 @@ export default {
       let edge_labels = {};
       let labels = [];
       let colors = [];
-      this.keypoints.forEach(kp => {
+      this.keypoints.forEach((kp) => {
         if (kp.label.length > 0) {
           labels.push(kp.label);
           colors.push(kp.color);
         }
-      })
-      this.keypoints.forEach(kp => {
-        kp.edges.forEach(edge => {
+      });
+      this.keypoints.forEach((kp) => {
+        kp.edges.forEach((edge) => {
           if (edge in edge_labels) {
             edge_labels[edge].add(kp.label);
           } else {
@@ -365,7 +365,7 @@ export default {
       let edges = [];
       for (const label in edge_labels) {
         let label_index = labels.indexOf(label) + 1;
-        edge_labels[label].forEach(edge => {
+        edge_labels[label].forEach((edge) => {
           let edge_index = labels.indexOf(edge) + 1;
           edges.push([label_index, edge_index]);
         });
@@ -375,7 +375,7 @@ export default {
     otherKeypointLabels(current_label) {
       let labels = {};
       if (this.keypoints != null) {
-        this.keypoints.forEach(keypoint => {
+        this.keypoints.forEach((keypoint) => {
           if (keypoint.label !== "" && keypoint.label !== current_label) {
             labels[keypoint.label] = keypoint.label;
           }
@@ -388,7 +388,7 @@ export default {
     },
     nextDistinctColor() {
       return DISTINCT_COLORS[++this.nextDistinct];
-    }
+    },
   },
 };
 </script>

@@ -1,32 +1,37 @@
 <template>
-  <div v-show="eraser.isActive">
+  <div v-show="showme">
     <PanelInputNumber
       v-model="eraser.eraser.pathOptions.radius"
       name="Radius"
       min="0"
       max="1000"
       step="5"
+      @update="eraser.eraser.pathOptions.radius = $event"
     />
     <PanelInputString
-      v-model="eraser.eraser.pathOptions.strokeColor"
+      v-model:input-string="eraser.eraser.pathOptions.strokeColor"
       name="Stroke Color"
     />
   </div>
 </template>
 
-<script>
-import { defineComponent } from "vue";
-import PanelInputString from "@/components/PanelInputString";
-import PanelInputNumber from "@/components/PanelInputNumber";
+<script setup>
+import PanelInputString from '@/components/PanelInputString';
+import PanelInputNumber from '@/components/PanelInputNumber';
+import { defineProps, ref, inject, watchEffect } from 'vue';
 
-export default defineComponent({
-  name: "EraserPanel",
-  components: { PanelInputString, PanelInputNumber },
-  props: {
-    eraser: {
-      type: Object,
-      required: true,
-    },
+const props = defineProps({
+  eraser: {
+    type: Object,
+    required: true,
   },
+});
+
+const eraser = ref(props.eraser);
+const showme = ref('false');
+const getActiveTool = inject('getActiveTool');
+
+watchEffect(() => {
+    showme.value = eraser.value.name === getActiveTool();
 });
 </script>

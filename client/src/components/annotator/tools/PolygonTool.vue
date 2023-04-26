@@ -1,276 +1,319 @@
-<script>
+<template>
+  <div>
+    <i v-tooltip.right="tooltip" class='fa fa-x' :class="icon" :style="{ color: iconColor }" @click="click"></i>
+    <br>
+  </div>
+</template>
+
+<script setup>
 import paper from "paper";
-import tool from "@/mixins/toolBar/tool";
 import UndoAction from "@/undo";
-
 import { invertColor } from "@/libs/colors";
-import { mapMutations } from "vuex";
+// import { mapMutations } from "vuex";
+import { useStore } from 'vuex';
+import { useTools } from "@/composables/toolBar/tools";
+import { ref, computed, watch, inject, onMounted, provide, defineEmits, defineProps } from 'vue'
 
-export default {
-  name: "PolygonTool",
-  mixins: [tool],
-  props: {
-    scale: {
-      type: Number,
-      default: 1
-    },
-    settings: {
-      type: [Object, null],
-      default: null
-    }
+const uniteCurrentAnnotation = inject('uniteCurrentAnnotation');
+const save = inject('save');
+const getImageRaster = inject('getImageRaster');
+
+const store = useStore();
+
+const emits = defineEmits(['update']);
+
+const emitUpdate = (value) => {
+    emits('update',  value);
+}
+
+const {
+    click,
+    state,
+    iconColor,
+    tooltip,
+    name,
+    cursor
+  }= useTools(emits);
+
+const props = defineProps({
+  scale: {
+    type: Number,
+    default: 1,
   },
-  data() {
-    return {
-      icon: "fa-pencil",
-      name: "Polygon",
-      scaleFactor: 3,
-      cursor: "copy",
-      polygon: {
-        completeDistance: 5,
-        minDistance: 2,
-        path: null,
-        guidance: true,
-        simplify: 1,
-        pathOptions: {
-          strokeColor: "black",
-          strokeWidth: 1
-        }
-      },
-      color: {
-        blackOrWhite: true,
-        auto: true,
-        radius: 10,
-        circle: null
-      },
-      actionTypes: Object.freeze({
-        ADD_POINTS: "Added Points",
-        CLOSED_POLYGON: "Closed Polygon",
-        DELETE_POLYGON: "Delete Polygon"
-      }),
-      actionPoints: 0
-    };
+  settings: {
+    type: [Object, null],
+    default: null,
   },
-  methods: {
-    ...mapMutations(["addUndo", "removeUndos"]),
-    export() {
-      return {
-        guidance: this.polygon.guidance,
-        completeDistance: this.polygon.completeDistance,
-        minDistance: this.polygon.minDistance,
-        blackOrWhite: this.color.blackOrWhite,
-        auto: this.color.auto,
-        radius: this.color.radius
-      };
-    },
-    setPreferences(pref) {
-      this.polygon.guidance = pref.guidance || this.polygon.guidance;
-      this.polygon.completeDistance =
-        pref.completeDistance || this.polygon.completeDistance;
-      this.polygon.minDistance = pref.minDistance || this.polygon.minDistance;
-      this.color.blackOrWhite = pref.blackOrWhite || this.color.blackOrWhite;
-      this.color.auto = pref.auto || this.color.auto;
-      this.color.radius = pref.radius || this.color.radius;
-    },
-    /**
-     * Creates a new selection polygon path
-     */
-    createPolygon() {
-      if (this.color.auto) {
-        this.color.circle = new paper.Path.Circle(
-          new paper.Point(0, 0),
-          this.color.radius
-        );
-      }
-      this.polygon.path = new paper.Path(this.polygon.pathOptions);
-    },
-    /**
-     * Frees current polygon
-     */
-    deletePolygon() {
-      if (this.polygon.path == null) return;
+});
 
-      this.polygon.path.remove();
-      this.polygon.path = null;
+name.value = "Polygon";
+cursor.value = "copy";
+const scale = ref(props.scale);
+const icon = ref("fa-pencil");
+const scaleFactor = 3;
 
-      if (this.color.circle == null) return;
-      this.color.circle.remove();
-      this.color.circle = null;
-    },
-    autoStrokeColor(point) {
-      if (this.color.circle == null) return;
-      if (this.polygon.path == null) return;
-      if (!this.color.auto) return;
 
-      this.color.circle.position = point;
-      let raster = this.$parent.image.raster;
-      let color = raster.getAverageColor(this.color.circle);
-      if (color) {
-        this.polygon.pathOptions.strokeColor = invertColor(
-          color.toCSS(true),
-          this.color.blackOrWhite
-        );
-      }
-    },
-    onMouseDrag(event) {
-      if (this.polygon.path == null) return;
-      this.actionPoints++;
-      this.autoStrokeColor(event.point);
-      this.polygon.path.add(event.point);
-      this.autoComplete(30);
-    },
-    onMouseDown(event) {
-      let wasNull = false;
-      if (this.polygon.path == null) {
-        wasNull = true;
-        this.createPolygon();
-      }
-
-      this.actionPoints = 1;
-      this.polygon.path.add(event.point);
-
-      if (this.autoComplete(3)) return;
-
-      if (this.polygon.guidance && wasNull) this.polygon.path.add(event.point);
-    },
-    onMouseUp() {
-      if (this.polygon.path == null) return;
-      let action = new UndoAction({
-        name: this.name,
-        action: this.actionTypes.ADD_POINTS,
-        func: this.undoPoints,
-        args: {
-          points: this.actionPoints
-        }
-      });
-
-      this.addUndo(action);
-    },
-    onMouseMove(event) {
-      if (this.polygon.path == null) return;
-      if (this.polygon.path.segments.length === 0) return;
-      this.autoStrokeColor(event.point);
-
-      if (!this.polygon.guidance) return;
-      this.removeLastPoint();
-      this.polygon.path.add(event.point);
-    },
-    /**
-     * Undo points
-     */
-    undoPoints(args) {
-      if (this.polygon.path == null) return;
-
-      let points = args.points;
-      let length = this.polygon.path.segments.length;
-
-      if (this.polygon.guidance) {
-        length -= 1;
-      }
-
-      this.polygon.path.removeSegments(length - points, length);
-    },
-    /**
-     * Completes polygon if point being added is close to first point
-     * @returns {boolean} sucessfully closes object
-     */
-    autoComplete(minCompleteLength) {
-      if (this.polygon.path == null) return false;
-      if (this.polygon.path.segments.length < minCompleteLength) return false;
-
-      let last = this.polygon.path.lastSegment.point;
-      let first = this.polygon.path.firstSegment.point;
-
-      let completeDistance = this.polygon.completeDistance;
-      if (last.isClose(first, completeDistance)) {
-        return this.complete();
-      }
-
-      return false;
-    },
-    /**
-     * Closes current polygon and unites it with current annotaiton.
-     * @returns {boolean} sucessfully closes object
-     */
-    complete() {
-      if (this.polygon.path == null) return false;
-
-      this.removeLastPoint();
-
-      this.polygon.path.fillColor = "black";
-      this.polygon.path.closePath();
-
-      this.$parent.uniteCurrentAnnotation(this.polygon.path);
-
-      this.polygon.path.remove();
-      this.polygon.path = null;
-      if (this.color.circle) {
-        this.color.circle.remove();
-        this.color.circle = null;
-      }
-
-      this.removeUndos(this.actionTypes.ADD_POINTS);
-      this.$parent.save();
-
-      return true;
-    },
-    removeLastPoint() {
-      this.polygon.path.removeSegment(this.polygon.path.segments.length - 1);
-    }
+const polygon = ref({
+  completeDistance: 5,
+  minDistance: 2,
+  path: null,
+  guidance: true,
+  simplify: 1,
+  pathOptions: {
+    strokeColor: "black",
+    strokeWidth: 1,
   },
-  computed: {
-    isDisabled() {
-      return this.$parent.current.annotation === -1;
-    }
-  },
-  watch: {
-    isActive(active) {
-      if (active) {
-        this.tool.activate();
-        localStorage.setItem("editorTool", this.name);
-      }
-    },
-    /**
-     * Change width of stroke based on zoom of image
-     */
-    scale(newScale) {
-      this.polygon.pathOptions.strokeWidth = newScale * this.scaleFactor;
-      if (this.polygon.path != null)
-        this.polygon.path.strokeWidth = newScale * this.scaleFactor;
-    },
-    /**
-     * Remove last point (point were mouse was) if enable guidane
-     */
-    "polygon.guidance"(guidance) {
-      if (this.polygon.path == null) return;
+});
 
-      if (!guidance && this.polygon.path.length > 1) {
-        this.removeLastPoint();
-      }
-    },
-    "polygon.minDistance"(newDistance) {
-      this.tool.minDistance = newDistance;
-    },
-    "polygon.pathOptions.strokeColor"(newColor) {
-      if (this.polygon.path == null) return;
+const color = ref({
+  blackOrWhite: true,
+  auto: true,
+  radius: 10,
+  circle: null,
+});
 
-      this.polygon.path.strokeColor = newColor;
-    },
-    "color.auto"(value) {
-      if (value && this.polygon.path) {
-        this.color.circle = new paper.Path.Circle(
-          new paper.Point(0, 0),
-          this.color.radius
-        );
-      }
-      if (!value && this.color.circle) {
-        this.color.circle.remove();
-        this.color.circle = null;
-      }
-    }
-  },
-  created() {},
-  mounted() {
-    this.tool.minDistance = this.minDistance;
+const actionTypes = Object.freeze({
+  ADD_POINTS: "Added Points",
+  CLOSED_POLYGON: "Closed Polygon",
+  DELETE_POLYGON: "Delete Polygon",
+});
+
+const actionPoints = ref(0);
+const localImageRaster = ref(null);
+
+
+watch(
+  () => getImageRaster(),
+  (value) => {
+      localImageRaster.value=value;
+  }
+);
+
+const exportPolygon = () => {
+  return {
+    guidance: polygon.value.guidance,
+    completeDistance: polygon.value.completeDistance,
+    minDistance: polygon.value.minDistance,
+    blackOrWhite: color.value.blackOrWhite,
+    auto: color.value.auto,
+    radius: color.value.radius,
+  }
+}
+
+const setPreferences = (pref) => {
+  polygon.value.guidance = pref.guidance || polygon.value.guidance
+  polygon.value.completeDistance =
+    pref.completeDistance || polygon.value.completeDistance
+  polygon.value.minDistance = pref.minDistance || polygon.value.minDistance
+  color.value.blackOrWhite = pref.blackOrWhite || color.value.blackOrWhite
+  color.value.auto = pref.auto || color.value.auto
+  color.value.radius = pref.radius || color.value.radius
+}
+
+const createPolygon = () => {
+  if (color.value.auto) {
+    color.value.circle = new paper.Path.Circle(
+      new paper.Point(0, 0),
+      color.value.radius
+    );
+  }
+  polygon.value.path = new paper.Path(polygon.value.pathOptions);
+};
+
+const deletePolygon = () => {
+  if (polygon.value.path == null) return;
+  polygon.value.path.remove();
+  polygon.value.path = null;
+  if (color.value.circle == null) return;
+  color.value.circle.remove();
+  color.value.circle = null;
+};
+
+const autoStrokeColor = (point) => {
+  if (color.value.circle == null) return;
+  if (polygon.value.path == null) return;
+  if (!color.value.auto) return;
+  color.value.circle.position = point;
+  // let raster = $parent.image.raster;
+
+  let raster = localImageRaster.value;
+  let avgcolor = raster.getAverageColor(color.value.circle);
+  if (avgcolor) {
+    polygon.value.pathOptions.strokeColor = invertColor(
+      avgcolor.toCSS(true),
+      color.value.blackOrWhite
+    );
   }
 };
+
+const onMouseDrag = (event) => {
+  if (polygon.value.path == null) return;
+  actionPoints.value++;
+
+  autoStrokeColor(event.point);
+  polygon.value.path.add(event.point);
+  autoComplete(30);
+};
+
+const onMouseDown = (event) => {
+  let wasNull = false;
+  if (polygon.value.path == null) {
+    wasNull = true;
+    createPolygon();
+  }
+  actionPoints.value = 1;
+  polygon.value.path.add(event.point);
+  if (autoComplete(3)) return;
+  if (polygon.value.guidance && wasNull) polygon.value.path.add(event.point);
+};
+
+const onMouseUp = () => {
+  if (polygon.value.path == null) return;
+  let action = new UndoAction({
+    name: name,
+    action: actionTypes.ADD_POINTS,
+    func: undoPoints,
+    args: {
+      points: actionPoints.value,
+    },
+  });
+  // addUndo(action);
+  store.commit('addUndo', action);
+};
+
+const onMouseMove = (event) => {
+  if (polygon.value.path == null) return;
+  if (polygon.value.path.segments.length === 0) return;
+  autoStrokeColor(event.point);
+  if (!polygon.value.guidance) return;
+  removeLastPoint();
+  polygon.value.path.add(event.point);
+};
+/**
+ * Undo points
+ */
+const undoPoints = (args) => {
+  if (polygon.value.path == null) return;
+  let points = args.points;
+  let length = polygon.value.path.segments.length;
+  if (polygon.value.guidance) {
+    length -= 1;
+  }
+  polygon.value.path.removeSegments(length - points, length);
+};
+
+const autoComplete = (minCompleteLength) => {
+  if (polygon.value.path == null) return false;
+  if (polygon.value.path.segments.length < minCompleteLength) return false;
+  let last = polygon.value.path.lastSegment.point;
+  let first = polygon.value.path.firstSegment.point;
+  let completeDistance = polygon.value.completeDistance;
+  if (last.isClose(first, completeDistance)) {
+    return complete();
+  }
+  return false;
+};
+
+const complete = () => {
+  if (polygon.value.path == null) return false;
+  removeLastPoint();
+  polygon.value.path.fillColor = "black";
+  polygon.value.path.closePath();
+  // $parent.uniteCurrentAnnotation(polygon.value.path);
+  uniteCurrentAnnotation(polygon.value.path);
+  polygon.value.path.remove();
+  polygon.value.path = null;
+  if (color.value.circle) {
+    color.value.circle.remove();
+    color.value.circle = null;
+  }
+  // removeUndos(actionTypes.ADD_POINTS);
+  store.commit('removeUndos', actionTypes.ADD_POINTS);
+  save();
+  return true;
+};
+
+const removeLastPoint = () => { 
+    polygon.value.path.removeSegment(polygon.value.path.segments.length - 1);
+};
+
+
+const isDisabled = computed(() => {
+  return state.isDisabled;
+});
+
+const isActive = computed(() => {
+  return state.isActive;
+});
+
+watch(
+   () => isActive.value, 
+   (active) => {
+  if (active) {
+    state.tool.activate();
+    localStorage.setItem("editorTool", name.value);
+  }
+});
+
+// need to understand why this scale is not triggered !?
+watch(
+   () => props.scale, 
+   (newScale) => {
+  polygon.value.pathOptions.strokeWidth = newScale * scaleFactor;
+  if (polygon.value.path != null) {
+    polygon.value.path.strokeWidth = newScale * scaleFactor;
+  }
+});
+
+
+watch(
+  () => polygon.value.guidance,
+  (guidance) => {
+      if (polygon.value.path == null) return;
+
+      if (!guidance && polygon.value.path.length > 1) {
+        removeLastPoint();
+      }
+    }
+);
+    
+watch(
+  () => polygon.value.minDistance,
+  (newDistance) => {
+      state.tool.minDistance = newDistance;
+  }
+);
+
+watch(
+  () => polygon.value.pathOptions.strokeColor,
+  (newColor) => {
+    if (polygon.value.path == null) return;
+    polygon.value.path.strokeColor = newColor;
+  }
+);
+
+watch(color.value.auto, (value) => {
+  if (value && polygon.value.path) {
+    color.value.circle = new paper.Path.Circle(
+      new paper.Point(0, 0),
+      color.value.radius
+    );
+  }
+
+  if (!value && color.value.circle) {
+    color.value.circle.remove();
+    color.value.circle = null;
+  }
+});
+
+onMounted(() => {
+    state.tool.minDistance = polygon.value.minDistance;
+    state.tool.onMouseDown = onMouseDown;
+    state.tool.onMouseDrag = onMouseDrag;
+    state.tool.onMouseMove = onMouseMove;
+    state.tool.onMouseUp = onMouseUp;
+})
+
+defineExpose({exportPolygon, deletePolygon, setPreferences, polygon, name, color, complete});
+
 </script>

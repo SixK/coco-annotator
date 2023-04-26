@@ -6,6 +6,7 @@
       style="color: white"
       data-bs-toggle="modal"
       data-bs-target="#copyAnnotations"
+      @click="showModal"
     />
     <br>
     <!-- Modal -->
@@ -64,7 +65,7 @@
                   v-model="fromId"
                   :class="{
                     'form-control': true,
-                    'is-invalid': validImageId.length !== 0
+                    'is-invalid': validImageId.length !== 0,
                   }"
                   placeholder="Enter an image ID"
                   required
@@ -91,7 +92,7 @@
             <button
               type="button"
               class="btn btn-secondary"
-              @click="close()"
+              @click="closeModal()"
             >
               Close
             </button>
@@ -109,122 +110,126 @@
   </div>
 </template>
 
-<script>
+<script setup>
 import axios from "axios";
-import JQuery from "jquery";
-
-import { mapMutations } from "vuex";
-import toastrs from "@/mixins/toastrs";
+import { Modal } from "bootstrap";
 import TagsInput from "@/components/TagsInput";
+import { watch, computed, ref, defineProps, inject, onMounted, toRefs, reactive, watchEffect } from 'vue'
 
-let $ = JQuery;
+import useAxiosRequest from "@/composables/axiosRequest";
+// let $ = JQuery;
+import { useStore } from 'vuex';
 
-export default {
-  name: "CopyAnnotationsButton",
-  components: { TagsInput },
-  mixins: [toastrs],
-  props: {
-    imageId: {
-      type: Number,
-      required: true
-    },
-    next: {
-      type: Number,
-      default: null
-    },
-    previous: {
-      type: Number,
-      default: null
-    },
-    categories: {
-      type: Array,
-      required: true
-    }
+const store = useStore();
+
+const {axiosReqestError, axiosReqestSuccess} = useAxiosRequest();
+const addProcess = (process) => store.commit('addProcess', {process});
+const removeProcess = (process) => store.commit('removeProcess', {process});
+const resetUndo = () => store.commit('resetUndo');
+
+
+const injectedSave = inject('save')
+const injectedGetData = inject('getData')
+
+
+const props = defineProps({
+  imageId: {
+    type: Number,
+    required: true,
   },
-  data() {
-    return {
-      name: "Copy Annotations",
-      fromId: "",
-      selectedCategories: [],
-      visible: false
-    };
+  next: {
+    type: Number,
+    default: null,
   },
-  methods: {
-    ...mapMutations(["addProcess", "removeProcess", "resetUndo"]),
-    close() {
-      $("#copyAnnotations").modal("hide");
-    },
-    copyAnnotations() {
-      if (this.validImageId !== "") return;
-      this.close();
-
-      let process = "Copying annotations from " + this.fromId;
-      let categories = [];
-      this.selectedCategories.forEach(category =>
-        categories.push(parseInt(category))
-      );
-
-      this.$parent.save(() => {
-        this.addProcess(process);
-        axios
-          .post(
-            "/api/image/copy/" +
-              this.fromId +
-              "/" +
-              this.imageId +
-              "/annotations",
-            {
-              category_ids: categories
-            }
-          )
-          .then(() => {
-            this.$parent.getData();
-          })
-          .catch(error => {
-            this.axiosReqestError(
-              "Copying Annotations",
-              error.response.data.message
-            );
-          })
-          .finally(() => this.removeProcess(process));
-      });
-    },
+  previous: {
+    type: Number,
+    default: null,
   },
-  computed: {
-    validImageId() {
-      let errorMsg = "Enter a valid image ID";
-
-      if (this.fromId == null) return errorMsg;
-      if (this.fromId === "") return errorMsg;
-      if (isNaN(this.fromId)) return "Value must be a number";
-      if (this.fromId.trim() !== this.fromId) return "Value must be a number";
-      if (this.fromId === this.imageId)
-        return "Sorry, you can not clone the same image";
-
-      return "";
-    },
-    categoryTags() {
-      let tags = {};
-      this.categories.forEach(category => {
-        tags[category.id] = category.name;
-      });
-
-      return tags;
-    },
+  categories: {
+    type: Array,
+    required: true,
   },
-  watch: {
-    categories: {
-      immediate: true,
-      handler(newCategories) {
-        let tags = [];
-        newCategories.forEach((category) => {
-          tags.push(category.id.toString());
-        });
-        this.selectedCategories = tags;
-      },
-    },
-  },
+  
+});
+
+const name = 'Copy Annotations';
+const fromId = ref('');
+const selectedCategories = ref([]);
+const visible = ref(false);
+const isVisible = ref(false);
+
+const imageId = ref(props.imageId);
+const localCategories = ref([]);
+
+let modal = ref(null);
+const closeModal = () => Modal.getInstance(modal.value)?.hide();
+const showModal = () => Modal.getInstance(modal.value)?.show();
+
+const copyAnnotations =  () => {
+
+  if (validImageId.value !== '') return
+  closeModal();
+
+  const process = `Copying annotations from ${fromId.value}`
+  const scategories = selectedCategories.value.map((category) => parseInt(category))
+
+  injectedSave(() => {
+    console.log('new proc:', process);
+    addProcess(process);
+    axios
+      .post(`/api/image/copy/${fromId.value}/${imageId.value}/annotations`, {
+        category_ids: scategories,
+      })
+      .then(() => {
+        injectedGetData()
+      })
+      .catch((error) => {
+        axiosReqestError('Copying Annotations', error.response.data.message)
+      })
+      .finally(() => removeProcess(process))
+  });
 };
+
+
+const validImageId = computed(() => {
+  let errorMsg = "Enter a valid image ID";
+
+  if (fromId.value == null) return errorMsg;
+  if (fromId.value === "") return errorMsg;
+  if (isNaN(fromId.value)) return "Value must be a number";
+  if (fromId.value.trim() !== fromId.value) return "Value must be a number";
+  if (fromId.value === imageId.value) return "Sorry, you can not clone the same image";
+  return "";
+});
+
+const categoryTags = computed(() => {
+  let tags = {};
+  localCategories.value.forEach((category) => {
+    tags[category.id] = category.name;
+  });
+  return tags;
+});
+
+// dunno if there is a better way to get Array toward props ?
+watchEffect(() => {
+    props.categories.forEach((category) => {
+          localCategories.value.push(category);
+      });
+});
+
+watch(
+  () => localCategories.value,
+  (newCategories) => {
+    let tags = [];
+    newCategories.forEach((category) => {
+      tags.push(category.id.toString());
+    });
+    selectedCategories.value = tags;
+  },
+  { immediate: true }
+);
+
+
 </script>
 
 <style scoped>

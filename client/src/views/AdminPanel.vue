@@ -234,7 +234,7 @@ export default {
       this.addProcess(process);
 
       AdminPanel.getUsers(this.limit)
-        .then(response => {
+        .then((response) => {
           this.users = response.data.users;
           this.total = response.data.total;
         })
@@ -245,7 +245,7 @@ export default {
 
       AdminPanel.createUser(this.create)
         .then(this.updatePage)
-        .catch(error => {
+        .catch((error) => {
           this.axiosReqestError("Create User", error.response.data.message);
         });
     },
@@ -260,7 +260,7 @@ export default {
 
       AdminPanel.deleteUser(user.username)
         .then(this.updatePage)
-        .catch(error => {
+        .catch((error) => {
           this.axiosReqestError("Create User", error.response.data.message);
         });
     }

@@ -1,414 +1,505 @@
-<script>
+<template>
+  <div>
+    <i v-tooltip.right="tooltip" class='fa fa-x' :class="icon" :style="{ color: iconColor }" @click="click"></i>
+    <br>
+  </div>
+</template>
+
+<script setup>
 import paper from "paper";
-import tool from "@/mixins/toolBar/tool";
+import { useTools } from "@/composables/toolBar/tools";
+import { useStore } from 'vuex';
 
-export default {
-  name: "SelectTool",
-  mixins: [tool],
-  props: {
-    scale: {
-      type: Number,
-      default: 1
+import { ref, computed, watch, inject, onMounted, provide, defineEmits, defineProps } from 'vue'
+
+const getCategory = inject('getCategory');
+const getHover = inject('getHover');
+const getPaper = inject('getPaper');
+const getCurrentInstance = inject('getCurrentInstance');
+
+const store = useStore();
+
+const emits = defineEmits(['update']);
+
+const emitUpdate = (value) => {
+    console.log('try to emit:', value);
+    emits('update',  value);
+}
+
+const {
+    click,
+    state,
+    iconColor,
+    tooltip,
+    name,
+    cursor
+  }= useTools(emits);
+
+
+const props = defineProps({
+  scale: {
+    type: Number,
+    default: 1,
+  },
+});
+
+name.value = "Select";
+name.cursor = "pointer";
+const scale = ref(props.scale);
+const icon = ref("fa-hand-pointer-o");
+// const movePath = ref(false);
+const point = ref(null);
+const segment = ref(null);
+const initPoint = ref(null);
+const isBbox = ref(false);
+const moveObject = ref(null);
+const scaleFactor = 15;
+const edit = ref({
+  indicatorWidth: 0,
+  indicatorSize: 0,
+  center: null,
+  canMove: false,
+});
+const hover = ref({
+  showText: true,
+  text: null,
+  textId: -1,
+  box: null,
+  textShift: 0,
+  fontSize: scaleFactor,
+  shift: 0,
+  rounded: 0,
+  category: null,
+  annotation: null,
+  annotationText: null,
+});
+const keypoint = ref(null)
+const hitOptions = ref({
+  segments: true,
+  stroke: true,
+  fill: false,
+  tolerance: 10,
+  match: (hit) => {
+    return !hit.item.hasOwnProperty("indicator")
+  },
+});
+
+const localHover = ref(getHover());
+const localPaper = ref(getPaper());
+
+watch(
+  () => getHover(),
+  (value) => {
+      localHover.value=value;
+  }
+);
+
+watch(
+  () => getPaper(),
+  (value) => {
+      localPaper.value=value;
+  }
+);
+
+
+const isDisabled = computed(() => {
+  return state.isDisabled;
+});
+
+const isActive = computed(() => {
+  return state.isActive;
+});
+
+watch(
+  () => keypoint, 
+  (newKeypoint) => {
+        console.log('keypoint watched !');
+        clear();
+        if (!newKeypoint) return;
+        hoverText();
     }
-  },
-  data() {
+);
+
+watch(
+  () => props.scale, 
+  (newScale) => {
+      console.log('scaling');
+      hover.value.rounded = newScale * 5;
+      hover.value.textShift = newScale * 40;
+      hover.value.fontSize = newScale * scaleFactor;
+      edit.value.distance = newScale * 40;
+      edit.value.indicatorSize = newScale * 10;
+      edit.value.indicatorWidth = newScale * 2;
+      console.log('scale:', edit.value.center, point);
+      if (edit.value.center && point.value != null) {
+        createPoint(edit.value.center);
+      }
+      if (hover.value.text != null) {
+        hover.value.text.fontSize = hover.value.fontSize;
+        hover.value.shift =
+          (hover.value.text.bounds.bottomRight.x -
+            hover.value.text.bounds.bottomLeft.x) /
+          2;
+        let totalShift = hover.value.shift + hover.value.textShift;
+        hover.value.text.position = hover.value.position.add(totalShift, 0);
+        hover.value.box.bounds = hover.value.text.bounds;
+  }
+}, { immediate: true });
+
+watch(
+  () => isActive.value, 
+  (active) => {
+  if (active) {
+    if(state.tool)  {
+        state.tool.activate();
+        // localStorage.setItem('editorTool', name.value);
+    }
+  } else {
+    if (hover.value.text) {
+      hover.value.text.remove();
+      hover.value.box.remove();
+      hover.value.box = null;
+      hover.value.text = null;
+    }
+    
+    console.log('watch active point:', point);
+    if (point.value) {
+      point.value.remove();
+      point.value = null;
+      segment.value = null;
+    }
+    if (hover.value.annotation) {
+      hover.value.annotation.compoundPath.selected = false;
+    }
+  }
+});
+
+
+const exportSelect = () => {
     return {
-      icon: "fa-hand-pointer-o",
-      name: "Select",
-      cursor: "pointer",
-      movePath: false,
-      point: null,
-      segment: null,
-      scaleFactor: 15,
-      edit: {
-        indicatorWidth: 0,
-        indicatorSize: 0,
-        center: null,
-        canMove: false
-      },
-      hover: {
-        showText: true,
-        text: null,
-        // ID of annotation text has been generated for
-        textId: -1,
-        box: null,
-        textShift: 0,
-        fontSize: this.sacleFactor,
-        shift: 0,
-        rounded: 0,
-        category: null,
-        annotation: null,
-        annotationText: null
-      },
-      keypoint: null,
-      hitOptions: {
-        segments: true,
-        stroke: true,
-        fill: false,
-        tolerance: 10,
-        match: hit => {
-          return !hit.item.hasOwnProperty("indicator");
-        },
-      },
-    };
-  },
-  watch: {
-    keypoint(keypoint) {
-      this.clear();
-      if (!keypoint) return;
-      this.hoverText();
-    },
-    scale: {
-      handler(newScale) {
-        this.hover.rounded = newScale * 5;
-        this.hover.textShift = newScale * 40;
-        this.hover.fontSize = newScale * this.scaleFactor;
-        this.edit.distance = newScale * 40;
-        this.edit.indicatorSize = newScale * 10;
-        this.edit.indicatorWidth = newScale * 2;
+      showText: hover.value.showText
+    }
+};
 
-        if (this.edit.center && this.point != null) {
-          this.createPoint(this.edit.center);
-        }
+const setPreferences = (pref) => {
+    hover.value.showText = pref.showText || hover.value.showText;
+};
 
-        if (this.hover.text != null) {
-          this.hover.text.fontSize = this.hover.fontSize;
-          this.hover.shift =
-            (this.hover.text.bounds.bottomRight.x -
-              this.hover.text.bounds.bottomLeft.x) /
-            2;
-          let totalShift = this.hover.shift + this.hover.textShift;
-          this.hover.text.position = this.hover.position.add(totalShift, 0);
-          this.hover.box.bounds = this.hover.text.bounds;
-        }
-      },
-      immediate: true,
-    },
-    isActive(active) {
-      if (active) {
-        this.tool.activate();
-      } else {
-        if (this.hover.text) {
-          this.hover.text.remove();
-          this.hover.box.remove();
+const generateTitle = () => {
+  let string = " ";
+  if (keypoint.value) {
+    let index = keypoint.value.keypoint.indexLabel;
+    let label = keypoint.value.keypoints.labels[index - 1];
+    let visibility = keypoint.value.keypoint.visibility;
+    let visibilityDesc = keypoint.value.keypoint.getVisibilityDescription();
+    let annotationId = keypoint.value.keypoints.annotationId;
+    let categoryName = keypoint.value.keypoints.categoryName;
+    string += "Keypoint: " + label + " \n";
+    string += "Visibility: " + visibility + " (" + visibilityDesc + ") \n";
+    if (annotationId !== -1) {
+      string += "ID: " + annotationId + " \n";
+    }
+    if (categoryName) {
+      string += "Category: " + categoryName + " \n";
+    }
+    return string.replace(/\n/g, " \n ").slice(0, -2);
+  }
+  if (hover.value.category && hover.value.annotation) {
+    let id = hover.value.textId;
+    let category = hover.value.category.category.name;
+    string += "ID: " + id + " \n";
+    string += "Category: " + category + " \n";
+  }
+  if (store.getters["user/loginEnabled"]) {
+    let creator = hover.value.annotation.annotation.creator;
+    if (creator != null) {
+      string += "Created by " + creator + "\n\n";
+    }
+  }
+  
+  return string.replace(/\n/g, " \n ").slice(0, -2) + " \n ";
+};
 
-          this.hover.box = null;
-          this.hover.text = null;
-        }
-        if (this.point) {
-          this.point.remove();
-          this.point = null;
-          this.segment = null;
-        }
-        if (this.hover.annotation) {
-          this.hover.annotation.compoundPath.selected = false;
-        }
+
+const generateStringFromMetadata = () => {
+  if (keypoint.value) return "";
+  let string = "";
+  
+  ////////////// may not work here $refs ????
+  let metadata = hover.value.annotation.$refs.metadata.metadataList;
+  if (metadata == null || metadata.length === 0) {
+    string += "No Metadata \n";
+  } else {
+    string += "Metadata \n";
+    metadata.forEach((element) => {
+      if (element.key.length !== 0) {
+        string += " " + element.key + " = " + element.value + " \n";
       }
-    },
-  },
-  methods: {
-    export() {
-      return {
-        showText: this.hover.showText
-      };
-    },
-    setPreferences(pref) {
-      this.hover.showText = pref.showText || this.hover.showText;
-    },
-    generateTitle() {
-      let string = " ";
-      if (this.keypoint) {
-        let index = this.keypoint.keypoint.indexLabel;
-        let label = this.keypoint.keypoints.labels[index - 1];
-        let visibility = this.keypoint.keypoint.visibility;
-        let visibilityDesc = this.keypoint.keypoint.getVisibilityDescription();
-        let annotationId = this.keypoint.keypoints.annotationId;
-        let categoryName = this.keypoint.keypoints.categoryName;
-        string += "Keypoint: " + label + " \n";
-        string += "Visibility: " + visibility + " (" + visibilityDesc + ") \n";
-        if (annotationId !== -1) {
-          string += "ID: " + annotationId + " \n";
-        }
-        if (categoryName) {
-          string += "Category: " + categoryName + " \n";
-        }
-        return string.replace(/\n/g, " \n ").slice(0, -2);
+    });
+  }
+  return string.replace(/\n/g, " \n ").slice(0, -2);
+};
+
+
+const hoverText = () => {
+      if (!hover.value.showText) return;
+      if (!keypoint.value) {
+        if (hover.value.category == null) return;
+        if (hover.value.annotation == null) return;
       }
 
-      if (this.hover.category && this.hover.annotation) {
-        let id = this.hover.textId;
-        let category = this.hover.category.category.name;
-        string += "ID: " + id + " \n";
-        string += "Category: " + category + " \n";
-      }
+      let position = hover.value.position.add(hover.value.textShift, 0);
 
-      if (this.$store.getters["user/loginEnabled"]) {
-        let creator = this.hover.annotation.annotation.creator;
-        if (creator != null) {
-          string += "Created by " + creator + "\n\n";
-        }
-      }
-
-      return string.replace(/\n/g, " \n ").slice(0, -2) + " \n ";
-    },
-    generateStringFromMetadata() {
-      if (this.keypoint) return "";
-      let string = "";
-      let metadata = this.hover.annotation.$refs.metadata.metadataList;
-
-      if (metadata == null || metadata.length === 0) {
-        string += "No Metadata \n";
-      } else {
-        string += "Metadata \n";
-        metadata.forEach(element => {
-          if (element.key.length !== 0) {
-            string += " " + element.key + " = " + element.value + " \n";
-          }
-        });
-      }
-
-      return string.replace(/\n/g, " \n ").slice(0, -2);
-    },
-    hoverText() {
-      if (!this.hover.showText) return;
-      if (!this.keypoint) {
-        if (this.hover.category == null) return;
-        if (this.hover.annotation == null) return;
-      }
-
-      let position = this.hover.position.add(this.hover.textShift, 0);
 
       if (
-        this.hover.text == null ||
-        this.hover.annotation.annotation.id !== this.hover.textId ||
-        this.keypoint != null
+        hover.value.text == null ||
+        hover.value.annotation.annotation.id !== hover.value.textId ||
+        keypoint.value != null
       ) {
-        if (this.hover.text !== null) {
-          this.hover.text.remove();
-          this.hover.box.remove();
+        if (hover.value.text !== null) {
+          hover.value.text.remove();
+          hover.value.box.remove();
         }
-        let content = this.generateTitle() + this.generateStringFromMetadata();
-        if (this.hover.annotation) {
-          this.hover.textId = this.hover.annotation.annotation.id;
+        let content = generateTitle() + generateStringFromMetadata();
+        if (hover.value.annotation) {
+          hover.value.textId = hover.value.annotation.annotation.id;
         }
 
-        this.hover.text = new paper.PointText(position);
-        this.hover.text.justification = "left";
-        this.hover.text.fillColor = "black";
-        this.hover.text.content = content;
-        this.hover.text.indicator = true;
+        hover.value.text = new paper.PointText(position);
+        hover.value.text.justification = "left";
+        hover.value.text.fillColor = "black";
+        hover.value.text.content = content;
+        hover.value.text.indicator = true;
 
-        this.hover.text.fontSize = this.hover.fontSize;
+        hover.value.text.fontSize = hover.value.fontSize;
 
-        this.hover.box = new paper.Path.Rectangle(
-          this.hover.text.bounds,
-          this.hover.rounded
+        hover.value.box = new paper.Path.Rectangle(
+          hover.value.text.bounds,
+          hover.value.rounded
         );
-        this.hover.box.indicator = true;
-        this.hover.box.fillColor = "white";
-        this.hover.box.strokeColor = "white";
-        this.hover.box.opacity = 0.5;
+        hover.value.box.indicator = true;
+        hover.value.box.fillColor = "white";
+        hover.value.box.strokeColor = "white";
+        hover.value.box.opacity = 0.5;
 
-        this.hover.box.insertAbove(this.rect);
+        hover.value.box.insertAbove(null);
+        // hover.value.box.insertAbove(rect);
       }
 
-      this.hover.shift =
-        (this.hover.text.bounds.bottomRight.x -
-          this.hover.text.bounds.bottomLeft.x) /
+      hover.value.shift =
+        (hover.value.text.bounds.bottomRight.x -
+          hover.value.text.bounds.bottomLeft.x) /
         2;
-      this.hover.box.position = position.add(this.hover.shift, 0);
-      this.hover.text.position = position.add(this.hover.shift, 0);
+      hover.value.box.position = position.add(hover.value.shift, 0);
+      hover.value.text.position = position.add(hover.value.shift, 0);
 
-      this.hover.box.bringToFront();
-      this.hover.text.bringToFront();
-    },
-    checkBbox(paperObject) {
-      if (!paperObject) return false;
-      let annotationId = paperObject.data.annotationId;
-      let categoryId = paperObject.data.categoryId;
-      let category = this.$parent.getCategory(categoryId);
-      let annotation = category.getAnnotation(annotationId);
-      return annotation.annotation.isbbox;
-    },
-    onMouseDown(event) {
-      let hitResult = this.$parent.paper.project.hitTest(
+      hover.value.box.bringToFront();
+      hover.value.text.bringToFront();
+};
+
+const checkBbox = (paperObject) => {
+  if (!paperObject) return false;
+  const annotationId = paperObject.data.annotationId;
+  
+  if(!paperObject.data.categoryId) return false;
+  const categoryId = paperObject.data.categoryId;  
+  
+  const category = getCategory(categoryId);
+  const annotation = category.getAnnotation(annotationId);
+  return annotation.annotation.isbbox;
+};
+
+
+const onMouseDown = (event) => {
+   //let hitResult = this.$parent.paper.project.hitTest(
+   
+  const hitResult = localPaper.value.project.hitTest(
+    event.point,
+    hitOptions.value
+  );
+
+  if (!hitResult) return;
+  
+  if (event.modifiers.shift) {
+    if (hitResult.type === 'segment') {
+      hitResult.segment.remove();
+    }
+    return;
+  }
+ 
+
+  const path = hitResult.item;
+  let paperObject = null;
+  if (hitResult.type === 'segment') {
+    segment.value = hitResult.segment;
+    paperObject = path.parent;
+    // added createPoint here, cause something is weird about point
+    createPoint(event.point);
+  } else if (hitResult.type === 'stroke') {
+    const location = hitResult.location;
+    segment.value = path.insert(location.index + 1, event.point);
+  } else if (event.item.className == 'CompoundPath') {
+    initPoint.value = event.point;
+    moveObject.value = event.item;
+    paperObject = event.item;
+  }
+  isBbox.value = checkBbox(paperObject);
+
+  if (point.value != null) {
+    edit.value.canMove = point.value.contains(event.point);
+  } else {
+    edit.value.canMove = false;
+  }
+};
+
+function clear() {
+      hover.value.category = null;
+      hover.value.annotation = null;
+      isBbox.value = false;
+      segment.value = null;
+      moveObject.value = null;
+      if (hover.value.text != null) {
+        hover.value.text.remove();
+        hover.value.box.remove();
+        hover.value.text = null;
+        hover.value.box = null;
+      }
+}
+    
+function createPoint(currpoint) {
+    console.log('Create Point');
+      if (point.value != null) {
+        point.value.remove();
+      }
+      point.value = new paper.Path.Circle(currpoint, edit.value.indicatorSize);
+      point.value.strokeColor = "black";
+      point.value.strokeWidth = edit.value.indicatorWidth;
+      point.value.indicator = true;
+}
+
+
+const onMouseDrag = (event) => {
+  if (isBbox.value && moveObject.value) {
+    console.log('isBbox and moveObject');
+    let delta_x = initPoint.value.x - event.point.x;
+    let delta_y = initPoint.value.y - event.point.y;
+    let segments = moveObject.value.children[0].segments;
+    segments.forEach((msegment) => {
+      let p = msegment.point;
+      msegment.point = new paper.Point(p.x - delta_x, p.y - delta_y);
+    });
+    initPoint.value = event.point;
+  }
+
+  if (segment.value && edit.value.canMove) {
+    createPoint(event.point);
+    if (isBbox.value) {
+      let isCounterClock =
+        segment.value.previous.point.x == segment.value.point.x;
+      let prev = isCounterClock ? segment.value.previous : segment.value.next;
+      let next = !isCounterClock
+        ? segment.value.previous
+        : segment.value.next;
+      prev.point = new paper.Point(event.point.x, prev.point.y);
+      next.point = new paper.Point(next.point.x, event.point.y);
+    }
+    segment.value.point = event.point;
+  } else if (!keypoint.value) {
+    let delta_x = initPoint.value.x - event.point.x;
+    let delta_y = initPoint.value.y - event.point.y;
+    let center_delta = new paper.Point(delta_x, delta_y);
+    let new_center = localPaper.value.view.center.add(center_delta);
+    localPaper.value.view.setCenter(new_center);
+  }
+};
+
+const onMouseUp = (event) => {
+      clear();
+};
+
+const onMouseMove = (event) => {
+      initPoint.value = event.point;
+      const hitResult = localPaper.value.project.hitTest(
         event.point,
-        this.hitOptions
-      );
-
-      if (!hitResult) return;
-
-      if (event.modifiers.shift) {
-        if (hitResult.type === "segment") {
-          hitResult.segment.remove();
-        }
-        return;
-      }
-      let path = hitResult.item;
-      let paperObject = null;
-      if (hitResult.type === "segment") {
-        this.segment = hitResult.segment;
-        paperObject = path.parent;
-      } else if (hitResult.type === "stroke") {
-        let location = hitResult.location;
-        this.segment = path.insert(location.index + 1, event.point);
-      } else if (event.item.className == "CompoundPath") {
-        this.initPoint = event.point;
-        this.moveObject = event.item;
-        paperObject = event.item;
-      }
-      this.isBbox = this.checkBbox(paperObject);
-      if (this.point != null) {
-        this.edit.canMove = this.point.contains(event.point);
-      } else {
-        this.edit.canMove = false;
-      }
-    },
-    clear() {
-      this.hover.category = null;
-      this.hover.annotation = null;
-      this.isBbox = false;
-      this.segment = null;
-      this.moveObject = null;
-      if (this.hover.text != null) {
-        this.hover.text.remove();
-        this.hover.box.remove();
-        this.hover.text = null;
-        this.hover.box = null;
-      }
-    },
-    createPoint(point) {
-      if (this.point != null) {
-        this.point.remove();
-      }
-
-      this.point = new paper.Path.Circle(point, this.edit.indicatorSize);
-      this.point.strokeColor = "black";
-      this.point.strokeWidth = this.edit.indicatorWidth;
-      this.point.indicator = true;
-    },
-    onMouseDrag(event) {
-      if (this.isBbox && this.moveObject) {
-        let delta_x = this.initPoint.x - event.point.x;
-        let delta_y = this.initPoint.y - event.point.y;
-        let segments = this.moveObject.children[0].segments;
-        segments.forEach(segment => {
-          let p = segment.point;
-          segment.point = new paper.Point(p.x - delta_x, p.y - delta_y);
-        });
-        this.initPoint = event.point;
-      }
-      if (this.segment && this.edit.canMove) {
-        this.createPoint(event.point);
-        if (this.isBbox) {
-          //counter clockwise prev and next.
-          let isCounterClock =
-            this.segment.previous.point.x == this.segment.point.x;
-          let prev = isCounterClock ? this.segment.previous : this.segment.next;
-          let next = !isCounterClock
-            ? this.segment.previous
-            : this.segment.next;
-
-          prev.point = new paper.Point(event.point.x, prev.point.y);
-          next.point = new paper.Point(next.point.x, event.point.y);
-        } //getbbox here somehow
-        this.segment.point = event.point;
-      } else if (!this.keypoint) {
-        // the event point exists on a relative coordinate system (dependent on screen dimensions)
-        // however, the image on the canvas paper exists on an absolute coordinate system
-        // thus, tracking mouse deltas from the previous point is necessary
-        let delta_x = this.initPoint.x - event.point.x;
-        let delta_y = this.initPoint.y - event.point.y;
-        let center_delta = new paper.Point(delta_x, delta_y);
-        let new_center = this.$parent.paper.view.center.add(center_delta);
-        this.$parent.paper.view.setCenter(new_center);
-      }
-    },
-
-    onMouseUp(event) {
-      this.clear();
-    },
-
-    onMouseMove(event) {
-      // ensures that the initPoint is always tracked.
-      // Necessary for the introduced pan functionality and fixes a bug with selecting and dragging bboxes, since initPoint is initially undefined
-      this.initPoint = event.point;
-
-      let hitResult = this.$parent.paper.project.hitTest(
-        event.point,
-        this.hitOptions
+        hitOptions
       );
 
       if (hitResult) {
-        let point = null;
-
+        let hitpoint = null;
         if (hitResult.type === "segment") {
-          point = hitResult.segment.location.point;
+          hitpoint = hitResult.segment.location.point;
         } else if (hitResult.type === "stroke") {
-          point = hitResult.location.point;
+          hitpoint = hitResult.location.point;
         }
-
-        if (point != null) {
-          this.edit.center = point;
-          this.createPoint(point);
+        if (hitpoint != null) {
+          edit.value.center = hitpoint;
+          createPoint(hitpoint);
         } else {
-          if (this.point != null) {
-            this.point.remove();
-            this.point = null;
+          if (point.value != null) {
+            point.value.remove();
+            point.value = null;
           }
         }
       }
+      localHover.value.annotation = -1;
+      localHover.value.category = -1;
 
-      this.$parent.hover.annotation = -1;
-      this.$parent.hover.category = -1;
-
-      this.$parent.paper.project.activeLayer.selected = false;
+      localPaper.value.project.activeLayer.selected = false;
       let item = event.item;
 
-      this.keypoint = null;
+      keypoint.value = null;
 
       if (
         item &&
         item.data.hasOwnProperty("annotationId") &&
         item.data.hasOwnProperty("categoryId")
       ) {
-        this.hover.position = event.point;
+        hover.value.position = event.point;
 
         let categoryId = event.item.data.categoryId;
         let annotationId = event.item.data.annotationId;
-        this.$parent.hover.categoryId = categoryId;
-        this.$parent.hover.annotation = annotationId;
+        localHover.value.categoryId = categoryId;
+        localHover.value.annotation = annotationId;
 
-        this.hover.category = this.$parent.getCategory(categoryId);
-        if (this.hover.category != null) {
-          this.hover.annotation = this.hover.category.getAnnotation(
-            annotationId
-          );
+        // hover.value.category = $parent.getCategory(categoryId);
+        hover.value.category = getCategory(categoryId);
+        if (hover.value.category != null) {
+          hover.value.annotation =
+            hover.value.category.getAnnotation(annotationId);
           event.item.selected = true;
-          this.hoverText();
+          hoverText();
         }
       } else if (event.item && event.item.hasOwnProperty("keypoint")) {
-        this.hover.position = event.point;
-        this.keypoint = item;
+        hover.value.position = event.point;
+        keypoint.value = item;
       } else if (
         item &&
         item.lastChild &&
         item.lastChild.hasOwnProperty("keypoint")
       ) {
-        this.hover.position = event.point;
+        hover.value.position = event.point;
         for (let i = 0; i < item.children.length; ++i) {
           if (item.children[i].hasOwnProperty("keypoint")) {
-            let keypoint = item.children[i].keypoint;
-            if (event.point.getDistance(keypoint) <= keypoint.radius) {
-              this.keypoint = item.children[i];
+            let childkeypoint = item.children[i].keypoint;
+            if (event.point.getDistance(childkeypoint) <= childkeypoint.radius) {
+              keypoint.value = item.children[i];
               break;
             }
           }
         }
       } else {
-        this.clear();
+        clear();
       }
-    },
-  },
 };
+
+onMounted(() => {
+    // state.tool.minDistance = polygon.value.minDistance;
+    state.tool.onMouseDown = onMouseDown;
+    state.tool.onMouseDrag = onMouseDrag;
+    state.tool.onMouseMove = onMouseMove;
+    state.tool.onMouseUp = onMouseUp;
+})
+
+defineExpose({exportSelect, setPreferences, name, hover, click});
+
 </script>

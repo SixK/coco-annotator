@@ -1,19 +1,22 @@
-<script>
-import button from "@/mixins/toolBar/button";
+<template>
+  <div>
+    <i v-tooltip.right="name" class='fa fa-x' :class="icon" :style="{ color: iconColor }" @click="click(execute, disabled)"></i>
+    <br>
+  </div>
+</template>
+<script setup>
+import { ref, computed, watch, inject, onMounted, provide, defineEmits } from 'vue'
+import { useButton } from "@/composables/toolBar/button";
 
-export default {
-  name: "ShowAllButton",
-  mixins: [button],
-  data() {
-    return {
-      name: "Show All",
-      icon: "fa-eye"
-    };
-  },
-  methods: {
-    execute() {
-      this.$parent.showAll();
-    }
-  }
-};
+const { iconColor, click } = useButton();
+
+const showAll = inject('showAll');
+
+const name =  ref("Show All");
+const icon = ref("fa-eye");
+
+const execute = () => {
+    showAll();
+}
+
 </script>

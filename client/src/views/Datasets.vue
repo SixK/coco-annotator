@@ -72,6 +72,7 @@
               :key="dataset.id"
               :dataset="dataset"
               :categories="categories"
+              @update-page="updatePage"
             />
           </div>
         </div>
@@ -123,7 +124,7 @@
               <div class="form-group">
                 <label>Default Categories</label>
                 <TagsInput
-                  v-model="create.categories"
+                  v-model:selectedCategories="create.categories"
                   element-id="createCategory"
                   :existing-tags="categoryTags"
                   :typeahead="true"
@@ -251,8 +252,16 @@ export default {
       users: []
     };
   },
+  provide() {
+        return {
+            getUsers: this.getUsers,
+        };
+  },
   methods: {
     ...mapMutations(["addProcess", "removeProcess"]),
+    getUsers() {
+        return this.users;
+    },
     updatePage(page) {
       let process = "Loading datasets";
       this.addProcess(process);
@@ -289,7 +298,7 @@ export default {
           this.create.categories = [];
           this.updatePage();
         })
-        .catch(error => {
+        .catch((error) => {
           this.axiosReqestError(
             "Creating Dataset",
             error.response.data.message
@@ -304,7 +313,7 @@ export default {
     },
     categoryTags() {
       let tags = {};
-      this.categories.forEach(category => {
+      this.categories.forEach((category) => {
         tags[category.name] = category.name;
       });
       return tags;

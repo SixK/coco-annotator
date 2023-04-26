@@ -63,6 +63,7 @@
               v-for="category in categories"
               :key="category.id"
               :category="category"
+              @update-page="updatePage"
             />
           </div>
         </div>
@@ -269,7 +270,7 @@ export default {
         page: page,
         limit: this.limit
       })
-        .then(response => {
+        .then((response) => {
           this.categories = response.data.categories;
           this.page = response.data.pagination.page;
           this.pages = response.data.pagination.pages;
@@ -295,7 +296,7 @@ export default {
           this.newCategoryKeypoint = {};
           this.updatePage();
         })
-        .catch(error => {
+        .catch((error) => {
           this.axiosReqestError(
             "Creating Category",
             error.response.data.message
