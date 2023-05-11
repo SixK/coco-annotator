@@ -130,7 +130,7 @@
               <div class="form-group">
                 <KeypointsDefinition
                   ref="keypoints"
-                  v-model="keypoint"
+                  v-model:keypoints-def="keypoint"
                   element-id="keypoints"
                   placeholder="Add a keypoint"
                 />
@@ -217,7 +217,7 @@ const isFormValid = computed(() => {
   );
 });
 
-    const resetCategorySettings = () => {
+const resetCategorySettings = () => {
       name.value = props.category.name;
       supercategory.value = props.category.supercategory;
       color.value = props.category.color;
@@ -232,10 +232,10 @@ const isFormValid = computed(() => {
     const onDeleteClick = async () => {
       await axios.delete("/api/category/" + props.category.id);
       emit('updatePage');
-    };
+};
 
 
-    const onUpdateClick = () => {
+const onUpdateClick = () => {
       try {
         axios.put('/api/category/' + category.value.id, {
           name: name.value,
@@ -270,7 +270,7 @@ const isFormValid = computed(() => {
         );
         emit('updatePage');
       }
-    };
+};
 </script>
 
 <style scoped>

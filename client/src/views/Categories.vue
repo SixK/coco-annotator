@@ -130,7 +130,7 @@
               <div class="form-group">
                 <KeypointsDefinition
                   ref="keypoints"
-                  v-model="newCategoryKeypoint"
+                  v-model:keypoints-def="newCategoryKeypoint"
                   element-id="keypoints"
                   placeholder="Add a keypoint"
                 />

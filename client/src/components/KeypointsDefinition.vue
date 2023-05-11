@@ -58,7 +58,7 @@
                 :class="{ 'is-invalid': object.label_error.length !== 0 }"
                 :required="object.edges.length !== 0"
                 :placeholder="keyTitle"
-                @input="keypointLabelUpdated(index, $event.target.value)"
+                @change="keypointLabelUpdated(index, $event.target.value)"
               >
               <div class="invalid-feedback">
                 {{ object.label_error }}
@@ -80,6 +80,7 @@
               style="padding-left: 5px"
             >
               <TagsInput
+                :selectedCategories="object.edges"
                 :value="object.edges"
                 placeholder="Add connected label"
                 class="keypoint-input"
@@ -88,7 +89,7 @@
                 :only-existing-tags="true"
                 :typeahead="true"
                 :typeahead-activation-threshold="0"
-                @input="keypointEdgesUpdated(index, $event)"
+                @selectedCategories="keypointEdgesUpdated(index, $event)"
               />
             </div>
           </div>
@@ -98,8 +99,10 @@
   </div>
 </template>
 
-<script>
-import TagsInput from "@/components/TagsInput";
+<script setup>
+import TagsInput from '@/components/TagsInput.vue';
+import { ref, watchEffect, onMounted, defineExpose, computed, watch } from 'vue';
+
 
 const DISTINCT_COLORS = [
   "#bf5c4d",
@@ -136,140 +139,142 @@ const DISTINCT_COLORS = [
   "#e673a1"
 ];
 
-export default {
-  name: "KeypointsDefinition",
-  components: { TagsInput },
-  props: {
-    value: {
-      type: Object,
-      required: true
-    },
-    title: {
-      type: String,
-      default: "Keypoints"
-    },
-    keyTitle: {
-      type: String,
-      default: "Label"
-    },
-    valueTitle: {
-      type: String,
-      default: "Connects to"
-    },
-    exclude: {
-      type: String,
-      default: "",
-    },
+const emit = defineEmits(['update:keypoints-def', 'initialized', 'input']);
+
+const props = defineProps({
+  keypointsDef: {
+    type: Object,
+    required: true
   },
-  data() {
-    return {
-      keypoints: [],
-      hiddenValue: { edges: [], labels: [], colors: [] },
-      isMounted: false,
-      nextDistinct: -1,
-    };
+  title: {
+    type: String,
+    default: "Keypoints"
   },
-  computed: {
-    valid() {
-      if (!this.isMounted) {
+  keyTitle: {
+    type: String,
+    default: "Label"
+  },
+  valueTitle: {
+    type: String,
+    default: "Connects to"
+  },
+  exclude: {
+    type: String,
+    default: "",
+  },
+});
+
+const keypoints = ref([]);
+const hiddenValue = ref({ edges: [], labels: [], colors: [] });
+const isMounted = ref(false);
+const nextDistinct = ref(-1);
+const keypointsDef = ref(props.keypointsDef);
+
+const valid = computed(() => {
+    if (!isMounted.value) {
+      return false;
+    }
+    for (let i = 0; i < keypoints.value.length; ++i) {
+      if (keypoints.value[i].label_error.length !== 0) {
         return false;
       }
-      for (let i = 0; i < this.keypoints.length; ++i) {
-        if (this.keypoints[i].label_error.length !== 0) {
-          return false;
-        }
-      }
-      return true;
     }
-  },
-  watch: {
-    value() {
-      if (this.hiddenValue !== this.value) {
-        this.hiddenValue = this.value;
-        this.keypoints = this.keypointsFromProp();
-      }
-    },
-  },
-  created() {
-    this.keypoints = this.keypointsFromProp();
-    this.$emit("initialized");
-  },
-  mounted() {
-    this.isMounted = true;
-  },
-  methods: {
-    export() {
-      let keypoints = [];
+    return true;
+});
 
-      for (let i = 0; i < this.value.labels.length; ++i) {
-        keypoints.push({
-          label: this.value.labels[i],
-          edges: [],
-          label_error: "",
-          color: this.value.colors[i],
-        });
-      }
-      this.value.edges.forEach((edge) => {
-        let label0 = edge[0] - 1;
-        let label1 = edge[0] - 1;
-        keypoints[label0].edges.push(this.value.labels[label1]);
-        keypoints[label1].edges.push(this.value.labels[label0]);
-      });
+watch(hiddenValue.value, 
+      () => {
+          if (hiddenValue.value !== keypointsDef.value) {
+            hiddenValue.value = keypointsDef.value;
+            keypoints.value = keypointsFromProp();
+          }
+});
 
-      return keypoints;
-    },
-    createKeypoints() {
-      this.keypoints.push({
+
+onMounted(() => {
+      keypoints.value = keypointsFromProp();
+      emit('initialized');
+      isMounted.value = true;
+});
+
+const exportKeypoints = () => {
+  const newKeypoints = [];
+
+  for (let i = 0; i < keypointsDef.value.labels.length; ++i) {
+    newKeypoints.push({
+      label: keypointsDef.value.labels[i],
+      edges: [],
+      label_error: "",
+      color: keypointsDef.value.colors[i],
+    });
+  }
+
+  keypointsDef.value.edges.forEach((edge) => {
+    let label0 = edge[0] - 1;
+    let label1 = edge[0] - 1;
+    newKeypoints[label0].edges.push(keypointsDef.value.labels[label1]);
+    newKeypoints[label1].edges.push(keypointsDef.value.labels[label0]);
+  });
+  return newKeypoints;
+};
+
+const createKeypoints = () => {
+    keypoints.value.push({
         label: "",
         label_error: "",
         edges: [],
-        color: this.nextDistinctColor(),
-      });
-    },
-    keypointsFromProp() {
-      let keypoints = [];
+        color: nextDistinctColor(),
+    }); 
+};
+
+const keypointsFromProp = () => {
+      let keypointsArr = [];
+      
       if (
-        this.value != null &&
-        this.value.labels != null &&
-        this.value.labels.length
+        keypointsDef.value != null &&
+        keypointsDef.value.labels != null &&
+        keypointsDef.value.labels.length
       ) {
-        for (let i = 0; i < this.value.labels.length; ++i) {
-          let label = this.value.labels[i];
+        for (let i = 0; i < keypointsDef.value.labels.length; ++i) {
+          let label = keypointsDef.value.labels[i];
           if (label.length > 0) {
-            keypoints.push({
+            keypointsArr.push({
               label,
               label_error: "",
               edges: [],
-              color: this.value.colors[i] || "#000",
+              color: keypointsDef.value.colors[i] || "#000",
             });
           }
         }
 
-        this.value.edges.forEach((edge) => {
+        keypointsDef.value.edges.forEach((edge) => {
           let label0 = edge[0] - 1;
           let label1 = edge[1] - 1;
-          if (label0 < keypoints.length && label1 < keypoints.length) {
-            keypoints[label0].edges.push(this.value.labels[label1]);
-            keypoints[label1].edges.push(this.value.labels[label0]);
+          if (label0 < keypointsArr.length && label1 < keypointsArr.length) {
+            keypointsArr[label0].edges.push(keypointsDef.value.labels[label1]);
+            keypointsArr[label1].edges.push(keypointsDef.value.labels[label0]);
           }
         });
       }
-      return keypoints;
-    },
-    colorUpdated(index, color) {
-      this.keypoints[index].color = color;
-      this.hiddenValue = this.propFomKeypoints();
-      this.$emit("input", this.hiddenValue);
-    },
-    keypointLabelUpdated(index, label) {
-      let current_kp = this.keypoints[index];
+      return keypointsArr;
+};
+
+const  colorUpdated = (index, color) => {
+  keypoints.value[index].color = color;
+  hiddenValue.value = propFomKeypoints();  
+  // emit('input', hiddenValue.value);
+  emit('update:keypoints-def', hiddenValue.value);
+};
+
+const keypointLabelUpdated = (index, label) => {
+      let current_kp = keypoints.value[index];
       let previous_label = current_kp.label;
 
       current_kp.label_error = "";
       if (label !== "") {
-        for (let i = 0; i < this.keypoints.length; ++i) {
+        for (let i = 0; i < keypoints.value.length; ++i) {
           if (i !== index) {
-            let kp = this.keypoints[i];
+            let kp = keypoints.value[i];
             if (label === kp.label) {
               current_kp.label_error = "Duplicate keypoint label";
               kp.label_error = current_kp.label_error;
@@ -288,109 +293,122 @@ export default {
       current_kp.label = label;
       if (current_kp.label_error === "") {
         if (label !== "") {
-          for (let i = 0; i < this.keypoints.length; ++i) {
+          for (let i = 0; i < keypoints.value.length; ++i) {
             if (i !== index) {
-              let kp = this.keypoints[i];
+              let kp = keypoints.value[i];
               kp.edges = kp.edges.map((edge) => {
                 return edge === previous_label ? label : edge;
               });
             }
           }
         }
-        this.hiddenValue = this.propFomKeypoints();
-        this.$emit("input", this.hiddenValue);
+        hiddenValue.value = propFomKeypoints();
+        // emit('input', hiddenValue.value);
+        emit('update:keypoints-def', hiddenValue.value);
       } else if (label !== "") {
-        for (let i = 0; i < this.keypoints.length; ++i) {
+        for (let i = 0; i < keypoints.value.length; ++i) {
           if (i !== index) {
-            let kp = this.keypoints[i];
+            let kp = keypoints.value[i];
             kp.edges = kp.edges.filter((edge) => {
               return edge != previous_label;
             });
           }
         }
       }
-    },
-    keypointEdgesUpdated(index, edges) {
-      let new_edges = new Set(edges);
-      let current_kp = this.keypoints[index];
-      // need to update the keypoints on the other end of the edges
-      this.keypoints.forEach((kp) => {
-        if (kp.label !== current_kp.label) {
-          // edges go both ways; sync other end
-          let kp_edges = new Set(kp.edges);
-          if (!new_edges.has(kp.label) && kp_edges.has(current_kp.label)) {
-            kp_edges.delete(current_kp.label);
-            kp.edges = Array.from(kp_edges);
-          } else if (
-            new_edges.has(kp.label) &&
-            !kp_edges.has(current_kp.label)
-          ) {
-            kp_edges.add(current_kp.label);
-            kp.edges = Array.from(kp_edges);
-          }
-          if (
-            kp.edges.length === 0 &&
-            kp.label.length === 0 &&
-            kp.label_error
-          ) {
-            kp.label_error = "";
-          }
-        }
-      });
-
-      this.keypoints[index].edges = edges;
-      this.hiddenValue = this.propFomKeypoints();
-      this.$emit("input", this.hiddenValue);
-    },
-    propFomKeypoints() {
-      let edge_labels = {};
-      let labels = [];
-      let colors = [];
-      this.keypoints.forEach((kp) => {
-        if (kp.label.length > 0) {
-          labels.push(kp.label);
-          colors.push(kp.color);
-        }
-      });
-      this.keypoints.forEach((kp) => {
-        kp.edges.forEach((edge) => {
-          if (edge in edge_labels) {
-            edge_labels[edge].add(kp.label);
-          } else {
-            edge_labels[kp.label] = edge_labels[kp.label] || new Set();
-            edge_labels[kp.label].add(edge);
-          }
-        });
-      });
-      let edges = [];
-      for (const label in edge_labels) {
-        let label_index = labels.indexOf(label) + 1;
-        edge_labels[label].forEach((edge) => {
-          let edge_index = labels.indexOf(edge) + 1;
-          edges.push([label_index, edge_index]);
-        });
-      }
-      return { labels, edges, colors };
-    },
-    otherKeypointLabels(current_label) {
-      let labels = {};
-      if (this.keypoints != null) {
-        this.keypoints.forEach((keypoint) => {
-          if (keypoint.label !== "" && keypoint.label !== current_label) {
-            labels[keypoint.label] = keypoint.label;
-          }
-        });
-      }
-      return labels;
-    },
-    clearKeypoints() {
-      this.keypoints.splice(0, this.keypoints.length);
-    },
-    nextDistinctColor() {
-      return DISTINCT_COLORS[++this.nextDistinct];
-    },
-  },
 };
+
+const keypointEdgesUpdated = (index, edges) => {
+  let new_edges = new Set(edges);
+  let current_kp = keypoints.value[index];
+
+  keypoints.value.forEach((kp) => {
+    if (kp.label !== current_kp.label) {
+      let kp_edges = new Set(kp.edges);
+      if (!new_edges.has(kp.label) && kp_edges.has(current_kp.label)) {
+        kp_edges.delete(current_kp.label);
+        kp.edges = Array.from(kp_edges);
+      } else if (
+        new_edges.has(kp.label) &&
+        !kp_edges.has(current_kp.label)
+      ) {
+        kp_edges.add(current_kp.label);
+        kp.edges = Array.from(kp_edges);
+      }
+      if (
+        kp.edges.length === 0 &&
+        kp.label.length === 0 &&
+        kp.label_error
+      ) {
+        kp.label_error = "";
+      }
+    }
+  });
+  keypoints.value[index].edges = edges;
+  hiddenValue.value = propFomKeypoints();
+  emit('update:keypoints-def', hiddenValue.value);
+};
+
+const propFomKeypoints = () => {
+  let edge_labels = {};
+  let labels = [];
+  let colors = [];
+  // for (const kp of keypoints.value) {
+  keypoints.value.forEach (kp => {
+    if (kp.label.length > 0) {
+      labels.push(kp.label);
+      colors.push(kp.color);
+    }
+  });
+  // for (const kp of keypoints.value) {
+  keypoints.value.forEach (kp => {
+    // for (const edge of kp.edges) {
+    kp.edges.forEach( edge => {
+      if (edge in edge_labels) {
+        edge_labels[edge].add(kp.label);
+      } else {
+        edge_labels[kp.label] = edge_labels[kp.label] || new Set();
+        edge_labels[kp.label].add(edge);
+      }
+    });
+  });
+  let edges = [];
+  for (const label in edge_labels) {
+  // edge_labels.forEach( label => {
+    let label_index = labels.indexOf(label) + 1;
+    edge_labels[label].forEach((edge) => {
+      let edge_index = labels.indexOf(edge) + 1;
+      edges.push([label_index, edge_index]);
+    });
+//  });
+  }
+  return { labels, edges, colors };
+};
+
+const otherKeypointLabels = (current_label) => {
+  const labels = {};
+  if (keypoints.value != null) {
+    keypoints.value.forEach((keypoint) => {
+      if (keypoint.label !== "" && keypoint.label !== current_label) {
+        labels[keypoint.label] = keypoint.label;
+      }
+    });
+  }
+  return labels;
+};
+
+const clearKeypoints = (keypoints) => {
+  keypoints.splice(0, keypoints.length);
+};
+
+const nextDistinctColor = () => {
+  const nextDistinct = ref(0);
+  nextDistinct.value++;
+  return DISTINCT_COLORS[nextDistinct.value];
+};
+
+defineExpose({exportKeypoints, valid});
+
+
 </script>
 
 <style scoped>

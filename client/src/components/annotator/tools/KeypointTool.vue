@@ -76,4 +76,8 @@ const onMouseDown = (event) => {
 onMounted(() => {
     state.tool.onMouseDown = onMouseDown;
 });
+
+defineExpose({click, name, isActive});
+
+
 </script>

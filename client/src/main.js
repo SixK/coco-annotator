@@ -13,7 +13,7 @@ import VTooltip from "v-tooltip";
 import Loading from "vue-loading-overlay";
 // import VueTouch from 'vue-touch'
 import Vue3TouchEvents from "vue3-touch-events";
-import VueSocketIO from "vue-socket.io";
+import VueSocketIO from "vue-3-socket.io";
 
 import "bootstrap";
 import "bootstrap/dist/css/bootstrap.min.css";

@@ -74,9 +74,11 @@
       <Annotation
         v-for="(annotation, listIndex) in category.annotations"
         :key="annotation.id"
+        :category="category"
         :search="search"
         :simplify="simplify"
         :annotation="annotation"
+        :show-annotations="showAnnotations"
         :current="current.annotation"
         :opacity="opacity"
         :index="listIndex"
@@ -90,8 +92,10 @@
         :scale="scale"
         @keypoint-click="onKeypointClick(listIndex, $event)"
         :all-categories="getCategoriesList"
+        :is-hover="isHover"
         @keypoints-complete="$emit('keypoints-complete')"
         @deleted="annotationDeleted"
+        @set-color="setColor"
       />
     </ul>
 
@@ -147,7 +151,7 @@
               <div class="form-group">
                 <KeypointsDefinition
                   ref="keypoints"
-                  v-model="keypoint"
+                  v-model:keypoints-def="keypoint"
                   element-id="keypointLabels"
                 />
               </div>
@@ -178,7 +182,7 @@
   </div>
 </template>
 
-<script>
+<script setup>
 import paper from "paper";
 
 import Annotations from "@/models/annotations";
@@ -186,14 +190,10 @@ import Annotation from "@/components/annotator/Annotation";
 import KeypointsDefinition from "@/components/KeypointsDefinition";
 
 import { nextTick } from 'vue';
-// import JQuery from "jquery";
 
-// let $ = JQuery;
+import { provide, inject, watch, reactive, ref, computed, onMounted, onUnmounted, defineExpose,toRef } from 'vue';
 
-export default {
-  name: "Category",
-  components: { Annotation, KeypointsDefinition },
-  props: {
+const props = defineProps({
     category: {
       type: Object,
       required: true
@@ -234,359 +234,417 @@ export default {
       type: Array,
       required: true
     }
-  },
-  data: function () {
-    return {
-      group: null,
-      supercategory: this.category.supercategory,
-      color: this.category.color,
-      keypoint: {
-        labels: [...this.category.keypoint_labels],
-        edges: [...this.category.keypoint_edges],
-        colors: [...this.category.keypoint_colors],
-      },
-      selectedAnnotation: -1,
-      showAnnotations: false,
-      isVisible: false,
-      search: "",
-      isMounted: false,
-    };
-  },
-  computed: {
-    showCategory() {
-      let search = this.categorysearch.toLowerCase();
-      if (search.length === 0) return true;
-      return this.category.name.toLowerCase().includes(search);
-    },
-    getCategoriesList() {
-      return this.allCategories.map((category) => ({
-        value: category.id,
-        text: category.name,
-      }));
-    },
-    isCurrent() {
-      return this.current.category === this.index;
-    },
-    isHover() {
-      return this.hover.category === this.index;
-    },
-    backgroundColor() {
-      if (this.isHover && !this.showAnnotations) {
-        return "#646c82";
-      }
-      return "inherit";
-    },
-    borderColor() {
-      if (this.isCurrent) return "rgba(255, 255, 255, 0.25)";
-      return "#404552";
-    },
-    darkHSL() {
-      let color = new paper.Color(this.color);
-      let h = Math.round(color.hue);
-      let l = Math.round(color.lightness * 50);
-      let s = Math.round(color.saturation * 100);
-      return "hsl(" + h + "," + s + "%," + l + "%)";
-    },
-    isFormValid() {
-      return (
-        this.isMounted &&
-        this.$refs &&
-        this.$refs.keypoints &&
-        this.$refs.keypoints.valid
-      );
-    },
-  },
-  watch: {
-    color() {
-      this.setColor();
-    },
-    opacity() {
-      let annotations = this.$refs.annotation;
-      if (annotations == null) return;
+});
 
-      annotations.forEach((a) => (a.compoundPath.opacity = this.opacity));
-    },
-    isVisible(newVisible) {
-      let annotations = this.$refs.annotation;
+const emit = defineEmits(['click']);
+
+// const getCategory = inject('getCategory');
+const getImageId = inject('getImageId');
+const scrollElement = inject('scrollElement');
+const selectLastEditorTool = inject('selectLastEditorTool');
+
+const group = ref(null);
+const supercategory = ref(props.category.supercategory);
+const color = ref(props.category.color);
+const keypoint = ref({
+      labels: [...props.category.keypoint_labels],
+      edges: [...props.category.keypoint_edges],
+      colors: [...props.category.keypoint_colors],
+});
+const selectedAnnotation = ref(-1);
+const showAnnotations = ref(false);
+const isVisible = ref(false);
+const search = ref("");
+const isMounted = ref(false);
+const activeTool = ref(props.activeTool);
+const opacity = ref(props.opacity);
+
+const category = toRef(props, 'category');
+
+const hover = ref(props.hover);
+const index = ref(props.index);
+const current = ref(props.current);
+const allCategories = ref(props.allCategories);
+const categorysearch = ref(props.categorysearch);
+
+const annotation = ref(null);
+const keypoints = ref(null);
+
+const getShowAnnotations  = () => {
+    return showAnnotations.value;
+};
+
+
+const getCategoryIndex  = () => {
+    return index.value;
+};
+
+
+const showCategory = computed(() => {
+  let search = categorysearch.value.toLowerCase();
+  if (search.length === 0) return true;
+  return category.value.name.toLowerCase().includes(search);
+});
+
+const getCategoriesList = computed(() => {
+  return allCategories.value.map((category) => ({
+    value: category.id,
+    text: category.name,
+  }));
+});
+
+const isCurrent = computed(() => {
+  return current.value.category === index.value;
+});
+
+const isHover = computed(() => {
+  return hover.value.category === index.value;
+});
+
+const backgroundColor = computed(() => {
+  if (isHover.value && !showAnnotations.value) {
+    return "#646c82";
+  }
+  return "inherit";
+});
+
+const borderColor = computed(() => {
+  if (isCurrent.value) return "rgba(255, 255, 255, 0.25)";
+  return "#404552";
+});
+
+const darkHSL = computed(() => {
+  let localcolor = new paper.Color(color.value);
+  let h = Math.round(localcolor.hue);
+  let l = Math.round(localcolor.lightness * 50);
+  let s = Math.round(localcolor.saturation * 100);
+  return "hsl(" + h + "," + s + "%," + l + "%)";
+});
+
+const isFormValid = computed(() => {
+  return (
+    isMounted.value &&
+    keypoints.value &&
+    keypoints.value.valid
+    // $refs &&
+    // $refs.keypoints &&
+    // $refs.keypoints.valid
+  );
+});
+
+watch(
+  () => props.activeTool,
+  (value) => {
+      activeTool.value = value;
+});
+
+watch(
+  () => color.value, 
+  () => {
+      setColor();
+});
+
+watch(
+  () => opacity.value, 
+  (newopacity) => {
+      let annotations = annotation.value
+      if (annotations.value == null) return;
+      annotations.value.forEach((a) => (a.compoundPath.opacity = newopacity));
+});
+
+watch(
+  () => isVisible.value, 
+  (newVisible) => {
+      let annotations = annotation.value
       if (annotations == null) return;
 
       annotations.forEach((a) => {
         a.keypoints.visible = newVisible;
         a.isVisible = newVisible;
       });
-      this.setColor();
-    },
-    showAnnotations(showing) {
+      setColor();
+});
+
+watch(
+  () => showAnnotations.value, 
+  (showing) => {
       if (!showing) {
-        this.$emit("click", {
+        emit("click", {
           annotation: -1,
           keypoint: -1,
-          category: this.index,
+          category: index.value,
         });
       }
-      this.setColor();
-    },
-    category() {
-      this.initCategory();
-    },
-  },
-  mounted() {
-    this.initCategory();
-    /*
-    $(this.$refs.category_settings).on(
-      "hidden.bs.modal",
-      this.resetCategorySettings
-    );*/
-    this.isMounted = true;
-  },
-  methods: {
-    show(index) {
-      if (this.search.length === 0) return true;
-      return this.filterFound.indexOf(index) > -1;
-    },
-    resetCategorySettings() {
-      this.supercategory = this.category.supercategory;
-      this.color = this.category.color;
-      this.keypoint = {
-        labels: [...this.category.keypoint_labels],
-        edges: [...this.category.keypoint_edges],
-        colors: [...this.category.keypoint_colors],
-      };
-    },
-    /**
-     * Created
-     */
-    createAnnotation() {
-      let parent = this.$parent;
-      let annotationId = this.category.annotations.length;
+      setColor();
+});
+
+watch(
+  () => category.value, 
+  () => {
+      initCategory();
+});
+
+onMounted(() => {
+  initCategory();
+  isMounted.value = true;
+});
+
+const show = (index) => {
+  if (search.value.length === 0) return true;
+  return filterFound.value.indexOf(index) > -1;
+};
+
+
+const resetCategorySettings = () => {
+  supercategory.value = category.value.supercategory;
+  color.value = category.value.color;
+
+  keypoint.value = {
+    labels: [...category.value.keypoint_labels],
+    edges: [...category.value.keypoint_edges],
+    colors: [...category.value.keypoint_colors],
+  };
+};
+
+const createAnnotation = () => {
+      // let parent = $parent;
+      let annotationId = category.value.annotations.length;
       Annotations.create({
-        image_id: parent.image.id,
-        category_id: this.category.id,
+        image_id: getImageId(),
+        category_id: category.value.id,
       }).then((response) => {
-        this.$socket.emit("annotation", {
+        // workaround to access to $socket
+        app.__vue_app__.config.globalProperties.$socket.emit("annotation", {
           action: "create",
-          category_id: this.category.id,
+          category_id: category.value.id,
           annotation: response.data
         });
 
-        this.category.annotations.push(response.data);
+        category.value.annotations.push(response.data);
 
-        this.selectedAnnotation = annotationId;
+        selectedAnnotation.value = annotationId;
         nextTick(() => {
-          this.$parent.selectLastEditorTool();
-          this.$emit("click", {
+          selectLastEditorTool();
+          emit("click", {
             annotation: annotationId,
-            category: this.index,
+            category: index.value,
             keypoint: -1,
           });
         });
 
-        this.isVisible = true;
-        this.showAnnotations = true;
+        isVisible.value = true;
+        showAnnotations.value = true;
 
-        let annotations = this.$refs.annotation;
+        let annotations = annotation.value;
         if (annotations == null) return;
 
-        let annotation = annotations[annotationId - 1];
-        if (annotation == null) {
-          this.$parent.scrollElement(this.$el);
+        let tmp_annotation = annotations[annotationId - 1];
+        
+        if (tmp_annotation == null) {
+          const element = document.getElementById(`heading' + category.id`);
+          // scrollElement($el);
+          scrollElement(element);
         } else {
-          this.$parent.scrollElement(annotation.$el);
+          scrollElement(tmp_annotation.$el);
         }
       });
-    },
-    onUpdateClick() {
-      this.category.keypoint_labels = [...this.keypoint.labels];
-      this.category.keypoint_edges = [...this.keypoint.edges];
-      this.category.keypoint_colors = [...this.keypoint.colors];
-      this.category.supercategory = this.supercategory;
-    },
-    /**
-     * Exports data for send to backend
-     * @returns {json} Annotation data, and settings
-     */
-    export() {
-      let refs = this.$refs;
-      let categoryData = {
-        // Category Identification
-        id: this.category.id,
-        name: this.category.name,
-        // Show in side bar
-        show: this.category.show,
-        // Show groups on canvas
-        visualize: this.isVisible,
-        color: this.color,
-        metadata: [],
-        annotations: [],
-        supercategory: this.category.supercategory,
-        keypoint_labels: this.category.keypoint_labels,
-        keypoint_edges: this.category.keypoint_edges,
-        keypoint_colors: this.category.keypoint_colors,
-      };
+};
 
-      if (refs.hasOwnProperty("annotation")) {
-        refs.annotation.forEach((annotation) => {
-          categoryData.annotations.push(annotation.export());
-        });
-      }
+const onUpdateClick = () => {
+  category.value.keypoint_labels = [...keypoint.value.labels];
+  category.value.keypoint_edges = [...keypoint.value.edges];
+  category.value.keypoint_colors = [...keypoint.value.colors];
+  category.value.supercategory = supercategory.value;
+};
 
-      return categoryData;
-    },
+const exportCategory = () => {
 
-    addKeypointEdge(edge) {
-      this.keypoint.edges.push(edge);
-    },
-    removeKeypointEdge(edge) {
-      let index = this.keypoint.edges.findIndex((e) => {
-        let i1 = Math.min(edge[0], edge[1]) == Math.min(e[0], e[1]);
-        let i2 = Math.max(edge[0], edge[1]) == Math.max(e[0], e[1]);
+    const categoryData = {
+      // Category Identification
+      id: props.category.id,
+      name: props.category.name,
+      // Show in side bar
+      show: props.category.show,
+      // Show groups on canvas
+      visualize: isVisible.value,
+      color: color.value,
+      metadata: [],
+      annotations: [],
+      supercategory: props.category.supercategory,
+      keypoint_labels: props.category.keypoint_labels,
+      keypoint_edges: props.category.keypoint_edges,
+      keypoint_colors: props.category.keypoint_colors,
+    };
 
-        return i1 && i2;
+
+    if (annotation.value != null) {
+      annotation.value.forEach((ann) => {
+        categoryData.annotations.push(ann.exportAnnotation());
       });
+    }
 
-      if (index !== -1) {
-        let edge = this.keypoint.edges[index];
-        this.keypoint.edges.splice(index, 1);
-        let annotations = this.$refs.annotation;
-        if (annotations) {
-          annotations.forEach((a) => a.keypoints.removeLine(edge));
-        }
-      }
-    },
-    /**
-     * Event handler for visibility button
-     */
-    onEyeClick() {
-      this.isVisible = !this.isVisible;
 
-      if (this.showAnnotations && !this.isVisible) {
-        this.showAnnotations = false;
-      }
+  return categoryData;
+};
 
-      if (this.showAnnotations)
-        if (this.isCurrent) {
-          this.$emit("click", {
-            annotation: this.selectedAnnotation,
-            category: this.index,
-            keypoint: -1,
-          });
-        }
-    },
-    /**
-     * Event handler for keypoint click
-     */
-    onKeypointClick(annotation_index, keypoint_index) {
-      let indices = {
-        annotation: annotation_index,
-        category: this.index,
-        keypoint: keypoint_index,
-      };
-      this.selectedAnnotation = annotation_index;
-      this.showAnnotations = true;
+const addKeypointEdge = (edge) => {
+  keypoint.value.edges.push(edge);
+};
 
-      this.$emit("click", indices);
-    },
-    /**
-     * Event handler for annotation click
-     */
-    onAnnotationClick(index) {
-      let indices = {
-        annotation: index,
-        category: this.index,
-        keypoint: -1
-      };
-      this.selectedAnnotation = index;
-      this.showAnnotations = true;
+const removeKeypointEdge = (edge) => {
+  let index = keypoint.value.edges.findIndex((e) => {
+    let i1 = Math.min(edge[0], edge[1]) == Math.min(e[0], e[1]);
+    let i2 = Math.max(edge[0], edge[1]) == Math.max(e[0], e[1]);
+    return i1 && i2;
+  });
 
-      this.$emit("click", indices);
-    },
-    /**
-     * Event Handler for category click
-     */
-    onClick() {
-      let indices = {
-        annotation: this.selectedAnnotation,
-        category: this.index,
-        keypoint: -1
-      };
-      this.$emit("click", indices);
+  if (index !== -1) {
+    let edge = keypoint.value.edges[index];
+    keypoint.value.edges.splice(index, 1);
+    let annotations = annotation.value;
+    if (annotations) {
+      annotations.forEach((a) => a.keypoints.removeLine(edge));
+    }
+  }
+};
 
-      if (this.category.annotations.length === 0) return;
-      this.showAnnotations = !this.showAnnotations;
-
-      if (this.showAnnotations && !this.isVisible) {
-        this.isVisible = true;
-      }
-    },
-    /**
-     * Creates paperjs group
-     */
-    initCategory() {
-      this.setColor();
-    },
-    /**
-     * @returns {Annotation} returns annotation and provided index
-     */
-    getAnnotation(index) {
-      let ref = this.$refs.annotation;
-      if (ref == null) return null;
-      return this.$refs.annotation[index];
-    },
-    /**
-     * Sets color of current group depending on state.
-     * Show annotation colors if showAnnotations is true,
-     * Show as group color if showAnnotations is false
-     */
-    setColor() {
-      let annotations = this.$refs.annotation;
-      if (annotations == null) return;
-      if (!this.isVisible) return;
-
-      if (this.showAnnotations) {
-        annotations.forEach((a) => a.setColor());
-      } else {
-        annotations.forEach((a) => {
-          a.compoundPath.fillColor = this.color;
-          a.keypoints.color = this.darkHSL;
-          a.keypoints.bringToFront();
-        });
-      }
-    },
-    annotationDeleted(index) {
-      if (this.selectedAnnotation >= index) {
-        this.selectedAnnotation--;
-      }
-
-      let indices = {
-        annotation: this.selectedAnnotation,
-        category: this.index,
+const onEyeClick = () => {
+  isVisible.value = !isVisible.value;
+  if (showAnnotations.value && !isVisible.value) {
+    showAnnotations.value = false;
+  }
+  if (showAnnotations.value) {
+    if (isCurrent.value) {
+      emit('click', {
+        annotation: selectedAnnotation.value,
+        category: index.value,
         keypoint: -1,
-      };
-      this.$emit("click", indices);
+      });
+    }
+  }
+};
 
-      if (this.category.annotations.length === 0) this.isVisible = false;
-    },
-  },
-  sockets: {
-    annotation(data) {
+const onKeypointClick = (annotationIndex, keypointIndex) => {
+  const indices = {
+    annotation: annotationIndex,
+    category: index.value,
+    keypoint: keypointIndex,
+  };
+  selectedAnnotation.value = annotationIndex;
+  showAnnotations.value = true;
+  emit('click', indices);
+}
+
+const onAnnotationClick = (clicked_index) => {
+  const indices = {
+    annotation: clicked_index,
+    category: index.value,
+    keypoint: -1
+  };
+
+  selectedAnnotation.value = clicked_index;
+  showAnnotations.value = true;
+  emit('click', indices);
+}
+
+const onClick = () => {
+      const indices = {
+        annotation: selectedAnnotation.value,
+        category: index.value,
+        keypoint: -1
+      };
+
+      emit('click', indices);
+      if (category.value.annotations.length === 0) return;
+      showAnnotations.value = !showAnnotations.value;
+      
+      if (showAnnotations.value && !isVisible.value) {
+        isVisible.value = true;
+      }
+};
+
+const initCategory = () => {
+      setColor();
+};
+
+const getAnnotation = (index) => {
+      let ref = annotation.value;
+      if (ref == null) return null;
+      return annotation.value[index];
+};
+
+const setColor = () => {
+    let annotations = annotation.value;
+    if (annotations == null) return;
+    if (!isVisible.value) return;
+
+    if (showAnnotations.value) {
+      annotations.forEach((a) => a.setColor());
+    } else {
+      annotations.forEach((a) => {
+        a.compoundPath.fillColor = color.value;
+        a.keypoints.color = darkHSL.value;
+        a.keypoints.bringToFront();
+      });
+    }
+};
+
+const annotationDeleted = (index) => {
+    if (selectedAnnotation.value >= index) {
+      selectedAnnotation.value--;
+    }
+
+    let indices = {
+      annotation: selectedAnnotation.value,
+      category: index,
+      keypoint: -1,
+    };
+    emit("click", indices);
+    if (category.value.annotations.length === 0) isVisible.value = false;
+};
+
+
+// probably need to use something like $socket.on with vue3...
+const onAnnotation = (data) => {
       let action = data.action;
       let annotation = data.annotation;
-
-      if (annotation.image_id != this.$parent.image.id) return;
-      if (annotation.category_id != this.category.id) return;
-
-      let found = this.category.annotations.findIndex(
+      if (annotation.image_id != parent.image.id) return;
+      if (annotation.category_id != props.category.id) return;
+      let found = props.category.annotations.findIndex(
         (a) => a.id == annotation.id
       );
 
       if (found == -1) {
         if (action == "create") {
-          this.category.annotations.push(annotation);
+          // emit('annotation', annotation);
+              category.value.annotations.push(annotation);
         }
       }
-    }
-  },
 };
+
+onMounted( () => {
+    app.__vue_app__.config.globalProperties.$socket.on('annotation', onAnnotation);
+});
+
+onUnmounted(() => {
+    app.__vue_app__.config.globalProperties.$socket.off('annotation', onAnnotation);
+});
+    
+
+defineExpose({category, setColor, getAnnotation, 
+                              showAnnotations, exportCategory, 
+                              createAnnotation, selectedAnnotation,
+                              isVisible,  isHover, color, supercategory, search,
+                              isCurrent, addKeypointEdge, removeKeypointEdge,
+                              index, name});
+
+provide('addKeypointEdge', addKeypointEdge);
+provide('removeKeypointEdge', removeKeypointEdge);
+provide('isCurrent', isCurrent);
+provide('getCategoryIndex', getCategoryIndex);
+provide('resetCategorySettings', resetCategorySettings);
+provide('getShowAnnotations', getShowAnnotations);
+
 </script>
 
 <style scoped>

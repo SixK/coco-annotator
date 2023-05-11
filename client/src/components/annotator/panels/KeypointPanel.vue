@@ -1,5 +1,5 @@
 <template>
-  <div v-show="keypoint.isActive">
+  <div v-show="showme">
     <PanelText name="Settings for next Keypoint" />
     <div class="input-group tool-input-group">
       <div class="input-group-prepend tool-option-pre">
@@ -17,7 +17,7 @@
   </div>
 </template>
 <script setup>
-import { ref, computed } from 'vue';
+import { defineProps, ref, inject, watchEffect, computed } from 'vue';
 import PanelText from '@/components/PanelText';
 import PanelInputDropdown from '@/components/PanelInputDropdown';
 import { VisibilityOptions } from '@/libs/keypoints';
@@ -32,6 +32,17 @@ const props = defineProps({
     validator: (prop) => typeof prop === 'object' || prop === undefined,
   },
 });
+
+const keypoint = ref(props.keypoint);
+const showme = ref('false');
+const getActiveTool = inject('getActiveTool');
+
+watchEffect(() => {
+    showme.value = keypoint.value.name === getActiveTool();
+});
+
+
+
 const visibility = ref(2);
 const label = ref(-1);
 const visibilityOptions = ref(VisibilityOptions);
@@ -45,6 +56,7 @@ const keypointLabel = computed(() => {
   }
   return labels[labelIndex];
 });
+
 </script>
 <style scoped>
 .tool-input-group {

@@ -98,6 +98,7 @@ For examples and more information check out the [wiki](https://github.com/jsbrok
 - [ ] Remove JQuery library
 - [ ] find a library to replace vue-touch for pinching
 - [ ] Make source code work without Vue2 compatibility mode
+- [ ] Understand Keypoints and make them fully work
 
 At this state, source code tested only using docker-compose.dev.yml.
 Lot of eslint errors appears, but application is functionnal

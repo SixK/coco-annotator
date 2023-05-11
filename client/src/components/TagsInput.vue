@@ -87,7 +87,7 @@
 import { nextTick } from 'vue';
 import { ref, computed, watch, onMounted } from 'vue';
 
-const emit = defineEmits(["update:modelValue", "initialized", 
+const emit = defineEmits(["update:selectedCategories", "initialized", 
                                                      "tag-added", "tags-updated", "tag-removed"]);
 
 const props = defineProps({
@@ -346,12 +346,12 @@ const ignoreSearchResults = () => {
   searchSelection.value = 0;
 };
 
-function clearTags() {
+const clearTags = () => {
   tags.value.splice(0, tags.value.length);
   tagBadges.value.splice(0, tagBadges.value.length);
 }
 
-function tagsFromValue() {
+const tagsFromValue = () => {
       if (props.selectedCategories && props.selectedCategories.length) {
         const newTags = Array.isArray(props.selectedCategories)
           ? props.selectedCategories

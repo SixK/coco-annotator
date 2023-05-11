@@ -431,6 +431,9 @@ export default {
             showAll: this.showAll,
             hideAll: this.hideAll,
             fit: this.fit,
+            scrollElement: this.scrollElement,
+            selectLastEditorTool: this.selectLastEditorTool,
+            updateAnnotationCategory: this.updateAnnotationCategory,
         };
   },
   methods: {
@@ -489,7 +492,7 @@ export default {
       if (refs.category != null && this.mode === "segment") {
         this.image.categoryIds = [];
         refs.category.forEach((category) => {
-          let categoryData = category.export();
+          let categoryData = category.exportCategory();
           data.categories.push(categoryData);
 
           if (categoryData.annotations.length > 0) {
