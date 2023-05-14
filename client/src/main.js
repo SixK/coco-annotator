@@ -10,7 +10,8 @@ import store from "./store";
 import {VueToast} from 'vue-toast-notification';
 import paper from "paper";
 import VTooltip from "v-tooltip";
-import Loading from "vue-loading-overlay";
+// import Loading from "vue-loading-overlay";
+import {LoadingPlugin} from "vue-loading-overlay";
 // import VueTouch from 'vue-touch'
 import Vue3TouchEvents from "vue3-touch-events";
 import VueSocketIO from "vue-3-socket.io";
@@ -19,7 +20,8 @@ import "bootstrap";
 import "bootstrap/dist/css/bootstrap.min.css";
 //import "vue-toastr-2/dist/vue-toastr-2.min.css";
 import 'vue-toast-notification/dist/theme-bootstrap.css';
-import "vue-loading-overlay/dist/vue-loading.css";
+// import "vue-loading-overlay/dist/vue-loading.css";
+import 'vue-loading-overlay/dist/css/index.css';
 
 Vue.config.productionTip = false;
 
@@ -43,7 +45,8 @@ app.use(VTooltip);
 app.use(router);
 app.use(store);
 app.use(socketio);
-app.use(Loading);
+// app.use(Loading);
+app.use(LoadingPlugin);
 app.use(Vue3TouchEvents, { name: "v-touch" });
 
 configureCompat(

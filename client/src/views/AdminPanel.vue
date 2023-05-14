@@ -206,72 +206,72 @@
   </div>
 </template>
 
-<script>
+<script setup>
 import AdminPanel from "@/models/admin";
-import toastrs from "@/mixins/toastrs";
-import { mapMutations } from "vuex";
+import { useStore } from 'vuex';
+import useAxiosRequest from "@/composables/axiosRequest";
+import { ref, computed, watch, inject, onMounted, provide, defineEmits, defineProps } from 'vue';
 
-export default {
-  name: "AdminPanel",
-  mixins: [toastrs],
-  data() {
-    return {
-      users: [],
-      limit: 50,
-      total: 0,
-      create: {
-        name: "",
-        username: "",
-        isAdmin: false,
-        password: ""
-      }
-    };
-  },
-  methods: {
-    ...mapMutations(["addProcess", "removeProcess"]),
-    updatePage() {
-      let process = "Loading users";
-      this.addProcess(process);
+const {axiosReqestError, axiosReqestSuccess} = useAxiosRequest();
+const store = useStore();
 
-      AdminPanel.getUsers(this.limit)
-        .then((response) => {
-          this.users = response.data.users;
-          this.total = response.data.total;
-        })
-        .finally(() => this.removeProcess(process));
-    },
-    createUser(event) {
-      event.preventDefault();
+const users = ref([]);
+const limit = ref(50);
+const total = ref(0);
+const create = ref({
+      name: "",
+      username: "",
+      isAdmin: false,
+      password: ""
+});
 
-      AdminPanel.createUser(this.create)
-        .then(this.updatePage)
-        .catch((error) => {
-          this.axiosReqestError("Create User", error.response.data.message);
-        });
-    },
-    editUser() {},
-    deleteUser(user) {
-      let yes = confirm(
-        "Are you sure you want to delete " +
-          user.username +
-          ". This action cannot be undone."
-      );
-      if (!yes) return;
+const updatePage = () => {
+  let process = "Loading users";
+  store.commit('addProcess', process);
 
-      AdminPanel.deleteUser(user.username)
-        .then(this.updatePage)
-        .catch((error) => {
-          this.axiosReqestError("Create User", error.response.data.message);
-        });
-    }
-  },
-  watch: {
-    limit: "updatePage"
-  },
-  created() {
-    this.updatePage();
-  }
+  AdminPanel.getUsers(limit.value)
+    .then((response) => {
+      users.value = response.data.users;
+      total.value = response.data.total;
+    })
+    .finally(() => store.commit('removeProcess', process));
 };
+
+const createUser = (event) => {
+  event.preventDefault();
+  AdminPanel.createUser(create.value)
+    .then(updatePage)
+    .catch((error) => {
+      axiosReqestError("Create User", error.response.data.message);
+    });
+};
+
+const deleteUser = (user) => {
+  let yes = confirm(
+    `Are you sure you want to delete ${user.username}. This action cannot be undone.`
+  );
+  if (!yes) return;
+  AdminPanel.deleteUser(user.username)
+    .then(updatePage)
+    .catch((error) => {
+      axiosReqestError('Create User', error.response.data.message);
+    });
+};
+
+const editUser = () => {
+    console.log('Sorry editUser is not implemented');
+};
+
+watch(
+    () => limit.value, 
+    () => {
+        updatePage();
+});
+
+onMounted(() => {
+    updatePage();
+});
+
 </script>
 
 <style scoped>

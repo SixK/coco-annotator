@@ -154,47 +154,60 @@
   </div>
 </template>
 
-<script>
+<script setup>
 import Undo from "@/models/undos";
+import { useStore } from 'vuex';
+import { ref, computed, watch, inject, onMounted, provide, defineEmits, defineProps } from 'vue';
+import {useLoading} from 'vue-loading-overlay'
 
-import { mapMutations } from "vuex";
 
-export default {
-  name: "Undo",
-  data() {
-    return {
-      undos: [],
-      limit: 50,
-      type: "all"
-    };
-  },
-  methods: {
-    ...mapMutations(["addProcess", "removeProcess"]),
-    updatePage() {
-      let process = "Loading undo for " + this.type + " instance type";
-      this.addProcess(process);
+const $loading = useLoading({});
+const store = useStore();
 
-      Undo.all(this.limit, this.type)
-        .then((response) => {
-          this.undos = response.data;
-        })
-        .finally(() => this.removeProcess(process));
-    },
-    undoModel(id, instance) {
-      Undo.undo(id, instance).then(this.updatePage);
-    },
-    deleteModel(id, instance) {
-      Undo.delete(id, instance).then(this.updatePage);
-    }
-  },
-  watch: {
-    limit: "updatePage",
-    type: "updatePage"
-  },
-  created() {
-    this.updatePage();
-  }
+const undos = ref([]);
+const limit = ref(50);
+const type = ref("all");
+const isLoading = ref("false");
+
+
+const updatePage = () => {
+  // isLoading.value = true;
+  const loader = $loading.show({
+    color: "#383c4a"
+  });
+  const process = `Loading undo for ${type.value} instance type`;
+  store.commit('addProcess', process);
+  Undo.all(limit.value, type.value)
+    .then(response => {
+      undos.value = response.data;
+    })
+    .finally(() => {
+      store.commit('removeProcess', process);
+      // isLoading.value = false;
+      loader.hide()
+    });
 };
+
+const undoModel = (id, instance) => {
+  // if(isLoading.value === false) 
+      Undo.undo(id, instance).then(updatePage);
+};
+
+const deleteModel = (id, instance) => {
+  // if(isLoading.value === false) 
+      Undo.delete(id, instance).then(updatePage);
+};
+
+watch(
+  () => [limit.value, type.value], 
+  () => {
+  updatePage();
+});
+
+onMounted(() => {
+  updatePage();
+});
+
 </script>
 
 <style scoped>

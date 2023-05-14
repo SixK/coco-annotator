@@ -26,81 +26,83 @@
   </div>
 </template>
 
-<script>
-import toastrs from "@/mixins/toastrs";
+<script setup>
 import TaskGroup from "@/components/tasks/TaskGroup";
 import Tasks from "@/models/tasks";
+import { ref, computed, watch, inject, onMounted, provide, defineEmits, defineProps } from 'vue';
 
-import { mapMutations } from "vuex";
+import { useRoute } from 'vue-router';
 
-export default {
-  name: "Tasks",
-  components: { TaskGroup },
-  mixins: [toastrs],
-  data() {
-    return {
-      total: 0,
-      tasks: []
-    };
-  },
-  methods: {
-    ...mapMutations(["addProcess", "removeProcess"]),
-    updatePage() {
-      let process = "Loading tasks";
-      this.addProcess(process);
-      Tasks.all()
-        .then((response) => {
-          this.tasks = response.data;
-          if (this.taskToShow != null) {
-            this.showTask(this.taskToShow);
-          }
-        })
-        .finally(() => this.removeProcess(process));
-    },
-    showTask(taskId) {
-      if (taskId == null) return;
+import { useStore } from 'vuex';
 
-      let task = this.tasks.find((t) => t.id == taskId);
-      if (task == null) return;
-      task.show = true;
-    },
-  },
-  computed: {
-    taskToShow() {
-      let taskId = this.$route.query.id;
-      if (taskId == null) return null;
+const store = useStore();
+const route = useRoute();
 
-      return parseInt(taskId);
-    },
-    user() {
-      return this.$store.state.user.user;
-    },
-    groups() {
-      return Object.keys(this.groupping);
-    },
-    groupping() {
-      let groupping = {};
+const total = ref(0);
+const tasks = ref([]);
 
-      this.tasks.forEach((task) => {
-        if (task.hasOwnProperty("group")) {
-          let group = task.group;
+const updatePage = () => {
+  let process = "Loading tasks";
+  store.commit('addProcess', process);
 
-          if (!groupping.hasOwnProperty(group)) groupping[group] = [];
-
-          groupping[group].push(task);
+  Tasks.all().then(response => {
+        tasks.value = response.data;
+        if (taskToShow.value !== null) {
+          showTask(taskToShow.value);
         }
-      });
-
-      return groupping;
-    },
-  },
-  watch: {
-    taskToShow: "showTask",
-  },
-  created() {
-    this.updatePage();
-  }
+  }).finally (() => {
+      store.commit('removeProcess', process);
+  });
 };
+
+const showTask = (taskId) => {
+  if (taskId == null) return;
+  const task = tasks.value.find((t) => t.id == taskId);
+  if (task == null) return;
+  task.show = true;
+};
+
+const taskToShow = computed(() => {
+      let taskId = route.query.id;
+      if (taskId == null) return null;
+      return parseInt(taskId);
+});
+
+const user = computed(() => {
+      return store.state.user.user;
+});
+
+const groups = computed(() => {
+      return Object.keys(groupping.value);
+});
+
+const groupping = computed(() => {
+    let groupping = {};
+
+    tasks.value.forEach((task) => {
+        if (task.hasOwnProperty("group")) {
+              let group = task.group;
+              if (!groupping.hasOwnProperty(group)) groupping[group] = [];
+              groupping[group].push(task);
+        }
+    });
+    return groupping;
+});
+
+watch(
+  () => taskToShow,
+  () => {
+      showTask()
+  }
+);
+
+onMounted(() => {
+  updatePage();
+});
+
+provide('tasksUpdatePage', updatePage);
+
+
 </script>
 
 <style scoped>

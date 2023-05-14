@@ -87,8 +87,8 @@
               aria-labelledby="login-tab"
             >
               <form
-                ref="loginForm"
-                class="vld-parent"
+                ref="loginFormContainer"
+                class="v1-parent"
               >
                 <div class="form-group">
                   <label>Username</label>
@@ -131,7 +131,7 @@
               </div>
               <form
                 v-else
-                ref="registerForm"
+                ref="registerFormContainer"
                 class="vld-parent"
               >
                 <div
@@ -204,178 +204,159 @@
   </div>
 </template>
 
-<script>
-import toastrs from "@/mixins/toastrs";
-import { mapActions, mapMutations } from "vuex";
-export default {
-  name: "Authentication",
-  mixins: [toastrs],
-  props: {
-    redirect: {
-      type: Object,
-      default() {
-        return { name: "datasets" };
-      }
-    }
-  },
-  data() {
-    return {
-      tab: "login",
-      registerForm: {
-        loading: false,
-        name: "",
-        username: "",
-        password: "",
-        confirmPassword: ""
-      },
-      loginForm: {
-        loading: false,
-        username: "",
-        password: ""
-      }
-    };
-  },
-  methods: {
-    ...mapActions("user", ["register", "login"]),
-    ...mapMutations("info", ["increamentUserCount"]),
-    /**
-     * Reigsters a user with provided infomation from login form
-     */
-    registerUser() {
-      if (!this.registerValid) return;
+<script setup>
+import { useStore } from 'vuex';
+import useAxiosRequest from "@/composables/axiosRequest";
+import { ref, computed, watch, inject, onMounted, provide, defineEmits, defineProps } from 'vue';
+import { useRouter } from 'vue-router';
+import {useLoading} from 'vue-loading-overlay'
 
-      let loader = this.$loading.show({
-        container: this.$refs.registerForm,
-        color: "#383c4a"
-      });
+const {axiosReqestError, axiosReqestSuccess} = useAxiosRequest();
+const store = useStore();
+const router = useRouter();
+const $loading = useLoading({});
 
-      let data = {
-        user: this.registerForm,
-        successCallback: () => {
-          loader.hide();
-          this.increamentUserCount();
-          this.$router.push(this.redirect);
-        },
-        errorCallback: (error) =>
-          this.axiosReqestError(
-            "User Registration",
-            error.response.data.message
-          )
-      };
+const props = defineProps({
+  redirect: {
+    type: Object,
+    default: () => ({ name: "datasets" })
+  }
+});
 
-      this.register(data);
+const registerTab = ref(null);
+const tab = ref("login")
+const registerForm = ref({
+    loading: false,
+    name: "",
+    username: "",
+    password: "",
+    confirmPassword: ""
+});
+
+const registerFormContainer = ref(null);
+const loginFormContainer=ref(null);
+
+const loginForm = ref({
+    loading: false,
+    username: "",
+    password: ""
+});
+
+const registerUser = () => {
+  if (!registerValid.value) return;
+  const loader = $loading.show({
+    container: registerFormContainer.value,
+    color: "#383c4a"
+  });
+
+  const data = {
+    user: registerForm.value,
+    successCallback: () => {
+      loader.hide();
+      store.commit('info/increamentUserCount');
+      router.push(redirect);
     },
-    /**
-     * Login a user with provided infomation from login form
-     */
-    loginUser() {
-      if (!this.loginValid) return;
+    errorCallback: (error) =>
+      axiosReqestError("User Registration", error.response.data.message)
+  };
+  // register(data);
+  store.dispatch('user/register', data);
+};
 
-      let loader = this.$loading.show({
-        container: this.$refs.registerForm,
-        color: "#383c4a"
-      });
+const loginUser = () => {
+  if (!loginValid.value) return;
 
-      let data = {
-        user: this.loginForm,
-        successCallback: () => {
-          loader.hide();
-          this.$router.push(this.redirect);
-        },
-        errorCallback: (error) =>
-          this.axiosReqestError("User Login", error.response.data.message),
-      };
-      this.login(data);
+  const loader = $loading.show({
+    container: registerFormContainer.value,
+    color: "#383c4a"
+  });
+
+  const data = {
+    user: loginForm.value,
+    successCallback: () => {
+      loader.hide();
+      router.push(this.redirect);
     },
-    /**
-     * Returns boolean value if provide string is a valid username
-     * @param {string} username
-     * @returns {boolean} true if valid otherwise false
-     */
-    validUsername(username) {
+    errorCallback: (error) =>
+      axiosReqestError("User Login", error.response.data.message),
+  };
+  store.dispatch('user/login', data);
+};
+
+const validUsername = (username) => {
       return /^[0-9a-zA-Z_.-]+$/.test(username);
-    },
-    /**
-     * Returns boolean value if provide string is a valid password
-     * @param {string} password
-     * @returns {boolean} true if valid otherwise false
-     */
-    validPassword(password) {
+};
+
+const validPassword = (password) => {
       return password.length > 5;
-    },
-    /**
-     * Returns classes to be applied to a username input field for validation
-     * @param {string} username input username string
-     * @returns {object} validation classes
-     */
-    inputUsernameClasses(username) {
-      let isValid = this.validUsername(username);
+};
+
+const inputUsernameClasses = (username) => {
+      let isValid = validUsername(username);
 
       return {
         "is-invalid": !isValid && username.length != 0,
         "is-valid": isValid
       };
-    },
-    /**
-     * Returns classes to be applied to a password input field for validation
-     * @param {string} password input password string
-     * @returns {object} validation classes
-     */
-    inputPasswordClasses(password) {
+};
+
+const inputPasswordClasses = (password) => {
       let isValid = password.length > 4;
 
       return {
         "is-invalid": !isValid && password.length != 0,
         "is-valid": isValid
       };
-    }
-  },
-  computed: {
-    registerValid() {
-      if (!this.validUsername(this.registerForm.username)) return false;
-      if (this.registerForm.password.length < 5) return false;
-      if (this.registerForm.password !== this.registerForm.confirmPassword)
-        return false;
-
-      return true;
-    },
-    loginValid() {
-      if (!this.validUsername(this.loginForm.username)) return false;
-      if (this.loginForm.password.length == 0) return false;
-      return true;
-    },
-    totalUsers() {
-      return this.$store.state.info.totalUsers;
-    },
-    allowRegistration() {
-      return this.$store.state.info.allowRegistration;
-    },
-    showRegistrationForm() {
-      return this.totalUsers == 0 || this.allowRegistration;
-    },
-    isAuthenticatePending() {
-      return this.$store.state.user.isAuthenticatePending;
-    }
-  },
-  watch: {
-    totalUsers(users) {
-      if (users === 0) {
-        this.$refs.registerTab.click();
-      }
-    },
-    isAuthenticatePending: {
-      handler() {
-        if (this.isAuthenticatePending) {
-          this.$router.push({
-            name: "datasets"
-          });
-        }
-      },
-      immediate: true
-    }
-  },
-  mounted() {}
 };
+
+const totalUsers = computed(() => {
+    return store.state.info.totalUsers;
+});
+
+const allowRegistration = computed(() => {
+    return store.state.info.allowRegistration;
+});
+
+const showRegistrationForm = computed(() => {
+    return totalUsers.value == 0 || allowRegistration.value;
+});
+  
+const isAuthenticatePending = computed(() => {
+    return store.state.user.isAuthenticatePending;
+});
+
+const registerValid = computed(() => {
+    if (!validUsername(registerForm.value.username)) return false;
+    if (registerForm.value.password.length < 5) return false;
+    if (registerForm.value.password !== registerForm.value.confirmPassword) return false;
+    return true;
+});
+  
+const loginValid = computed(() => {
+    if (!validUsername(loginForm.value.username)) return false;
+    if (loginForm.value.password.length == 0) return false;
+    return true;
+});
+
+
+watch(
+  () => totalUsers, 
+  (users) => {
+      if (users === 0) {
+        registerTab.value.click();
+      }
+});
+
+watch(
+  () => isAuthenticatePending.value, 
+  (pending) => {
+      if (pending) {
+        router.push({
+          name: 'datasets'
+        });
+      }
+}, { immediate: true });
+
 </script>
 
 <style scoped>

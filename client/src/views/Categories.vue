@@ -37,7 +37,7 @@
             <button
               type="button"
               class="btn btn-secondary"
-              @click="updatePage"
+              @click="updatePage()"
             >
               Refresh
             </button>
@@ -212,114 +212,111 @@
   </div>
 </template>
 
-<script>
-import toastrs from "@/mixins/toastrs";
-
+<script setup>
 import Category from "@/models/categories";
 import CategoryCard from "@/components/cards/CategoryCard";
 import Pagination from "@/components/Pagination";
 import KeypointsDefinition from "@/components/KeypointsDefinition";
 
-import { mapMutations } from "vuex";
+import { ref, computed, watch, inject, onMounted, provide, defineEmits, defineProps } from 'vue';
 
-export default {
-  name: "Categories",
-  components: { CategoryCard, Pagination, KeypointsDefinition },
-  mixins: [toastrs],
-  data() {
-    return {
-      categoryCount: 0,
-      pages: 1,
-      page: 1,
-      limit: 50,
-      range: 11,
-      newCategoryName: "",
-      newCategorySupercategory: "",
-      newCategoryColor: null,
-      newCategoryKeypoint: {
-        labels: [],
-        edges: [],
-        colors: []
-      },
-      categories: [],
-      status: {
-        data: { state: true, message: "Loading categories" }
-      }
-    };
-  },
-  computed: {
-    isFormValid() {
-      return (
-        this.newCategoryName.length !== 0 &&
-        this.$refs &&
-        this.$refs.keypoints &&
-        this.$refs.keypoints.valid
-      );
-    }
-  },
-  methods: {
-    ...mapMutations(["addProcess", "removeProcess"]),
-    updatePage(page) {
-      let process = "Loading categories";
-      this.addProcess(process);
+import useAxiosRequest from "@/composables/axiosRequest";
+const {axiosReqestError, axiosReqestSuccess} = useAxiosRequest();
 
-      page = page || this.page;
-      this.page = page;
+import { useStore } from 'vuex';
+const store = useStore();
 
-      Category.allData({
-        page: page,
-        limit: this.limit
-      })
-        .then((response) => {
-          this.categories = response.data.categories;
-          this.page = response.data.pagination.page;
-          this.pages = response.data.pagination.pages;
-          this.categoryCount = response.data.pagination.total;
-        })
-        .finally(() => this.removeProcess(process));
-    },
-    createCategory() {
-      if (this.newCategoryName.length < 1) return;
+const categoryCount = ref(0);
+const pages = ref(1);
+const page = ref(1);
+const limit = ref(50);
+const range = ref(11);
+const newCategoryName = ref("");
+const newCategorySupercategory = ref("");
+const newCategoryColor = ref(null);
+const newCategoryKeypoint = ref({
+  labels: [],
+  edges: [],
+  colors: []
+});
+const categories = ref([]);
+const status = ref({
+  data: { state: true, message: "Loading categories" }
+});
+const keypoints = ref(null);
 
-      Category.create({
-        name: this.newCategoryName,
-        supercategory: this.newCategorySupercategory,
-        color: this.newCategoryColor,
-        keypoint_labels: this.newCategoryKeypoint.labels,
-        keypoint_edges: this.newCategoryKeypoint.edges,
-        keypoint_colors: this.newCategoryKeypoint.colors,
-      })
-        .then(() => {
-          this.newCategoryName = "";
-          this.newCategorySupercategory = "";
-          this.newCategoryColor = null;
-          this.newCategoryKeypoint = {};
-          this.updatePage();
-        })
-        .catch((error) => {
-          this.axiosReqestError(
-            "Creating Category",
-            error.response.data.message
-          );
-        });
-    },
-    previousPage() {
-      this.page -= 1;
-      if (this.page < 1) {
-        this.page = 1;
-      }
-    },
-    nextPage: function() {
-      this.page += 1;
-      if (this.page > this.pages) {
-        this.page = this.pages;
-      }
-    }
-  },
-  created() {
-    this.updatePage();
-  }
+const isFormValid = computed(() => {
+  return (
+    newCategoryName.value.length !== 0 &&
+    keypoints.value != null &&
+    keypoints.value.valid
+  );
+});
+
+const updatePage = (p) => {
+  const process = "Loading categories";
+  store.commit('addProcess', process);
+
+  p = p || page.value;
+  page.value = p;
+  Category.allData({
+    page: p,
+    limit: limit.value
+  })
+    .then((response) => {
+      categories.value = response.data.categories;
+      page.value = response.data.pagination.page;
+      pages .value= response.data.pagination.pages;
+      categoryCount.value = response.data.pagination.total;
+    })
+    .finally(() => {
+              store.commit('removeProcess', process);
+    });
 };
+
+const createCategory = () => {
+  if (newCategoryName.value.length < 1) return;
+
+  Category.create({
+    name: newCategoryName.value,
+    supercategory: newCategorySupercategory.value,
+    color: newCategoryColor.value,
+    keypoint_labels: newCategoryKeypoint.value.labels,
+    keypoint_edges: newCategoryKeypoint.value.edges,
+    keypoint_colors: newCategoryKeypoint.value.colors,
+  })
+    .then(() => {
+      newCategoryName.value = "";
+      newCategorySupercategory.value = "";
+      newCategoryColor.value = null;
+      newCategoryKeypoint.value = {};
+      updatePage();
+    })
+    .catch((error) => {
+      axiosReqestError("Creating Category", error.response.data.message);
+    });
+};
+
+const previousPage = () => {
+  page.value -= 1;
+  if (page.value < 1) {
+    page.value = 1;
+  }
+  updatePage();
+};
+
+const nextPage = () => {
+  page.value += 1;
+  if (page.value > pages.value) {
+    page.value = pages.value;
+  }
+  updatePage();
+};
+
+onMounted(() => {
+      updatePage();
+});
+
 </script>
 
 <style scoped>

@@ -7,7 +7,7 @@
       >
         {{ name }}
 
-        <span style="float: right; color: light-gray">
+        <span style="float: right; color: lightgray">
           {{ runningTasks.length }} of {{ tasks.length }} task<span
             v-show="tasks.length != 1"
           >s</span>
@@ -29,33 +29,31 @@
   </div>
 </template>
 
-<script>
+<script setup>
 import AppTask from "@/components/tasks/Task";
+import { toRef, ref, computed, defineExpose } from 'vue'
 
-export default {
-  name: "TaskGroup",
-  components: { AppTask },
-  props: {
-    tasks: {
-      type: Array,
-      required: true,
-    },
-    name: {
-      type: String,
-      required: true,
-    },
+const props = defineProps({
+  tasks: {
+    type: Array,
+    required: true,
   },
-  data() {
-    return {
-      showTasks: true,
-    };
+  name: {
+    type: String,
+    required: true,
   },
-  computed: {
-    runningTasks() {
-      return this.tasks.filter((t) => t.progress < 100);
-    },
-  },
-};
+});
+
+const showTasks = ref(true)
+const tasks = toRef(props, 'tasks');
+const name = toRef(props, 'name');
+
+const runningTasks = computed(() => {
+  return tasks.value.filter((t) => t.progress < 100);
+});
+
+defineExpose({showTasks});
+
 </script>
 
 <style scoped>

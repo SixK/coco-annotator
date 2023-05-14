@@ -223,118 +223,118 @@
   </div>
 </template>
 
-<script>
-import toastrs from "@/mixins/toastrs";
+<script setup>
 import Datasets from "@/models/datasets";
 import AdminPanel from "@/models/admin";
 import DatasetCard from "@/components/cards/DatasetCard";
 import Pagination from "@/components/Pagination";
 import TagsInput from "@/components/TagsInput";
 
-import { mapMutations } from "vuex";
+import { useStore } from 'vuex';
+import useAxiosRequest from "@/composables/axiosRequest";
+import { ref, computed, watch, inject, onMounted, provide, defineEmits, defineProps } from 'vue';
 
-export default {
-  name: "Datasets",
-  components: { DatasetCard, Pagination, TagsInput },
-  mixins: [toastrs],
-  data() {
-    return {
-      pages: 1,
-      limit: 52,
-      page: 1,
-      create: {
-        name: "",
-        categories: []
-      },
-      datasets: [],
-      subdirectories: [],
-      categories: [],
-      users: []
-    };
-  },
-  provide() {
-        return {
-            getUsers: this.getUsers,
-        };
-  },
-  methods: {
-    ...mapMutations(["addProcess", "removeProcess"]),
-    getUsers() {
-        return this.users;
-    },
-    updatePage(page) {
+const {axiosReqestError, axiosReqestSuccess} = useAxiosRequest();
+const store = useStore();
+
+const pages = ref(1);
+const limit = ref(52);
+const page = ref(1);
+const create = ref({
+      name: "",
+      categories: []
+});
+const datasets = ref([]);
+const subdirectories = ref([]);
+const categories = ref([]);
+const users = ref([]);
+
+const getUsers = () => {
+  return users.value;
+};
+
+const updatePage = (p) => {
       let process = "Loading datasets";
-      this.addProcess(process);
+      store.commit('addProcess', process);
 
-      page = page || this.page;
-      this.page = page;
+      p = p || page.value;
+      page.value = p;
 
       Datasets.allData({
-        limit: this.limit,
-        page: page,
+        limit: limit.value,
+        page: p,
       })
         .then((response) => {
-          this.datasets = response.data.datasets;
-          this.categories = response.data.categories;
-          this.subdirectories = response.data.subdirectories;
-          this.pages = response.data.pagination.pages;
-          this.page = response.data.pagination.page;
-          AdminPanel.getUsers(this.limit).then((response) => {
-            this.users = response.data.users;
+          datasets.value = response.data.datasets;
+          categories.value = response.data.categories;
+          subdirectories.value = response.data.subdirectories;
+          pages.value = response.data.pagination.pages;
+          page.value = response.data.pagination.page;
+          AdminPanel.getUsers(limit.value).then((response) => {
+            users.value = response.data.users;
           });
         })
-        .finally(() => this.removeProcess(process));
-    },
-    createDataset() {
-      if (this.create.name.length < 1) return;
+        .finally(() => { 
+            store.commit('removeProcess', process);
+        });
+};
+
+const createDataset = () => {
+      if (create.value.name.length < 1) return;
       let categories = [];
 
-      for (let key in this.create.categories) {
-        categories.push(this.create.categories[key]);
+      for (let key in create.value.categories) {
+        categories.push(create.value.categories[key]);
       }
-      Datasets.create(this.create.name, categories)
+      Datasets.create(create.value.name, categories)
         .then(() => {
-          this.create.name = "";
-          this.create.categories = [];
-          this.updatePage();
+          create.value.name = "";
+          create.value.categories = [];
+          updatePage();
         })
         .catch((error) => {
-          this.axiosReqestError(
+          axiosReqestError(
             "Creating Dataset",
             error.response.data.message
           );
         });
-    },
-  },
-  computed: {
-    directory() {
-      let closing = this.create.name.length > 0 ? "/" : "";
-      return "/datasets/" + this.create.name + closing;
-    },
-    categoryTags() {
-      let tags = {};
-      this.categories.forEach((category) => {
-        tags[category.name] = category.name;
-      });
-      return tags;
-    },
-    validDatasetName() {
-      if (this.create.name.length === 0) return "Dataset name is required";
-      return "";
-    },
-    user() {
-      return this.$store.state.user.user;
-    },
-  },
-  watch: {
-    user() {
-      this.updatePage();
-    },
-  },
-  created() {
-    this.updatePage();
-  }
 };
+
+const directory = computed(() => {
+  let closing = create.value.name.length > 0 ? "/" : "";
+  return "/datasets/" + create.value.name + closing;
+});
+
+const categoryTags = computed(() => {
+  let tags = {};
+  categories.value.forEach((category) => {
+    tags[category.name] = category.name;
+  });
+  return tags;
+});
+
+const validDatasetName = computed(() => {
+  if (create.value.name.length === 0) return "Dataset name is required";
+  return "";
+});
+
+const user = computed(() => {
+  return store.state.user.user;
+});
+
+watch(
+  () => user.value,
+  () => { 
+      updatePage();
+  }
+);
+
+onMounted(() => {
+  updatePage();
+});
+
+provide('getUsers', getUsers);
+
 </script>
 
 <style scoped>
