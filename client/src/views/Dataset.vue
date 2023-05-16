@@ -478,19 +478,17 @@
         style="max-height: 30%; color: lightgray"
       >
         <PanelString
-          v-model="query.file_name__icontains"
+          v-model:input-string="query.file_name__icontains"
           name="Contains"
           @submit="updatePage"
         />
         <PanelToggle
           v-model:show-text="panel.showAnnotated"
           name="Show Annotated"
-          @update="panel.showAnnotated = $event"
         />
         <PanelToggle
           v-model:show-text="panel.showNotAnnotated"
           name="Show Not Annotated"
-          @update="panel.showAnnotated = $event"
         />
         <PanelDropdown
           v-model="order"
@@ -504,7 +502,7 @@
         style="max-height: 30%; color: lightgray"
       >
         <div class="form-group">
-          <label>Show Annotated Categories </label>
+          <label>Show Annotated Categories</label>
           <TagsInput
             v-model:selectedCategories="selected.categories"
             element-id="selectedCategories"
@@ -666,7 +664,7 @@
               <div class="form-group">
                 <label>Categories (Empty export all)</label>
                 <TagsInput
-                  v-model="exporting.categories"
+                  v-model:selectedCategories="exporting.categories"
                   element-id="exportCategories"
                   :existing-tags="categoryTags"
                   :typeahead="true"
@@ -705,8 +703,7 @@
   </div>
 </template>
 
-<script>
-import toastrs from "@/mixins/toastrs";
+<script setup>
 import Dataset from "@/models/datasets";
 import Export from "@/models/exports";
 import ImageCard from "@/components/cards/ImageCard";
@@ -714,180 +711,191 @@ import Pagination from "@/components/Pagination";
 import PanelString from "@/components/PanelInputString";
 import PanelToggle from "@/components/PanelToggle";
 import PanelDropdown from "@/components/PanelInputDropdown";
-import JQuery from "jquery";
 import TagsInput from "@/components/TagsInput";
 
-import { mapMutations } from "vuex";
+import { Modal } from "bootstrap";
 
-let $ = JQuery;
+import { ref, computed, watch, inject, onUnmounted, onMounted, provide, defineEmits, defineProps } from 'vue';
 
-export default {
-  name: "Dataset",
-  components: {
-    ImageCard,
-    Pagination,
-    PanelString,
-    PanelToggle,
-    PanelDropdown,
-    TagsInput
-  },
-  mixins: [toastrs],
-  props: {
-    identifier: {
-      type: [Number, String],
-      required: true
-    }
-  },
-  data() {
-    return {
-      pages: 1,
-      generateLimit: 100,
-      limit: 52,
-      imageCount: 0,
-      categories: [],
-      images: [],
-      folders: [],
-      dataset: {
-        id: 0
-      },
-      users: [],
-      subdirectories: [],
-      status: {
-        data: { state: true, message: "Loading data" }
-      },
-      keyword: "",
-      mouseDown: false,
-      sidebar: {
-        drag: false,
-        width: window.innerWidth * 0.2,
-        canResize: false
-      },
-      scan: {
-        progress: 0,
-        id: null
-      },
-      generate: {
-        progress: 0,
-        id: null
-      },
-      importing: {
-        progress: 0,
-        id: null
-      },
-      exporting: {
-        categories: [],
-        progress: 0,
-        with_empty_images: false,
-        id: null
-      },
-      selected: {
-        categories: []
-      },
-      datasetExports: [],
-      tab: "images",
-      order: "file_name",
-      orderTypes: {
-        file_name: "File Name",
-        id: "Id",
-        path: "File Path"
-      },
-      query: {
-        file_name__icontains: "",
-        ...this.$route.query
-      },
-      panel: {
-        showAnnotated: true,
-        showNotAnnotated: true
-      },
-      stats: null
-    };
-  },
-  methods: {
-    ...mapMutations(["addProcess", "removeProcess"]),
-    updateOrder(newOrder) {
-      this.order = newOrder;
-    },
-    generateDataset() {
-      if (this.keyword.length === 0) return;
+import { useStore } from 'vuex';
+const store = useStore();
 
-      Dataset.generate(this.dataset.id, {
-        keywords: [this.keyword],
-        limit: this.generateLimit
+import useAxiosRequest from "@/composables/axiosRequest";
+const {axiosReqestError, axiosReqestSuccess} = useAxiosRequest();
+
+import { useRouter, useRoute } from 'vue-router';
+const router = useRouter();
+const route = useRoute();
+
+const props = defineProps({
+  identifier: {
+    type: [Number, String],
+    required: true
+  }
+});
+
+
+// modals
+let cocoImportModal = null;
+let cocoExportModal = null;
+
+const identifier = ref(props.identifier);
+const pages = ref(1);
+const generateLimit = ref(100);
+const limit = ref(52);
+const imageCount = ref(0);
+const categories = ref([]);
+const images = ref([]);
+const folders = ref([]);
+const dataset = ref({
+      id: 0
+});
+const users = ref([]);
+const subdirectories = ref([]);
+const status = ref({
+      data: { state: true, message: "Loading data" }
+});
+const keyword = ref("");
+const mouseDown = ref(false);
+const sidebar = ref({
+      drag: false,
+      width: window.innerWidth * 0.2,
+      canResize: false
+});
+
+const scan = ref({
+  progress: 0,
+  id: null
+});
+
+const generate = ref({
+  progress: 0,
+  id: null
+});
+
+const importing = ref({
+  progress: 0,
+  id: null
+});
+
+const exporting = ref({
+  categories: [],
+  progress: 0,
+  with_empty_images: false,
+  id: null
+});
+const selected = ref({
+  categories: []
+});
+const datasetExports = ref([]);
+const tab = ref("images");
+const order = ref("file_name");
+
+const orderTypes = ref({
+  file_name: "File Name",
+  id: "Id",
+  path: "File Path"
+});
+
+const query = ref({
+  file_name__icontains: "",
+  ...route.query
+});
+
+const panel = ref({
+  showAnnotated: true,
+  showNotAnnotated: true
+});
+const stats = ref(null);
+
+const updateOrder = (newOrder) => {
+  order.value = newOrder;
+};
+
+const generateDataset = () => {
+  if (keyword.value.length === 0) return;
+  Dataset.generate(dataset.value.id, {
+    keywords: [keyword.value],
+    limit: generateLimit.value
+  });
+};
+
+const updatePage = (page) => {
+  let process = "Loading images from dataset";
+  store.commit('addProcess', process);
+  
+  console.log('queryannotated:', queryAnnotated);
+  Dataset.getData(dataset.value.id, {
+    page: page,
+    limit: limit.value,
+    folder: folders.value.join("/"),
+    ...query.value,
+    annotated: queryAnnotated.value,
+    category_ids__in: encodeURI(selected.value.categories),
+    order: order.value
+  })
+    .then(response => {
+      let data = response.data;
+      images.value = data.images;
+      dataset.value = data.dataset;
+      categories.value = data.categories;
+      imageCount.value = data.total;
+      pages.value = data.pages;
+      subdirectories.value = data.subdirectories;
+    })
+    .catch(error => {
+      axiosReqestError("Loading Dataset", error.response.data.message);
+    })
+    .finally(() => {
+              store.commit('removeProcess', process);
+    });
+}
+
+const getUsers = () => {
+  Dataset.getUsers(dataset.value.id).then(response => {
+    users.value = response.data;
+  });
+};
+
+const downloadExport = (id) => {
+  Export.download(id, dataset.value.name);
+};
+
+const getExports = () => {
+  Dataset.getExports(dataset.value.id).then(response => {
+    datasetExports.value = response.data;
+  });
+};
+
+const resetMetadata = () => {
+    let r = confirm(
+            "You can not undo reseting of all metadata in" +    
+            "this dataset. This includes metadata of images" +
+            "and annotations."
+     );
+     if (r) { 
+         Dataset.resetMetadata(dataset.value.id); 
+     }
+};
+
+const getStats = () => {
+      Dataset.getStats(dataset.value.id)
+      .then(response => {
+        stats.value = response.data;
       });
-    },
-    updatePage(page) {
+};
+    
+const createScanTask = () => {
       let process = "Loading images from dataset";
-      this.addProcess(process);
-
-      Dataset.getData(this.dataset.id, {
-        page: page,
-        limit: this.limit,
-        folder: this.folders.join("/"),
-        ...this.query,
-        annotated: this.queryAnnotated,
-        category_ids__in: encodeURI(this.selected.categories),
-        order: this.order
-      })
-        .then(response => {
-          let data = response.data;
-
-          this.images = data.images;
-          this.dataset = data.dataset;
-          this.categories = data.categories;
-
-          this.imageCount = data.total;
-          this.pages = data.pages;
-
-          this.subdirectories = data.subdirectories;
-          // this.scan.id = data.scanId;
-          // this.generate.id = data.generateId;
-          // this.importing.id = data.importId;
-          // this.exporting.id = data.exportId;
-        })
-        .catch(error => {
-          this.axiosReqestError("Loading Dataset", error.response.data.message);
-        })
-        .finally(() => this.removeProcess(process));
-    },
-    getUsers() {
-      Dataset.getUsers(this.dataset.id).then(response => {
-        this.users = response.data;
-      });
-    },
-    downloadExport(id) {
-      Export.download(id, this.dataset.name);
-    },
-    getExports() {
-      Dataset.getExports(this.dataset.id).then(response => {
-        this.datasetExports = response.data;
-      });
-    },
-    resetMetadata() {
-      let r = confirm(
-        "You can not undo reseting of all metadata in" +
-          "this dataset. This includes metadata of images" +
-          "and annotations."
-      );
-
-      if (r) {
-        Dataset.resetMetadata(this.dataset.id);
-      }
-    },
-    getStats() {
-      Dataset.getStats(this.dataset.id).then(response => {
-        this.stats = response.data;
-      });
-    },
-    createScanTask() {
-      if (this.scan.id != null) {
-        this.$router.push({ path: "/tasks", query: { id: this.scan.id } });
+      console.log("scanning...");
+      if (scan.value.id != null) {
+        router.push({ path: "/tasks", query: { id: scan.value.id } });
         return;
       }
-
-      Dataset.scan(this.dataset.id)
+      Dataset.scan(dataset.value.id)
         .then(response => {
           let id = response.data.id;
-          this.scan.id = id;
+          scan.value.id = id;
         })
         .catch(error => {
           this.axiosReqestError(
@@ -895,210 +903,280 @@ export default {
             error.response.data.message
           );
         })
-        .finally(() => this.removeProcess(process));
-    },
-    exportModal() {
-      if (this.exporting.id != null) {
-        this.$router.push({ path: "/tasks", query: { id: this.exporting.id } });
-        return;
-      }
-      $("#exportDataset").modal("show");
-    },
-    exportCOCO() {
-      $("#exportDataset").modal("hide");
-      Dataset.exportingCOCO(
-        this.dataset.id,
-        this.exporting.categories,
-        this.exporting.with_empty_images
-      )
-        .then((response) => {
-          let id = response.data.id;
-          this.exporting.id = id;
-        })
-        .catch(error => {
-          this.axiosReqestError("Exporting COCO", error.response.data.message);
-        })
-        .finally(() => this.removeProcess(process));
-    },
-    removeFolder(folder) {
-      let index = this.folders.indexOf(folder);
-      this.folders.splice(index + 1, this.folders.length);
-    },
-    importModal() {
-      if (this.importing.id != null) {
-        this.$router.push({ path: "/tasks", query: { id: this.importing.id } });
-        return;
-      }
+        .finally(() => {
+            store.commit('removeProcess', process);
+        });
+};
 
-      $("#cocoUpload").modal("show");
-    },
-    importCOCO() {
-      let uploaded = document.getElementById("coco");
-      Dataset.uploadCoco(this.dataset.id, uploaded.files[0])
-        .then(response => {
-          let id = response.data.id;
-          this.importing.id = id;
-        })
-        .catch(error => {
-          this.axiosReqestError("Importing COCO", error.response.data.message);
-        })
-        .finally(() => this.removeProcess(process));
-    },
-    mouseMove(event) {
-      let element = this.$refs.sidebar;
+const exportModal = () => {
+  console.log('exportModal invoked...:',exporting);
+  if (exporting.value.id !== null) {
+    router.push({ path: "/tasks", query: { id: exporting.value.id } });
+    return;
+  }
+  // $("#exportDataset").modal("show");
+  cocoExportModal.show();
+};
 
+const exportCOCO = () => {
+  // $("#exportDataset").modal("hide");
+  cocoExportModal.hide();
+  let process = "Loading images from dataset";
+
+  Dataset.exportingCOCO(
+    dataset.value.id,
+    exporting.value.categories,
+    exporting.value.with_empty_images
+  )
+    .then((response) => {
+      let id = response.data.id;
+      exporting.value.id = id;
+    })
+    .catch(error => {
+      axiosReqestError("Exporting COCO", error.response.data.message);
+    })
+    .finally(() => {
+        store.commit('removeProcess', process);
+    });
+};
+
+const removeFolder = (folder) => {
+  let index = folders.value.indexOf(folder);
+  folders.value.splice(index + 1, folders.value.length);
+};
+
+const importModal = () => {
+  console.log('importing:', importing);
+  if (importing.value.id != null) {
+    router.push({ path: "/tasks", query: { id: importing.value.id } });
+    return;
+  }
+  
+  // $("#cocoUpload").modal("show");
+  cocoImportModal.show();
+};
+
+const importCOCO = () => {
+  let process = "Loading images from dataset";
+  const uploaded = document.getElementById("coco");
+  Dataset.uploadCoco(dataset.value.id, uploaded.files[0])
+    .then(response => {
+      const id = response.data.id;
+      importing.value.id = id;
+    })
+    .catch(error => {
+      this.axiosReqestError("Importing COCO", error.response.data.message);
+    })
+    .finally(() => {
+        store.commit('removeProcess', process);
+    });
+};
+
+const mouseMove = (event) => {
+      let element = document.querySelector('.sidebar');
       let sidebarWidth = element.offsetWidth;
       let clickWidth = event.x;
-      let pixelsFromSide = Math.abs(sidebarWidth - clickWidth);
-
-      this.sidebar.drag = pixelsFromSide < 4;
-
-      if (this.sidebar.canResize) {
+      let pixelsFromSide = Math.abs(sidebarWidth - clickWidth);      
+      sidebar.value.drag = pixelsFromSide < 4;
+      if (sidebar.value.canResize) {
         event.preventDefault();
         let max = window.innerWidth * 0.5;
-        this.sidebar.width = Math.min(Math.max(event.x, 150), max);
-        localStorage.setItem("dataset/sideWidth", this.sidebar.width);
+        sidebar.value.width = Math.min(Math.max(event.x, 150), max);
+        localStorage.setItem("dataset/sideWidth", sidebar.value.width);
       }
-    },
-    startDrag() {
-      this.mouseDown = true;
-      this.sidebar.canResize = this.sidebar.drag;
-    },
-    stopDrag() {
-      this.mouseDown = false;
-      this.sidebar.canResize = false;
-    }
-  },
-  computed: {
-    queryAnnotated() {
-      let showAnnotated = this.panel.showAnnotated;
-      let showNotAnnotated = this.panel.showNotAnnotated;
+};
 
-      if (showAnnotated && showNotAnnotated) return null;
-      if (!showAnnotated && !showNotAnnotated) return " ";
+const startDrag = () => {
+      mouseDown.value = true;
+      sidebar.value.canResize = sidebar.value.drag;
+};
 
-      return showAnnotated;
-    },
-    categoryTags() {
-      let tags = {};
-      this.categories.forEach(c => tags[c.id] = c.name);
-      return tags;
-    }
-  },
-  sockets: {
-    taskProgress(data) {
-      if (data.id === this.scan.id) {
-        this.scan.progress = data.progress;
-      }
+const stopDrag = () => {
+      mouseDown.value = false;
+      sidebar.value.canResize = false;
+};
 
-      if (data.id === this.generate.id) {
-        this.generate.progress = data.progress;
-      }
+const queryAnnotated = computed(() => {
+  let showAnnotated = panel.value.showAnnotated;
+  let showNotAnnotated = panel.value.showNotAnnotated;
+  if (showAnnotated && showNotAnnotated) return null;
+  if (!showAnnotated && !showNotAnnotated) return " ";
+  return showAnnotated;
+});
 
-      if (data.id === this.importing.id) {
-        this.importing.progress = data.progress;
-      }
+const categoryTags = computed(() => {
+  let tags = {};
+  categories.value.forEach(c => tags[c.id] = c.name);
+  return tags;
+});
 
-      if (data.id === this.exporting.id) {
-        this.exporting.progress = data.progress;
-      }
-    },
-    annotating(data) {
-      let image = this.images.find(i => i.id == data.image_id);
+// socket
+const onTaskProgress = (data) => {
+  if (data.id === scan.value.id) {
+    scan.value.progress = data.progress;
+  }
+  if (data.id === generate.value.id) {
+    generate.value.progress = data.progress;
+  }
+  if (data.id === importing.value.id) {
+    importing.value.progress = data.progress;
+  }
+  if (data.id === exporting.value.id) {
+    exporting.value.progress = data.progress;
+  }
+};
+
+// socket
+const onAnnotating = (data) => {
+      const image = images.value.find(i => i.id == data.image_id);
       if (image == null) return;
-
       if (data.active) {
-        let found = image.annotating.indexOf(data.username);
+        const found = image.annotating.indexOf(data.username);
         if (found < 0) {
           image.annotating.push(data.username);
         }
       } else {
         image.annotating.splice(image.annotating.indexOf(data.username), 1);
       }
-    }
-  },
-  watch: {
-    tab(tab) {
-      localStorage.setItem("dataset/tab", tab);
-      if (tab == "members") this.getUsers();
-      if (tab == "statistics") this.getStats();
-      if (tab == "exports") this.getExports();
-    },
-    order(order) {
-      localStorage.setItem("dataset/order", order);
-      this.updatePage();
-    },
-    queryAnnotated() {
-      this.updatePage();
-    },
-    "selected.categories"(val) {
-      this.updatePage();
-    },
-    folders() {
-      this.updatePage();
-    },
-    "sidebar.drag"(canDrag) {
-      let el = this.$refs.sidebar;
-      if (canDrag) {
-        this.$el.style.cursor = "ew-resize";
-        el.style.borderRight = "4px solid #383c4a";
-      } else {
-        this.$el.style.cursor = "default";
-        el.style.borderRight = "";
-      }
-    },
-    "scan.progress"(progress) {
-      if (progress >= 100) {
-        setTimeout(() => {
-          this.scan.progress = 0;
-          this.scan.id = null;
-        }, 1000);
-      }
-    },
-    "importing.progress"(progress) {
-      if (progress >= 100) {
-        setTimeout(() => {
-          this.importing.progress = 0;
-          this.importing.id = null;
-        }, 1000);
-      }
-    },
-    "exporting.progress"(progress) {
-      if (progress >= 100) {
-        setTimeout(() => {
-          this.exporting.progress = 0;
-          this.exporting.id = null;
-
-          this.getExports();
-        }, 1000);
-      }
-    }
-  },
-  beforeRouteUpdate() {
-    this.dataset.id = parseInt(this.identifier);
-    this.updatePage();
-  },
-  created() {
-    let tab = localStorage.getItem("dataset/tab");
-    let order = localStorage.getItem("dataset/order");
-    let sideWidth = localStorage.getItem("dataset/sideWidth");
-
-    if (sideWidth !== null) this.sidebar.width = parseInt(sideWidth);
-    if (tab !== null) this.tab = tab;
-    if (order !== null) this.order = order;
-
-    this.dataset.id = parseInt(this.identifier);
-    this.updatePage();
-  },
-  mounted() {
-    window.addEventListener("mouseup", this.stopDrag);
-    window.addEventListener("mousedown", this.startDrag);
-  },
-  unmounted() {
-    window.removeEventListener("mouseup", this.stopDrag);
-    window.removeEventListener("mousedown", this.startDrag);
-  }
 };
+
+
+watch(
+    () => tab.value,
+    (newtab) => {
+      console.log('tab changed...:', newtab);
+      localStorage.setItem('dataset/tab', newtab);
+      if (newtab === 'members') getUsers();
+      if (newtab === 'statistics') getStats();
+      if (newtab === 'exports') getExports();
+    }
+);
+
+watch(
+    () => order.value,
+    (neworder) => {
+      localStorage.setItem('dataset/order', neworder);
+      updatePage();
+    }
+);
+
+watch(
+    () => queryAnnotated.value,
+    () => updatePage()
+);
+
+  
+watch(
+    () => selected.value.categories,
+    (val) => { 
+        console.log('selected categories :', val);
+        updatePage();
+    }
+);
+
+watch(
+    () => folders.value,
+    () => updatePage()
+);
+
+watch(
+    () => sidebar.value.drag,
+    (canDrag) => {
+      const el = document.querySelector('.sidebar');
+      if (canDrag) {
+        document.body.style.cursor = 'ew-resize';
+        el.style.borderRight = '4px solid #383c4a';
+      } else {
+        document.body.style.cursor = 'default';
+        el.style.borderRight = '';
+      }
+    }
+);
+
+watch(
+  () => scan.value.progress,
+  (scanProgress) => {
+        if (scanProgress >= 100) {
+            setTimeout(() => {
+              scan.value.progress = 0;
+              scan.value.id = null;
+            }, 1000);
+          }
+    }
+);
+
+watch(
+  () => importing.value.progress,
+  (importingProgress) => {
+    if (importingProgress >= 100) {
+        setTimeout(() => {
+            importing.value.progress = 0;
+            importing.value.id = null;
+        }, 1000);
+    }
+  }
+);
+
+watch(
+  () => exporting.value.progress,
+  (exportingProgress) => {
+    if (exportingProgress >= 100) {
+        setTimeout(() => {
+            exporting.value.progress = 0;
+            exporting.value.id = null;
+            getExports();
+        }, 1000);
+    }
+  }
+);
+
+/*
+beforeRouteUpdate (to, from, next) {
+    dataset.value.id = parseInt(identifier.value);
+    updatePage();
+};
+*/
+
+watch(() => route, 
+    (to) => {
+        dataset.value.id = parseInt(identifier.value);
+        updatePage();
+    }, {flush: 'pre', immediate: true, deep: true}
+);
+
+
+onMounted(() => {
+      app.__vue_app__._instance.ctx.sockets.subscribe('taskProgress', onTaskProgress);
+      app.__vue_app__._instance.ctx.sockets.subscribe('annotating', onAnnotating);
+
+      window.addEventListener('mouseup', stopDrag);
+      window.addEventListener('mousedown', startDrag);
+
+      let ltab = localStorage.getItem("dataset/tab");
+      let lorder = localStorage.getItem("dataset/order");
+      let sideWidth = localStorage.getItem("dataset/sideWidth");
+      
+      if (sideWidth !== null) sidebar.value.width = parseInt(sideWidth);
+      if (ltab !== null) tab.value = ltab;
+      if (lorder !== null) order.value = lorder;
+      dataset.value.id = parseInt(identifier.value);
+      updatePage();
+      
+      const importTag = document.getElementById("cocoUpload");
+      cocoImportModal = new Modal(importTag, { });
+
+    const exportTag = document.getElementById("exportDataset");
+    cocoExportModal = new Modal(exportTag, { });
+});
+
+onUnmounted(() => {
+      app.__vue_app__._instance.ctx.sockets.unsubscribe('taskProgress');
+      app.__vue_app__._instance.ctx.sockets.unsubscribe('annotating');
+
+      window.removeEventListener('mouseup', stopDrag);
+      window.removeEventListener('mousedown', startDrag);
+});
+
 </script>
 
 <style scoped>

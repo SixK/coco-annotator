@@ -608,7 +608,7 @@ const annotationDeleted = (index) => {
 const onAnnotation = (data) => {
       let action = data.action;
       let annotation = data.annotation;
-      if (annotation.image_id != parent.image.id) return;
+      if (annotation.image_id != getImageId()) return;
       if (annotation.category_id != props.category.id) return;
       let found = props.category.annotations.findIndex(
         (a) => a.id == annotation.id
@@ -623,11 +623,13 @@ const onAnnotation = (data) => {
 };
 
 onMounted( () => {
-    app.__vue_app__.config.globalProperties.$socket.on('annotation', onAnnotation);
+    // app.__vue_app__.config.globalProperties.$socket.on('annotation', onAnnotation);
+     app.__vue_app__._instance.ctx.sockets.subscribe('annotation', onAnnotation);
 });
 
 onUnmounted(() => {
-    app.__vue_app__.config.globalProperties.$socket.off('annotation', onAnnotation);
+    // app.__vue_app__.config.globalProperties.$socket.off('annotation', onAnnotation);
+    app.__vue_app__._instance.ctx.sockets.unsubscribe('annotation');
 });
     
 

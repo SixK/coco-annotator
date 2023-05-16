@@ -1099,11 +1099,11 @@ watch(
 }, { immediate: true });
 
 const onAnnotation = (data) => {
-  const localannotation = ref(data.annotation);
+  let localannotation = data.annotation;
   if (uuid.value === data.uuid) return;
-  if (localannotation.value.id !== annotation.value.id) return;
+  if (localannotation.id !== annotation.value.id) return;
   if (data.action === 'modify') {
-    createCompoundPath(localannotation.value.paper_object, localannotation.value.segmentation);
+    createCompoundPath(localannotation.paper_object, localannotation.segmentation);
   }
   if (data.action === 'delete') {
     deleteAnnotation();
@@ -1123,12 +1123,14 @@ onMounted( () => {
         resetCategorySettings();
     });
 
-    app.__vue_app__.config.globalProperties.$socket.on('annotation', onAnnotation);
+    /// app.__vue_app__.config.globalProperties.$socket.on('annotation', onAnnotation);
+    app.__vue_app__._instance.ctx.sockets.subscribe('annotation', onAnnotation);
     console.log('should be mounted Annotation');
 });
 
 onUnmounted(() => {
-    app.__vue_app__.config.globalProperties.$socket.off('annotation', onAnnotation);
+    // app.__vue_app__.config.globalProperties.$socket.off('annotation', onAnnotation);
+    app.__vue_app__._instance.ctx.sockets.unsubscribe('annotation');
 });
 
 defineExpose({annotation, keypoint, notUsedKeypointLabels, 

@@ -158,9 +158,7 @@ const onTaskProgress = (data) => {
 };
 
 onMounted( () => {
-    // seem's SocketIO on rabbitmq is not actually working on this project...
-    // Will have to test and understand why
-    app.__vue_app__.config.globalProperties.$socket.on('taskProgress', onTaskProgress);
+    app.__vue_app__._instance.ctx.sockets.subscribe('taskProgress', onTaskProgress);
     
     let show = task.value.show;
     if (show !== null) {
@@ -183,7 +181,7 @@ onMounted( () => {
 });
 
 onUnmounted(() => {
-    // app.__vue_app__.config.globalProperties.$socket.off('taskProgress', onTaskProgress);
+    app.__vue_app__._instance.ctx.sockets.unsubscribe('taskProgress');
 });
 
 defineExpose({logs, showLogs, highlight, onlyErrors, onlyWarnings});
