@@ -15,7 +15,6 @@ import { ref, computed, watch, inject, onMounted, provide, defineEmits, definePr
 const getCategory = inject('getCategory');
 const getHover = inject('getHover');
 const getPaper = inject('getPaper');
-const getCurrentInstance = inject('getCurrentInstance');
 
 const store = useStore();
 

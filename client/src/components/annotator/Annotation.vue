@@ -476,7 +476,7 @@ const createCompoundPath = (json = null, segments = null) => {
     }
 
     if (json != null) {
-        // Import data directroy from paperjs object
+        // Import data directroy from paper object
         compoundPath.value.importJSON(json);
     } else if (segments != null) {
         // Load segments input compound path
@@ -776,10 +776,10 @@ const setColor = () => {
 
 const setCategory = (event) => {
       const newCategoryName = event.target.value;
-      const annotation = this.annotation;
+      const newAnnotation = annotation.value;
       const oldCategory = category.value;
       updateAnnotationCategory(
-        annotation,
+        newAnnotation,
         oldCategory,
         newCategoryName
       );
@@ -881,8 +881,7 @@ const categoryIndex = computed(() => {
 });
 
 const isCurrent = computed(() => {
-// console.log('isCurrent:', index.value, props.current, categoryIsCurrent.value);
-  if (index.value === props.current && categoryIsCurrent.value) {
+  if (index.value === current.value && categoryIsCurrent.value) {
     // if (compoundPath != null) compoundPath.bringToFront();
     if (keypoints.value != null) keypoints.value.bringToFront();
     return true;
@@ -1056,7 +1055,7 @@ watch(
     sessions.value.push(session.value);
   }
   if (compoundPath.value == null) return;
-  compoundPath.value.fullySelected = isCurrent.value;
+  compoundPath.value.fullySelected = newcurrent;
 });
 
 watch(

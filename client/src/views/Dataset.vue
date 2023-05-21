@@ -723,7 +723,7 @@ const store = useStore();
 import useAxiosRequest from "@/composables/axiosRequest";
 const {axiosReqestError, axiosReqestSuccess} = useAxiosRequest();
 
-import { useRouter, useRoute } from 'vue-router';
+import { onBeforeRouteUpdate, useRouter, useRoute } from 'vue-router';
 const router = useRouter();
 const route = useRoute();
 
@@ -1130,19 +1130,11 @@ watch(
   }
 );
 
-/*
-beforeRouteUpdate (to, from, next) {
+
+onBeforeRouteUpdate ((to, from, next) => {
     dataset.value.id = parseInt(identifier.value);
     updatePage();
-};
-*/
-
-watch(() => route, 
-    (to) => {
-        dataset.value.id = parseInt(identifier.value);
-        updatePage();
-    }, {flush: 'pre', immediate: true, deep: true}
-);
+});
 
 
 onMounted(() => {

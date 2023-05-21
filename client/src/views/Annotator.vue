@@ -70,7 +70,7 @@
       <div v-show="mode == 'segment'">
         <CopyAnnotationsButton
           :categories="categories"
-          :imageId="image.id"
+          :imageId="parseInt(image.id)"
           :next="image.next"
           :previous="image.previous"
         />
@@ -224,16 +224,17 @@
         <div
           id="frame"
           class="frame"
-          @wheel="onwheel"
+          @wheel="onWheel"
         >
           <canvas
+            ref="refcanvas"
             id="editor"
-            ref="image"
+            :image="image"
             class="canvas"
             resize
           />
         </div>
-      </v-touch>
+     </v-touch>
     </div>
 
     <div
@@ -256,18 +257,13 @@
   </div>
 </template>
 
-<script>
+<script setup>
 import paper from "paper";
 import axios from "axios";
-import useAxiosRequest from "@/composables/axiosRequest";
-
-
-// import toastrs from "@/mixins/toastrs";
-import shortcuts from "@/mixins/shortcuts";
 
 import FileTitle from "@/components/annotator/FileTitle";
 import Category from "@/components/annotator/Category";
-import Label from "@/components/annotator/Label";
+import CLabel from "@/components/annotator/Label";
 import Annotations from "@/models/annotations";
 
 import PolygonTool from "@/components/annotator/tools/PolygonTool";
@@ -300,203 +296,166 @@ import EraserPanel from "@/components/annotator/panels/EraserPanel";
 import KeypointPanel from "@/components/annotator/panels/KeypointPanel";
 import DEXTRPanel from "@/components/annotator/panels/DEXTRPanel";
 
-import { nextTick, markRaw, toRef, computed } from 'vue';
-import { mapMutations } from "vuex";
+import { onBeforeRouteLeave, useRouter, useRoute } from 'vue-router';
+const router = useRouter();
+const route = useRoute();
 
-export default {
-  name: "Annotator",
-  components: {
-    FileTitle,
-    CopyAnnotationsButton,
-    Category,
-    CLabel: Label,
-    BBoxTool,
-    BBoxPanel,
-    PolygonTool,
-    PolygonPanel,
-    SelectTool,
-    MagicWandTool,
-    EraserTool,
-    BrushTool,
-    KeypointTool,
-    DownloadButton,
-    SaveButton,
-    SettingsButton,
-    DeleteButton,
-    CenterButton,
-    SelectPanel,
-    MagicWandPanel,
-    BrushPanel,
-    EraserPanel,
-    ModeButton,
-    UndoButton,
-    HideAllButton,
-    ShowAllButton,
-    KeypointPanel,
-    AnnotateButton,
-    DEXTRTool,
-    DEXTRPanel
-  },
-//   mixins: [toastrs, shortcuts],
-  mixins: [shortcuts],
-  props: {
-    identifier: {
-      type: [Number, String],
-      required: true,
-    },
-  },
-  data() {
-    const {axiosReqestError, axiosReqestSuccess} = useAxiosRequest();
+import useShortcuts from "@/composables/shortcuts";
+const {commands, undo, annotator} = useShortcuts();
 
-    return {
-      activeTool: "Select",
-      paper: null,
-      shapeOpacity: 0.6,
-      zoom: 0.2,
-      cursor: "move",
-      mode: "segment",
-      simplify: 1,
-      panels: {
-        show: {
-          left: true,
-          right: true
-        }
-      },
-      current: {
-        category: -1,
-        annotation: -1,
-        keypoint: -1,
-      },
-      hover: {
-        category: -1,
-        annotation: -1,
-        keypoint: -1,
-      },
-      image: {
-        raster: {},
-        scale: 0,
-        metadata: {},
-        ratio: 0,
-        rotate: 0,
-        id: null,
-        url: "",
-        dataset: 0,
-        previous: null,
-        next: null,
-        filename: "",
-        categoryIds: [],
-        data: null
-      },
-      text: {
-        topLeft: null,
-        topRight: null
-      },
-      categories: [],
-      dataset: {
-        annotate_url: ""
-      },
-      loading: {
-        image: true,
-        data: true,
-        loader: null
-      },
-      search: "",
-      annotating: [],
-      pinching: {
-        old_zoom: 1
+import useAxiosRequest from "@/composables/axiosRequest";
+const {axiosReqestError, axiosReqestSuccess} = useAxiosRequest();
+
+import { useStore } from 'vuex';
+const store = useStore();
+
+import { nextTick, markRaw, toRef, ref, computed, watch, inject, onMounted, provide, defineEmits, defineProps } from 'vue';
+
+const props = defineProps({
+  identifier: {
+    type: [Number, String],
+    required: true
+  }
+});
+
+
+const refcanvas = ref(null);
+// bind all components
+const bbox = ref(null);
+const polygon = ref(null);
+const eraser = ref(null);
+const brush = ref(null);
+const magicwand = ref(null);
+const select = ref(null);
+const settings = ref(null);
+const keypoint  = ref(null);
+const category = ref(null);
+const annotation = ref(null);
+const filetitle = ref(null);
+
+
+
+const activeTool = ref("Select");
+// const paper = ref(null);
+const shapeOpacity = ref(0.6);
+const zoom = ref(0.2);
+const cursor = ref("move");
+const mode = ref("segment");
+const simplify = ref(1);
+const panels = ref({
+      show: {
+        left: true,
+        right: true
       }
-    };
-  },
-  provide() {
-        return {
-            setCursor: this.setCursor,
-            updateCurrentAnnotation: this.updateCurrentAnnotation,
-            save: this.save,
-            getData: this.getData,
-            activateTools: this.activateTools,
-            current:  this.current,
-            setActiveTool: this.setActiveTool,
-            getActiveTool: this.getActiveTool,
-            uniteCurrentAnnotation: this.uniteCurrentAnnotation,
-//            currentAnnotation: this.currentAnnotation,
-            getCurrentAnnotation: this.getCurrentAnnotation,
-            getCurrentCategory: this.getCurrentCategory,
-            imageRaster: this.image.raster,
-            getImageRaster: this.getImageRaster,
-            getCategory: this.getCategory,
-            getPaper: this.getPaper,
-            getHover: this.getHover,
-            getImageId: this.getImageId,
-            addAnnotation: this.addAnnotation,
-            showAll: this.showAll,
-            hideAll: this.hideAll,
-            fit: this.fit,
-            scrollElement: this.scrollElement,
-            selectLastEditorTool: this.selectLastEditorTool,
-            updateAnnotationCategory: this.updateAnnotationCategory,
-        };
-  },
-  methods: {
-    ...mapMutations(["addProcess", "removeProcess", "resetUndo", "setDataset"]),
-    setActiveTool(tool) {
-        this.activeTool = tool;
-    },
-    getImageId() {
-        console.log('image id:', this.image.id);
-        return this.image.id;
-    },
-    getHover() {
-        console.log('annot Hover:', this.hover);
-        return this.hover;
-    },    
-    getPaper() {
-        console.log('annot paper:', this.paper);
-        return this.paper;
-    },
-    getActiveTool() {
-        return this.activeTool;
-    },
-    save(callback) {
-      let process = "Saving";
-      this.addProcess(process);
-      let refs = this.$refs;
+});
+const current = ref({
+      category: -1,
+      annotation: -1,
+      keypoint: -1,
+});
+const hover = ref({
+      category: -1,
+      annotation: -1,
+      keypoint: -1,
+});
+const image = ref({
+      raster: {},
+      scale: 0,
+      metadata: {},
+      ratio: 0,
+      rotate: 0,
+      id: null,
+      url: "",
+      dataset: 0,
+      previous: null,
+      next: null,
+      filename: "",
+      categoryIds: [],
+      data: null
+});
 
+const text = ref({
+      topLeft: null,
+      topRight: null
+});
+const categories = ref([]);
+const dataset = ref({
+      annotate_url: ""
+});
+const loading = ref({
+      image: true,
+      data: true,
+      loader: null
+});
+const search = ref("");
+const annotating = ref([]);
+const pinching = ref({
+      old_zoom: 1
+});
+
+
+// should try toRef on activeTool, this function could probably be removed 
+const setActiveTool = (tool) => {
+    activeTool.value = tool;
+};
+
+const getActiveTool = () => {
+    return activeTool.value;
+};
+
+const getImageId = () => {
+    return image.value.id;
+};
+  
+const getHover = () => {
+    return hover.value;
+};
+  
+const getPaper = () => {
+    return paper;
+};
+  
+const save = (callback) => {
+      let process = "Saving";
+      // this.addProcess(process);
+      store.commit('addProcess', process);
+      
       let data = {
-        mode: this.mode,
+        mode: mode.value,
         user: {
-          bbox: this.$refs.bbox.exportBBox(),
-          polygon: this.$refs.polygon.exportPolygon(),
-          eraser: this.$refs.eraser.exportEraser(),
-          brush: this.$refs.brush.exportBrush(),
-          magicwand: this.$refs.magicwand.exportWand(),
-          select: this.$refs.select.exportSelect(),
-          settings: this.$refs.settings.exportSettings(),
+          bbox: bbox.value.exportBBox(),
+          polygon: polygon.value.exportPolygon(),
+          eraser: eraser.value.exportEraser(),
+          brush: brush.value.exportBrush(),
+          magicwand: magicwand.value.exportWand(),
+          select: select.value.exportSelect(),
+          settings: settings.value.exportSettings(),
         },
-        dataset: this.dataset,
+        dataset: dataset.value,
         image: {
-          id: this.image.id,
-          metadata: this.$refs.settings.exportMetadata(),
+          id: image.value.id,
+          metadata: settings.value.exportMetadata(),
           settings: {
-            selectedLayers: this.current
+            selectedLayers: current.value
           },
           category_ids: []
         },
         settings: {
-          activeTool: this.activeTool,
-          zoom: this.zoom,
+          activeTool: activeTool.value,
+          zoom: zoom.value,
           tools: {}
         },
         categories: []
       };
 
-      if (refs.category != null && this.mode === "segment") {
-        this.image.categoryIds = [];
-        refs.category.forEach((category) => {
-          let categoryData = category.exportCategory();
+      if (category.value != null && mode.value === "segment") {
+        image.value.categoryIds = [];
+        category.value.forEach((cat) => {
+          let categoryData = cat.exportCategory();
           data.categories.push(categoryData);
 
           if (categoryData.annotations.length > 0) {
-            let categoryIds = this.image.categoryIds;
+            let categoryIds = image.value.categoryIds;
             if (categoryIds.indexOf(categoryData.id) === -1) {
               categoryIds.push(categoryData.id);
             }
@@ -504,7 +463,7 @@ export default {
         });
       }
 
-      data.image.category_ids = this.image.categoryIds;
+      data.image.category_ids = image.value.categoryIds;
 
       axios
         .post("/api/annotator/data", JSON.stringify(data))
@@ -512,508 +471,532 @@ export default {
           //TODO: updateUser
           if (callback != null) callback();
         })
-        .finally(() => this.removeProcess(process));
-    },
-    onpinchstart(e) {
+        .finally(() => {
+            store.commit('removeProcess', process);
+        });
+};
+
+const onpinchstart = (e) => {
       e.preventDefault();
-      if (!this.doneLoading) return;
-      let view = this.paper.view;
-      this.pinching.old_zoom = this.paper.view.zoom;
+      if (!doneLoading.value) return;
+      let view = paper.view;
+      pinching.value.old_zoom = paper.view.zoom;
       return false;
-    },
-    onpinch(e) {
+};
+
+const onpinch = (e) => {
       e.preventDefault();
-      if (!this.doneLoading) return;
-      let view = this.paper.view;
+      if (!doneLoading.value) return;
+      let view = paper.view;
       let viewPosition = view.viewToProject(
         new paper.Point(e.center.x, e.center.y)
       );
-      let curr_zoom = e.scale * this.pinching.old_zoom;
-      let beta = this.paper.view.zoom / curr_zoom;
-      let pc = viewPosition.subtract(this.paper.view.center);
+      let curr_zoom = e.scale * pinching.value.old_zoom;
+      let beta = paper.view.zoom / curr_zoom;
+      let pc = viewPosition.subtract(paper.view.center);
       let a = viewPosition
         .subtract(pc.multiply(beta))
-        .subtract(this.paper.view.center);
+        .subtract(paper.view.center);
       let transform = { zoom: curr_zoom, offset: a };
       if (transform.zoom < 10 && transform.zoom > 0.01) {
-        this.image.scale = 1 / transform.zoom;
-        this.paper.view.zoom = transform.zoom;
-        this.paper.view.center = view.center.add(transform.offset);
+        image.value.scale = 1 / transform.zoom;
+        paper.view.zoom = transform.zoom;
+        paper.view.center = view.center.add(transform.offset);
       }
       return false;
-    },
-    onwheel(e) {
-      e.preventDefault();
-      if (!this.doneLoading) return;
+};
 
-      let view = this.paper.view;
+const onWheel = (e) => {
+  e.preventDefault();
+  if (!doneLoading.value) return;
+  let view = paper.view;
+  if (e.ctrlKey) {
+    // Pan up and down
+    let delta = new paper.Point(0, 0.5 * e.deltaY);
+    paper.view.setCenter(view.center.add(delta));
+  } else if (e.shiftKey) {
+    // Pan left and right
+    let delta = new paper.Point(0.5 * e.deltaY, 0);
+    paper.view.setCenter(view.center.add(delta));
+  } else {
+    let viewPosition = view.viewToProject(
+      new paper.Point(e.offsetX, e.offsetY)
+    );
+    let transform = changeZoom(e.deltaY, viewPosition);
+    if (transform.zoom < 10 && transform.zoom > 0.01) {
+      image.value.scale = 1 / transform.zoom;
+      paper.view.zoom = transform.zoom;
+      paper.view.center = view.center.add(transform.offset);
+    }
+  }
+  return false;
+};
 
-      if (e.ctrlKey) {
-        // Pan up and down
-        let delta = new paper.Point(0, 0.5 * e.deltaY);
-        this.paper.view.setCenter(view.center.add(delta));
-      } else if (e.shiftKey) {
-        // Pan left and right
-        let delta = new paper.Point(0.5 * e.deltaY, 0);
-        this.paper.view.setCenter(view.center.add(delta));
-      } else {
-        let viewPosition = view.viewToProject(
-          new paper.Point(e.offsetX, e.offsetY)
-        );
+const fit = () => {
+  const canvas = document.getElementById("editor");
+  // const canvas = refcanvas.value;
+  const parentX = image.value.raster.width;
+  const parentY = image.value.raster.height;
 
-        let transform = this.changeZoom(e.deltaY, viewPosition);
-        if (transform.zoom < 10 && transform.zoom > 0.01) {
-          this.image.scale = 1 / transform.zoom;
-          this.paper.view.zoom = transform.zoom;
-          this.paper.view.center = view.center.add(transform.offset);
-        }
-      }
+  paper.view.zoom = Math.min(
+    (canvas.width / parentX) * 0.95,
+    (canvas.height / parentY) * 0.8
+  );
+  image.value.scale = 1 / paper.view.zoom;
+  paper.view.setCenter(0, 0);
+};
 
-      return false;
-    },
-    fit() {
-      let canvas = document.getElementById("editor");
+const changeZoom = (delta, p) => {
+  const oldZoom = paper.view.zoom;
+  const c = paper.view.center;
+  const factor = 1 + zoom.value;
+  const newZoom = delta < 0 ? oldZoom * factor : oldZoom / factor;
+  const beta = oldZoom / newZoom;
+  const pc = p.subtract(c);
+  const a = p.subtract(pc.multiply(beta)).subtract(c);
+  return { zoom: newZoom, offset: a };
+};
 
-      let parentX = this.image.raster.width;
-      let parentY = this.image.raster.height;
-
-      this.paper.view.zoom = Math.min(
-        (canvas.width / parentX) * 0.95,
-        (canvas.height / parentY) * 0.8
-      );
-
-      this.image.scale = 1 / this.paper.view.zoom;
-      this.paper.view.setCenter(0, 0);
-    },
-    changeZoom(delta, p) {
-      let oldZoom = this.paper.view.zoom;
-      let c = this.paper.view.center;
-      let factor = 1 + this.zoom;
-
-      let zoom = delta < 0 ? oldZoom * factor : oldZoom / factor;
-      let beta = oldZoom / zoom;
-      let pc = p.subtract(c);
-      let a = p.subtract(pc.multiply(beta)).subtract(c);
-
-      return { zoom: zoom, offset: a };
-    },
-
-    initCanvas() {
+const initCanvas = () => {
       let process = "Initializing canvas";
-      this.addProcess(process);
-      this.loading.image = true;
+      // this.addProcess(process);
+      store.commit('addProcess', process);
+
+      loading.value.image = true;
 
       let canvas = document.getElementById("editor");
-      this.paper.setup(canvas);
-      this.paper.view.viewSize = [
-        this.paper.view.size.width,
+      // let canvas = refcanvas.value;
+      
+      paper.setup(canvas);
+      paper.view.viewSize = [
+        paper.view.size.width,
         window.innerHeight
       ];
-      this.paper.activate();
+      paper.activate();
 
-      this.image.raster = new paper.Raster(this.image.url);
-      this.image.raster.onLoad = () => {
-        let width = this.image.raster.width;
-        let height = this.image.raster.height;
+      image.value.raster = new paper.Raster(image.value.url);
+      image.value.raster.onLoad = () => {
+        let width = image.value.raster.width;
+        let height = image.value.raster.height;
 
-        this.image.raster.sendToBack();
-        this.fit();
-        this.image.ratio = (width * height) / 1000000;
-        this.removeProcess(process);
+        image.value.raster.sendToBack();
+        fit();
+        image.value.ratio = (width * height) / 1000000;
+        // this.removeProcess(process);
+        store.commit('removeProcess', process);
 
         let tempCtx = document.createElement("canvas").getContext("2d");
         tempCtx.canvas.width = width;
         tempCtx.canvas.height = height;
-        tempCtx.drawImage(this.image.raster.image, 0, 0);
+        tempCtx.drawImage(image.value.raster.image, 0, 0);
 
-        this.image.data = tempCtx.getImageData(0, 0, width, height);
+        image.value.data = tempCtx.getImageData(0, 0, width, height);
         let fontSize = width * 0.025;
 
         let positionTopLeft = new paper.Point(
           -width / 2,
           -height / 2 - fontSize * 0.5
         );
-        this.text.topLeft = new paper.PointText(positionTopLeft);
-        this.text.topLeft.fontSize = fontSize;
-        this.text.topLeft.fillColor = "white";
-        this.text.topLeft.content = this.image.filename;
+        text.value.topLeft = new paper.PointText(positionTopLeft);
+        text.value.topLeft.fontSize = fontSize;
+        text.value.topLeft.fillColor = "white";
+        text.value.topLeft.content = image.value.filename;
 
         let positionTopRight = new paper.Point(
           width / 2,
           -height / 2 - fontSize * 0.4
         );
-        this.text.topRight = new paper.PointText(positionTopRight);
-        this.text.topRight.justification = "right";
-        this.text.topRight.fontSize = fontSize;
-        this.text.topRight.fillColor = "white";
-        this.text.topRight.content = width + "x" + height;
+        text.value.topRight = new paper.PointText(positionTopRight);
+        text.value.topRight.justification = "right";
+        text.value.topRight.fontSize = fontSize;
+        text.value.topRight.fillColor = "white";
+        text.value.topRight.content = width + "x" + height;
 
-        this.loading.image = false;
+        loading.value.image = false;
       };
-    },
-    setPreferences(preferences) {
-      let refs = this.$refs;
+};
 
-      refs.bbox.setPreferences(preferences.bbox || preferences.polygon || {});
-      refs.polygon.setPreferences(preferences.polygon || {});
-      refs.select.setPreferences(preferences.select || {});
-      refs.magicwand.setPreferences(preferences.magicwand || {});
-      refs.brush.setPreferences(preferences.brush || {});
-      refs.eraser.setPreferences(preferences.eraser || {});
-    },
-    updateCurrentAnnotation(value) {
-        this.current.annotation = -1;
-    },
-    getData(callback) {
+const setPreferences = (preferences) => {
+      bbox.value.setPreferences(preferences.bbox || preferences.polygon || {});
+      polygon.value.setPreferences(preferences.polygon || {});
+      select.value.setPreferences(preferences.select || {});
+      magicwand.value.setPreferences(preferences.magicwand || {});
+      brush.value.setPreferences(preferences.brush || {});
+      eraser.value.setPreferences(preferences.eraser || {});
+};
+
+const updateCurrentAnnotation = (value) => {
+    current.value.annotation = -1;
+};
+
+const getData = (callback) => {
       let process = "Loading annotation data";
-      this.addProcess(process);
-      this.loading.data = true;
+      // this.addProcess(process);
+       store.commit('addProcess', process);
+
+      loading.value.data = true;
       axios
-        .get("/api/annotator/data/" + this.image.id)
+        .get("/api/annotator/data/" + image.value.id)
         .then((response) => {
           let data = response.data;
 
-          this.loading.data = false;
+          loading.value.data = false;
           // Set image data
-          this.image.metadata = data.image.metadata || {};
-          this.image.filename = data.image.file_name;
-          this.image.next = data.image.next;
-          this.image.previous = data.image.previous;
-          this.image.categoryIds = data.image.category_ids || [];
+          image.value.metadata = data.image.metadata || {};
+          image.value.filename = data.image.file_name;
+          image.value.next = data.image.next;
+          image.value.previous = data.image.previous;
+          image.value.categoryIds = data.image.category_ids || [];
 
-          this.annotating = data.image.annotating || [];
+          annotating.value = data.image.annotating || [];
 
           // Set other data
-          this.dataset = data.dataset;
-          this.categories = data.categories;
+          dataset.value = data.dataset;
+          categories.value = data.categories;
 
           // Update status
-          this.setDataset(this.dataset);
+          // setDataset(dataset.value);
+          store.commit('setDataset', dataset.value);
+
 
           let preferences = data.preferences;
-          this.setPreferences(preferences);
+          setPreferences(preferences);
 
-          if (this.text.topLeft != null) {
-            this.text.topLeft.content = this.image.filename;
+          if (text.value.topLeft != null) {
+            text.value.topLeft.content = image.value.filename;
           }
 
           nextTick(() => {
-            this.showAll();
+            showAll();
           });
 
           if (callback != null) callback();
         })
-        .catch(() => {
-            console.log('reactivate once in vue3');
-            console.log('will go back to previous menu !??');
-            /*
-          axiosReqestError(
-            "Could not find requested image",
-            "Redirecting to previous page."
-          );*/
-          this.$router.go(-1);
+        .catch(() => {     
+              axiosReqestError(
+                "Could not find requested image",
+                "Redirecting to previous page."
+              );
+              router.go(-1);
         })
-        .finally(() => this.removeProcess(process));
-    },
-    onCategoryClick(indices) {
-      this.current.annotation = indices.annotation;
-      this.current.category = indices.category;
+        .finally(() => {
+            store.commit('removeProcess', process);
+        });
+};
+
+const onCategoryClick = (indices) => {
+      current.value.annotation = indices.annotation;
+      current.value.category = indices.category;
       if (!indices.hasOwnProperty("keypoint")) {
         indices.keypoint = -1;
       }
       if (indices.keypoint !== -1) {
-        this.current.keypoint = indices.keypoint;
+        current.value.keypoint = indices.keypoint;
         let ann =
-          this.currentCategory.category.annotations[this.current.annotation];
-        let kpTool = this.$refs.keypoint;
-        let selectTool = this.$refs.select;
-        let category = this.$refs.category[this.current.category];
-        let annotation = category.$refs.annotation[this.current.annotation];
-        annotation.showKeypoints = true;
-        let keypoints = annotation.keypoints;
+          currentCategory.value.category.annotations[current.value.annotation];
+        let kpTool = keypoint.value;
+        let selectTool = select.value;
+        let cat = category.value[current.value.category];
+        // let annotation = category.$refs.annotation[this.current.annotation];
+        let annot = cat.annotation[current.value.annotation];
+        annot.showKeypoints = true;
+        let keypoints = annot.keypoints;
         if (keypoints._labelled[indices.keypoint + 1]) {
-          let indexLabel = String(this.current.keypoint + 1);
+          let indexLabel = String(current.value.keypoint + 1);
           let keypoint = keypoints._labelled[indexLabel];
           keypoint.selected = true;
-          this.activeTool = selectTool;
-          this.activeTool.click();
+          activeTool.value = selectTool;
+          activeTool.value.click();
         } else {
-          this.currentAnnotation.keypoint.next.label = String(
+          currentAnnotation.value.keypoint.next.label = String(
             indices.keypoint + 1
           );
-          this.activeTool = kpTool;
-          this.activeTool.click();
+          activeTool.value = kpTool;
+          activeTool.value.click();
         }
       }
-    },
-    onKeypointsComplete() {
+};
+
+const onKeypointsComplete = () => {
        /********* Remove me when this.currentAnnotation will not be empty at start ********/ 
-      if(!this.currentAnnotation) {
+      if(!currentAnnotation.value) {
           console.log('should remove this condition in onKeypointsComplete()')
            return
        }else {
-         this.currentAnnotation.keypoint.next.label = -1;
+         currentAnnotation.value.keypoint.next.label = -1;
        }
        /********* Remove me when this.currentAnnotation will not be empty at start ********/
-      this.activeTool = this.$refs.select;
-      this.activeTool.click();
-    },
-    getCategory(index) {
+      activeTool.value = select.value;
+      activeTool.value.click();
+};
+    
+const getCategory = (index) => {
       if (index == null) return null;
       if (index < 0) return null;
 
-      let ref = this.$refs.category;
+      // let cat = category.value;
+      let cat = category.value;
 
-      if (ref == null) return null;
-      if (ref.length < 1 || index >= ref.length) return null;
+      if (cat == null) return null;
+      if (cat.length < 1 || index >= cat.length) return null;
 
-      return this.$refs.category[index];
-    },
-    // Current Annotation Operations
-    uniteCurrentAnnotation(
-      compound,
-      simplify = true,
-      undoable = true,
-      isBBox = false
+      return category.value[index];
+};
+
+const uniteCurrentAnnotation = (compound, simplify = true, undoable = true, isBBox = false) => {
+  if (currentAnnotation.value == null) return;
+  currentAnnotation.value.unite(compound, simplify, undoable, isBBox);
+};
+
+const subtractCurrentAnnotation = (compound, simplify = true, undoable = true) => {
+  if (currentCategory.value == null) return;
+  currentAnnotation.value.subtract(compound, simplify, undoable);
+};
+
+const selectLastEditorTool = () => {
+  activeTool.value = localStorage.getItem("editorTool") || "Select";
+};
+
+const getImageRaster = () => {
+  return image.value.raster;
+};
+
+const getCurrentCategory = () => {
+  return currentCategory.value;
+};
+
+const getCurrentAnnotation = () => {
+        return currentAnnotation.value;
+};
+
+const setCursor = (newCursor) => {
+      cursor.value = newCursor;
+};
+
+
+const incrementCategory = () => {
+    if (current.value.category >= categories.value.length - 1) {
+      current.value.category = -1;
+    } else {
+      current.value.category += 1;
+      if (currentKeypoint.value) {
+        currentAnnotation.value.onAnnotationKeypointClick(current.value.keypoint);
+      }
+    }
+};
+
+const decrementCategory = () => {
+    if (current.value.category === -1) {
+      current.value.category = categories.value.length - 1;
+      let annotationCount = currentCategory.value.category.annotations.length;
+      if (annotationCount > 0) {
+        current.value.annotation = annotationCount - 1;
+      }
+    } else {
+      current.value.category -= 1;
+    }
+};
+
+const incrementAnnotation = () => {
+  let annotationCount = currentCategory.value.category.annotations.length;
+  if (current.value.annotation === annotationCount - 1) {
+    incrementCategory();
+    current.value.annotation = -1;
+  } else {
+    current.value.annotation += 1;
+    if (
+      currentAnnotation.value != null &&
+      currentAnnotation.value.showKeypoints
     ) {
-      if (this.currentAnnotation == null) return;
-      this.currentAnnotation.unite(compound, simplify, undoable, isBBox);
-    },
-    subtractCurrentAnnotation(compound, simplify = true, undoable = true) {
-      if (this.currentCategory == null) return;
-      this.currentAnnotation.subtract(compound, simplify, undoable);
-    },
+      current.value.keypoint = 0;
+      currentAnnotation.value.onAnnotationKeypointClick(current.value.keypoint);
+    } else {
+      current.value.keypoint = -1;
+    }
+  }
+};
 
-    selectLastEditorTool() {
-      this.activeTool = localStorage.getItem("editorTool") || "Select";
-    },
-    getImageRaster(){
-        return this.image.raster;
-    },
-    getCurrentCategory(){
-        return this.currentCategory;
-    },
-    getCurrentAnnotation(){
-        return this.currentAnnotation;
-    },
-    setCursor(newCursor) {
-      this.cursor = newCursor;
-    },
-    incrementCategory() {
-      if (this.current.category >= this.categories.length - 1) {
-        this.current.category = -1;
+const decrementAnnotation = () => {
+  let annotationCount = currentCategory.value.category.annotations.length;
+  if (current.value.annotation === -1) {
+    current.value.annotation = annotationCount - 1;
+  } else if (current.value.annotation === 0) {
+    decrementCategory();
+  } else {
+    current.value.annotation -= 1;
+    if (
+      currentAnnotation.value != null &&
+      currentAnnotation.value.showKeypoints
+    ) {
+      current.value.keypoint =
+        currentAnnotation.value.keypointLabels.length - 1;
+      currentAnnotation.value.onAnnotationKeypointClick(current.value.keypoint);
+    } else {
+      current.value.keypoint = -1;
+    }
+  }
+};
+
+const incrementKeypoint = () => {
+    let keypointCount = currentAnnotation.value.keypointLabels.length;
+    if (current.value.keypoint === keypointCount - 1) {
+      incrementAnnotation();
+    } else {
+      current.value.keypoint += 1;
+    }
+    if (currentKeypoint.value != null) {
+      currentAnnotation.value.onAnnotationKeypointClick(current.value.keypoint);
+      // currentAnnotation.value.emit("keypoint-click", current.value.keypoint);
+    }
+  };
+
+const decrementKeypoint = () => {
+    if (current.value.keypoint === 0) {
+      decrementAnnotation();
+    } else {
+      current.value.keypoint -= 1;
+    }
+    if (currentKeypoint.value != null) {
+      currentAnnotation.value.onAnnotationKeypointClick(current.value.keypoint);
+      // currentAnnotation.value.emit("keypoint-click", current.value.keypoint);
+    }
+};
+
+const moveUp = () => {
+  if (currentCategory.value !== null) {
+    if (currentAnnotation.value !== null) {
+      if (currentKeypoint.value !== null) {
+        decrementKeypoint();
+      } else if (
+        currentAnnotation.value.showKeypoints &&
+        current.value.keypoint === -1
+      ) {
+        decrementKeypoint();
       } else {
-        this.current.category += 1;
-        if (this.currentKeypoint) {
-          this.currentAnnotation.onAnnotationKeypointClick(
-            this.current.keypoint
-          );
-        }
+        decrementAnnotation();
       }
-    },
-    decrementCategory() {
-      if (this.current.category === -1) {
-        this.current.category = this.categories.length - 1;
-        let annotationCount = this.currentCategory.category.annotations.length;
-        if (annotationCount > 0) {
-          this.current.annotation = annotationCount - 1;
-        }
+    } else if (current.value.annotation === -1) {
+      decrementAnnotation();
+    } else {
+      decrementCategory();
+    }
+  } else {
+    decrementCategory();
+  }
+};
+
+const moveDown = () => {
+  if (currentCategory.value != null) {
+    if (currentAnnotation.value != null) {
+      if (currentKeypoint.value != null) {
+        incrementKeypoint();
+      } else if (
+        currentAnnotation.value.showKeypoints &&
+        current.value.keypoint == -1
+      ) {
+        incrementKeypoint();
       } else {
-        this.current.category -= 1;
+        incrementAnnotation();
       }
-    },
-    incrementAnnotation() {
-      let annotationCount = this.currentCategory.category.annotations.length;
-      if (this.current.annotation === annotationCount - 1) {
-        this.incrementCategory();
-        this.current.annotation = -1;
-      } else {
-        this.current.annotation += 1;
-        if (
-          this.currentAnnotation != null &&
-          this.currentAnnotation.showKeypoints
-        ) {
-          this.current.keypoint = 0;
-          this.currentAnnotation.onAnnotationKeypointClick(
-            this.current.keypoint
-          );
-        } else {
-          this.current.keypoint = -1;
-        }
-      }
-    },
-    decrementAnnotation() {
-      let annotationCount = this.currentCategory.category.annotations.length;
-      if (this.current.annotation === -1) {
-        this.current.annotation = annotationCount - 1;
-      } else if (this.current.annotation === 0) {
-        this.decrementCategory();
-      } else {
-        this.current.annotation -= 1;
-        if (
-          this.currentAnnotation != null &&
-          this.currentAnnotation.showKeypoints
-        ) {
-          this.current.keypoint =
-            this.currentAnnotation.keypointLabels.length - 1;
-          this.currentAnnotation.onAnnotationKeypointClick(
-            this.current.keypoint
-          );
-        } else {
-          this.current.keypoint = -1;
-        }
-      }
-    },
-    incrementKeypoint() {
-      let keypointCount = this.currentAnnotation.keypointLabels.length;
-      if (this.current.keypoint === keypointCount - 1) {
-        this.incrementAnnotation();
-      } else {
-        this.current.keypoint += 1;
-      }
-      if (this.currentKeypoint != null) {
-        this.currentAnnotation.onAnnotationKeypointClick(this.current.keypoint);
-        // this.currentAnnotation.$emit("keypoint-click", this.current.keypoint);
-      }
-    },
-    decrementKeypoint() {
-      if (this.current.keypoint === 0) {
-        this.decrementAnnotation();
-      } else {
-        this.current.keypoint -= 1;
-      }
-      if (this.currentKeypoint != null) {
-        this.currentAnnotation.onAnnotationKeypointClick(this.current.keypoint);
-        // this.currentAnnotation.$emit("keypoint-click", this.current.keypoint);
-      }
-    },
-    moveUp() {
-      if (this.currentCategory != null) {
-        if (this.currentAnnotation != null) {
-          if (this.currentKeypoint != null) {
-            this.decrementKeypoint();
-          } else if (
-            this.currentAnnotation.showKeypoints &&
-            this.current.keypoint == -1
-          ) {
-            this.decrementKeypoint();
-          } else {
-            this.decrementAnnotation();
-          }
-        } else if (this.current.annotation == -1) {
-          this.decrementAnnotation();
-        } else {
-          this.decrementCategory();
-        }
-      } else {
-        this.decrementCategory();
-      }
-    },
-    moveDown() {
-      if (this.currentCategory != null) {
-        if (this.currentAnnotation != null) {
-          if (this.currentKeypoint != null) {
-            this.incrementKeypoint();
-          } else if (
-            this.currentAnnotation.showKeypoints &&
-            this.current.keypoint == -1
-          ) {
-            this.incrementKeypoint();
-          } else {
-            this.incrementAnnotation();
-          }
-        } else if (this.current.annotation == -1) {
-          this.incrementAnnotation();
-        } else {
-          this.incrementCategory();
-        }
-      } else {
-        this.incrementCategory();
-      }
-    },
-    stepIn() {
-      if (this.currentCategory != null) {
-        if (!this.currentCategory.isVisible) {
-          this.currentCategory.isVisible = true;
-          this.current.annotation = 0;
-          this.currentAnnotation.showKeypoints = false;
-          this.current.keypoint = -1;
+    } else if (current.value.annotation == -1) {
+      incrementAnnotation();
+    } else {
+      incrementCategory();
+    }
+  } else {
+    incrementCategory();
+  }
+};
+
+const stepIn = () => {
+      if (currentCategory.value != null) {
+        if (!currentCategory.value.isVisible) {
+          currentCategory.value.isVisible = true;
+          current.value.annotation = 0;
+          currentAnnotation.value.showKeypoints = false;
+          current.value.keypoint = -1;
         } else if (
-          !this.currentCategory.showAnnotations &&
-          this.currentAnnotationLength > 0
+          !currentCategory.value.showAnnotations &&
+          currentAnnotationLength.value > 0
         ) {
-          this.currentCategory.showAnnotations = true;
-          this.current.annotation = 0;
-          this.currentAnnotation.showKeypoints = false;
-          this.current.keypoint = -1;
+          currentCategory.value.showAnnotations = true;
+          current.value.annotation = 0;
+          currentAnnotation.value.showKeypoints = false;
+          current.value.keypoint = -1;
         } else if (
-          !this.currentAnnotation.showKeypoints &&
-          this.currentAnnotation.keypointLabels.length > 0
+          !currentAnnotation.value.showKeypoints &&
+          currentAnnotation.value.keypointLabels.length > 0
         ) {
-          this.currentAnnotation.showKeypoints = true;
-          this.current.keypoint = 0;
-          this.currentAnnotation.onAnnotationKeypointClick(
-            this.current.keypoint
+          currentAnnotation.value.showKeypoints = true;
+          current.value.keypoint = 0;
+          currentAnnotation.value.onAnnotationKeypointClick(
+            current.value.keypoint
           );
         }
       }
-    },
-    stepOut() {
-      if (this.currentCategory != null) {
-        if (
-          this.currentAnnotation != null &&
-          this.currentAnnotation.showKeypoints
-        ) {
-          this.currentAnnotation.showKeypoints = false;
-          this.current.keypoint = -1;
-        } else if (this.currentCategory.showAnnotations) {
-          this.currentCategory.showAnnotations = false;
-          this.current.annotation = -1;
-        } else if (this.currentCategory.isVisible) {
-          this.currentCategory.isVisible = false;
-        }
-      }
-    },
-    scrollElement(element) {
-      element.scrollIntoView({
-        behavior: "smooth",
-        block: "center"
-      });
-    },
-    showAll() {
-      if (this.$refs.category == null) return;
+};
 
-      this.$refs.category.forEach((category) => {
-        category.isVisible = category.category.annotations.length > 0;
-      });
-    },
-    hideAll() {
-      if (this.$refs.category == null) return;
+const stepOut = () => {
+  if (currentCategory.value != null) {
+    if (
+      currentAnnotation.value != null &&
+      currentAnnotation.value.showKeypoints
+    ) {
+      currentAnnotation.value.showKeypoints = false;
+      current.value.keypoint = -1;
+    } else if (currentCategory.value.showAnnotations) {
+      currentCategory.value.showAnnotations = false;
+      current.value.annotation = -1;
+    } else if (currentCategory.value.isVisible) {
+      currentCategory.value.isVisible = false;
+    }
+  }
+};
 
-      this.$refs.category.forEach((category) => {
-        category.isVisible = false;
-        category.showAnnotations = false;
+const scrollElement = (element) => {
+  element.scrollIntoView({
+    behavior: "smooth",
+    block: "center"
+  });
+};
+
+const showAll = () => {
+      if (category.value == null) return;
+
+      category.value.forEach((cat) => {
+            cat.isVisible = cat.category.annotations.length > 0;
       });
-    },
-    findCategoryByName(categoryName) {
-      let categoryComponent = this.$refs.category.find(
-        (category) =>
-          category.category.name.toLowerCase() === categoryName.toLowerCase()
+};
+
+const hideAll = () => {
+      if (category.value == null) return;
+
+      category.value.forEach((cat) => {
+        cat.isVisible = false;
+        cat.showAnnotations = false;
+      });
+};
+
+const findCategoryByName = (categoryName) => {
+      let categoryComponent = category.value.find(
+        (cat) =>
+          cat.category.name.toLowerCase() === categoryName.toLowerCase()
       );
       if (!categoryComponent) return null;
       return categoryComponent.category;
-    },
-    addAnnotation(categoryName, segments, keypoints, isbbox = false) {
+};
+
+const addAnnotation = (categoryName, segments, keypoints, isbbox = false) => {
       segments = segments || [];
       keypoints = keypoints || [];
 
       if (keypoints.length == 0 && segments.length == 0) return;
 
-      let category = this.findCategoryByName(categoryName);
+      let category = findCategoryByName(categoryName);
       if (category == null) return;
 
       Annotations.create({
-        image_id: this.image.id,
+        image_id: image.value.id,
         category_id: category.id,
         segmentation: segments,
         keypoints: keypoints,
@@ -1022,204 +1005,265 @@ export default {
         let annotation = response.data;
         category.annotations.push(annotation);
       });
-    },
+};
 
-    updateAnnotationCategory(annotation, oldCategory, newCategoryName) {
-      const newCategory = this.findCategoryByName(newCategoryName);
-      if (!newCategory || !annotation) return;
+const updateAnnotationCategory = (newAnnotation, oldCategory, newCategoryName) => {
+  const newCategory = findCategoryByName(newCategoryName);
 
-      Annotations.update(annotation.id, { category_id: newCategory.id }).then(
-        (response) => {
-          let newAnnotation = {
-            ...response.data,
-            ...annotation,
-            metadata: response.data.metadata,
-            category_id: newCategory.id
-          };
+  if (!newCategory || !annotation.value) return;
 
-          if (newAnnotation) {
-            oldCategory.annotations = oldCategory.annotations.filter(
-              (a) => a.id !== annotation.id
-            );
-            newCategory.annotations.push(newAnnotation);
-          }
-        }
-      );
-    },
-
-    removeFromAnnotatingList() {
-      if (this.user == null) return;
-
-      var index = this.annotating.indexOf(this.user.username);
-      //Remove self from list
-      if (index > -1) {
-        this.annotating.splice(index, 1);
-      }
-    },
-    nextImage() {
-      if (this.image.next != null) this.$refs.filetitle.route(this.image.next);
-    },
-    previousImage() {
-      if (this.image.previous != null)
-        this.$refs.filetitle.route(this.image.previous);
-    },
-  },
-  computed: {
-    activateTools() {
-        return this.current.annotation !== -1;
-    },
-    doneLoading() {
-      return !this.loading.image && !this.loading.data;
-    },
-    currentAnnotationLength() {
-      if (this.currentCategory == null) return null;
-      return this.currentCategory.category.annotations.length;
-    },
-    currentKeypointLength() {
-      if (this.currentAnnotation == null) return null;
-      return this.currentAnnotation.annotation.keypoints.length;
-    },
-    currentCategory() {
-      return this.getCategory(this.current.category);
-    },
-    currentAnnotation() {
-      if (this.currentCategory == null) {
-        return null;
-      }
-      return this.currentCategory.getAnnotation(this.current.annotation);
-    },
-    currentKeypoint() {
-      if (this.currentCategory == null) {
-        return null;
-      }
-      if (
-        this.currentAnnotation == null ||
-        this.currentAnnotation.keypointLabels.length === 0 ||
-        !this.currentAnnotation.showKeypoints
-      ) {
-        return null;
-      }
-      if (this.current.keypoint == -1) {
-        return null;
-      }
-      return {
-        label: [String(this.current.keypoint + 1)],
-        visibility: this.currentAnnotation.getKeypointVisibility(
-          this.current.keypoint
-        ),
+  Annotations.update(newAnnotation.id, { category_id: newCategory.id }).then(
+    (response) => {
+      let newAnnotation = {
+        ...response.data,
+        ...newAnnotation,
+        metadata: response.data.metadata,
+        category_id: newCategory.id
       };
-    },
-    user() {
-      return this.$store.getters["user/user"];
-    },
-  },
-  watch: {
-    doneLoading(done) {
-      if (done) {
-        if (this.loading.loader) {
-          this.loading.loader.hide();
-        }
+      if (newAnnotation) {
+        oldCategory.annotations = oldCategory.annotations.filter(
+          (a) => a.id !== newAnnotation.id
+        );
+        newCategory.annotations.push(newAnnotation);
       }
-    },
-    currentCategory() {
-      if (this.currentCategory != null) {
+    }
+  );
+};
+
+const removeFromAnnotatingList = () => {
+  if (user.value == null) return;
+  const index = annotating.value.indexOf(user.value.username);
+  //Remove self from list
+  if (index > -1) {
+    annotating.value.splice(index, 1);
+  }
+}
+
+const nextImage = () => {
+  if (image.value.next != null) filetitle.value.route(image.value.next);
+}
+
+const previousImage = () => {
+  if (image.value.previous != null) filetitle.value.route(image.value.previous);
+}
+
+const activateTools = computed(() => {
+  return current.value.annotation !== -1;
+});
+
+const doneLoading = computed(() => {
+  return !loading.value.image && !loading.value.data;
+});
+
+const currentAnnotationLength = computed(() => {
+  if (currentCategory.value == null) return null;
+  return currentCategory.value.category.annotations.length;
+});
+
+const currentKeypointLength = computed(() => {
+  if (currentAnnotation.value == null) return null;
+  return currentAnnotation.value.annotation.keypoints.length;
+});
+
+const currentCategory = computed(() => {
+  return getCategory(current.value.category);
+});
+
+const currentAnnotation = computed(() => {
+  if (currentCategory.value == null) {
+    return null;
+  }
+  return currentCategory.value.getAnnotation(current.value.annotation);
+});
+
+const currentKeypoint = computed(() => {
+  if (currentCategory.value === null) {
+    return null;
+  }
+  if (
+    currentAnnotation.value === null ||
+    currentAnnotation.value.keypointLabels.length === 0 ||
+    !currentAnnotation.value.showKeypoints
+  ) {
+    return null;
+  }
+  if (current.value.keypoint === -1) {
+    return null;
+  }
+  return {
+    label: [String(current.value.keypoint + 1)],
+    visibility: currentAnnotation.value.getKeypointVisibility(current.value.keypoint),
+  };
+});
+
+const user = computed(() => {
+  return store.getters['user/user'];
+});
+
+
+watch(
+  () => doneLoading.value, 
+  (done) => {
+    if (done) {
+        if (loading.value.loader) {
+          loading.value.loader.hide();
+        }
+    }
+});
+
+watch(
+  () => currentCategory.value, 
+  (newCategory) => {
+      if (newCategory != null) {
         if (
-          this.currentAnnotation == null ||
-          !this.currentCategory.showAnnotations
+          currentAnnotation.value == null ||
+          !newCategory.showAnnotations
         ) {
-          let element = this.currentCategory.$el;
-          this.scrollElement(element);
+          let element = newCategory.$el;
+          scrollElement(element);
         }
       }
-    },
-    currentAnnotation(newElement) {
+});
+
+watch(
+  () => currentAnnotation.value, 
+  (newElement) => {
       if (newElement != null) {
         if (newElement.showAnnotations) {
           let element = newElement.$el;
-          this.scrollElement(element);
+          scrollElement(element);
         }
       }
-    },
-    "current.category"(cc) {
-      if (cc < -1) this.current.category = -1;
-      let max = this.categories.length;
-      if (cc > max) {
-        this.current.category = -1;
-      }
-    },
-    "current.annotation"(ca) {
-      if (ca < -1) this.current.annotation = -1;
-      if (this.currentCategory != null) {
-        let max = this.currentAnnotationLength;
-        if (ca > max) {
-          this.current.annotations = -1;
-        }
-      }
-    },
-    "current.keypoint"(sk) {
-      if (sk < -1) this.current.keypoint = -1;
-      if (this.currentCategory != null) {
-        let max = this.currentAnnotationLength;
-        if (sk > max) {
-          this.current.keypoint = -1;
-        }
-      }
-    },
-    annotating() {
-      this.removeFromAnnotatingList();
-    },
-    user() {
-      this.removeFromAnnotatingList();
-    },
-  },
-  sockets: {
-    annotating(data) {
-      if (data.image_id !== this.image.id) return;
+});
 
-      if (data.active) {
-        let found = this.annotating.indexOf(data.username);
-        if (found < 0) {
-          this.annotating.push(data.username);
+watch(
+  () => current.value.category, 
+  (cc) => {
+      if (cc < -1) current.value.category = -1;
+      let max = categories.value.length;
+      if (cc > max) {
+        current.value.category = -1;
+      }
+});
+
+watch(
+  () => current.value.annotation, 
+  (ca) => {
+      if (ca < -1) current.value.annotation = -1;
+      if (currentCategory.value != null) {
+        let max = currentAnnotationLength.value;
+        if (ca > max) {
+          current.value.annotation = -1;
         }
-      } else {
-        this.annotating.splice(this.annotating.indexOf(data.username), 1);
+      }
+});
+
+watch(
+  ()=> current.value.keypoint, 
+  (sk) => {
+    if (sk < -1) current.value.keypoint = -1;
+    if (currentCategory.value != null) {
+      let max = currentAnnotationLength.value;
+      if (sk > max) {
+        current.value.keypoint = -1;
       }
     }
-  },
-  beforeRouteLeave(to, from, next) {
-    this.current.annotation = -1;
+});
+
+watch(
+  () => annotating.value, 
+  () => {
+    removeFromAnnotatingList();
+});
+
+watch(
+  () => user.value, 
+  () => {
+    removeFromAnnotatingList();
+});
+
+const onAnnotating = (data) => {
+      if (data.image_id !== image.value.id) return;
+
+      if (data.active) {
+        let found = annotating.value.indexOf(data.username);
+        if (found < 0) {
+          annotating.value.push(data.username);
+        }
+      } else {
+        annotating.value.splice(annotating.value.indexOf(data.username), 1);
+      }
+};
+
+
+onBeforeRouteLeave((to, from, next) => {
+    current.value.annotation = -1;
 
     nextTick(() => {
-      this.$socket.emit("annotating", {
-        image_id: this.image.id,
+      // this.$socket.emit("annotating", {
+      app.__vue_app__.config.globalProperties.$socket.emit("annotating", {
+        image_id: image.value.id,
         active: false
       });
-      this.save(next);
+      save(next);
     });
-  },
-  mounted() {
-    this.setDataset(null);
+});
 
-    // this.loading.loader = this.$loading.show({
-    //   color: "white",
-    //   // backgroundColor: "#4b5162",
-    //   height: 150,
-    //   opacity: 0.8,
-    //   width: 150
-    // });
 
-    this.initCanvas();
-    this.getData();
+onMounted(() => {
+    app.__vue_app__._instance.ctx.sockets.subscribe('annotating', onAnnotating);
 
-    this.$socket.emit("annotating", { image_id: this.image.id, active: true });
-  },
-  created() {
-    this.paper = new paper.PaperScope();
+    // can't call this command like this, but work without !??
+    // paper = new paper.PaperScope();
 
-    this.image.id = parseInt(this.identifier);
-    this.image.url = "/api/image/" + this.image.id;
-  }
-};
+    image.value.id = parseInt(props.identifier);
+    image.value.url = "/api/image/" + image.value.id;
+
+
+    // setDataset(null);
+    store.commit('setDataset', null);
+
+    initCanvas();
+    getData();
+
+    app.__vue_app__.config.globalProperties.$socket.emit("annotating", {image_id: image.value.id, active: true });
+
+});
+
+// Shoudl try to group all methods in a single provide like this :
+// provide('annotator', { setCursor, updateCurrentAnnotation, ...,updateAnnotationCategory});
+// in each impacted file should be able to inject like this :
+// const { setCursor, updateCurrentAnnotation, ... } = inject('annotations');
+provide('setCursor', setCursor);
+provide('updateCurrentAnnotation', updateCurrentAnnotation);
+provide('save', save);
+provide('getData', getData);
+provide('activateTools', activateTools);
+provide('current', current.value);
+provide('setActiveTool', setActiveTool);
+provide('getActiveTool', getActiveTool);
+provide('uniteCurrentAnnotation', uniteCurrentAnnotation);
+provide('getCurrentAnnotation', getCurrentAnnotation);
+provide('getCurrentCategory', getCurrentCategory);
+provide('imageRaster', image.value.raster);
+provide('getImageRaster', getImageRaster);
+provide('getCategory', getCategory);
+provide('getPaper', getPaper);
+provide('getHover', getHover);
+provide('getImageId', getImageId);
+provide('addAnnotation', addAnnotation);
+provide('showAll', showAll);
+provide('hideAll', hideAll);
+provide('fit', fit);
+provide('scrollElement', scrollElement);
+provide('selectLastEditorTool', selectLastEditorTool);
+provide('updateAnnotationCategory', updateAnnotationCategory);
+
+defineExpose({simplify, dataset, bbox, select, category});
+
+
+
+
 </script>
 
 <style scoped>

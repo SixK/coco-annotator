@@ -1,18 +1,33 @@
 import { mapMutations } from "vuex";
-import { reactive, onMounted} from "vue";
+import { reactive, ref, onMounted} from "vue";
+import { useRoute } from 'vue-router';
 
 export default function useShortcuts() {
-  const commands = reactive([]);
+  const route = useRoute();
+  const commands = ref([]);
   const { undo } = mapMutations(["undo"]);
   const moveUp = () => {
     // logic for moving up annotations
   };
+  
+    const annotator = (() =>  {
+        return [
+        {
+            title: "General",
+            default: ["arrowup"],
+            function: moveUp,
+            name: "Move Up Annotations",
+         },
+        ];
+      });
+
+  /*
   const annotator = (() =>  {
          return [
         {
           title: "General",
           default: ["arrowup"],
-          function: this.moveUp,
+          function: moveUp,
           name: "Move Up Annotations",
         },
         {
@@ -175,10 +190,11 @@ export default function useShortcuts() {
         },
       ];
     });
+    */
     
     onMounted(() => {
-        if ($route.name === "annotate") {
-            commands = annotator();
+        if (route.name === "annotate") {
+            commands.value = annotator();
         }
     });
     
