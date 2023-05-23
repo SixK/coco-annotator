@@ -7,111 +7,110 @@
 
 <script setup>
 import VLazyImage from "v-lazy-image";
-// import { useRoute, useRouter } from 'vue-router';
-</script>
-
-<script>
 import NavBar from "@/components/NavBar";
-import { mapMutations } from "vuex";
 
-export default {
-  name: "App",
-  components: { NavBar },
-  methods: {
-    ...mapMutations("user", ["setUserInfo"]),
-    ...mapMutations("info", ["getServerInfo", "socket"]),
-    toAuthPage() {
-      this.$router.push({
-        name: "authentication"
-      });
-    }
-  },
-  data() {
-    return { loader: null };
-  },
-  computed: {
-    showNavBar() {
-      let notShow = ["authentication", "setup"];
-      return notShow.indexOf(this.$route.name) === -1;
-    },
-    isAuthenticated() {
-      return this.$store.state.user.isAuthenticated;
-    },
-    isAuthenticatePending() {
-      return this.$store.state.user.isAuthenticatePending;
-    },
-    loginRequired() {
-      if (this.isAuthenticatePending) {
+import { nextTick, markRaw, toRef, ref, computed, watch, inject, onMounted, provide, defineEmits, defineProps } from 'vue';
+
+import {useToast} from 'vue-toast-notification';
+const $toast = useToast();
+
+import { useRoute, useRouter } from 'vue-router';
+const router = useRouter();
+const route = useRoute();
+
+import { useStore } from 'vuex';
+const store = useStore();
+
+import {useLoading} from 'vue-loading-overlay'
+const $loading = useLoading({});
+
+const toAuthPage = () => {
+  router.push({ name: 'authentication' });
+};
+
+let loader = null
+
+const showNavBar = computed(() => {
+      const notShow = ["authentication", "setup"];
+      return notShow.indexOf(route.name) === -1;
+});
+
+const isAuthenticated = computed(() => {
+      return store.state.user.isAuthenticated;
+});
+
+const isAuthenticatePending = computed(() => {
+      return store.state.user.isAuthenticatePending;
+});
+
+const loginRequired = computed(() => {
+      if (isAuthenticatePending.value) {
         return false;
       }
-      return !this.isAuthenticated;
-    },
-    loading() {
-      return this.$store.state.info.loading;
-    },
-    socketConnection() {
-      return this.$store.state.info.socket;
-    }
-  },
-  watch: {
-    loading() {
-      if (!this.loading && this.loader != null) {
-        this.loader.hide();
-      }
-    },
-    socketConnection() {
-      if (this.socketConnection) return;
+      return !isAuthenticated.value;
+});
 
+const loading = computed(() => {
+      return store.state.info.loading;
+});
+
+const socketConnection = computed(() => {
+      return store.state.info.socket;
+});
+
+watch(
+  () => loading.value, 
+  (newVal) => {
+  if (!newVal && loader != null) {
+    loader.hide();
+  }
+});
+
+watch(
+  () => socketConnection.value, 
+  (newVal) => {
+      if (newVal) return;
       setTimeout(() => {
-        if (this.socketConnection) return;
+        if (socketConnection.value) return;
         let options = {
           positionClass: "toast-bottom-left"
         };
-
-        this.$toastr.warning(
+        $toast.warning(
           "Connection lost to the backend",
           "Connection Lost",
           options
         );
       }, 1000);
-    },
-    loginRequired: {
-      handler(newValue) {
-        if (newValue) {
-          this.toAuthPage();
-        } else {
-          if (this.$router.name == "authentication") {
-            this.$router.push({
-              name: "datasets"
-            });
-          }
-        }
-      },
-      immediate: true
+});
+
+watch(
+  () => loginRequired.value,
+  (newValue) => {
+    if (newValue) {
+      toAuthPage();
+    } else {
+      if (router.name === 'authentication') {
+        router.push({ name: 'datasets' });
+      }
     }
   },
-  sockets: {
-    connect() {
-      this.socket(true);
-    },
-    disconnect() {
-      this.socket(false);
-    }
-  },
-  mounted() {
-    // this.$route.name does not exists at this point, so always use loader
-    // if (this.$route.name.toLowerCase() !== "annotate")
-    {
-      this.loader = this.$loading.show({
+  { immediate: true }
+);
+
+onMounted(() => {
+    // app.__vue_app__.config.globalProperties.$socket.connect(() => {store.commit('info/socket', true);});
+    // app.__vue_app__.config.globalProperties.$socket.disconnect(() => {store.commit('info/socket', false);});
+    loader = $loading.show({
         height: 100
       });
-    }
-  },
-  created() {
-    this.setUserInfo();
-    this.getServerInfo();
-  }
-};
+      
+    store.commit('user/setUserInfo');
+    store.commit('info/getServerInfo');
+    
+    // dunno why, but app.__vue_app__ is undefined here, let's consider socket are alaways connected
+    store.commit('info/socket', true);
+});
+
 </script>
 
 <style>

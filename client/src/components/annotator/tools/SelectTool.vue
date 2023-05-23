@@ -110,7 +110,7 @@ const isActive = computed(() => {
 });
 
 watch(
-  () => keypoint, 
+  () => keypoint.value, 
   (newKeypoint) => {
         console.log('keypoint watched !');
         clear();
@@ -259,10 +259,11 @@ const hoverText = () => {
           hover.value.text.remove();
           hover.value.box.remove();
         }
-        let content = generateTitle() + generateStringFromMetadata();
+        
         if (hover.value.annotation) {
           hover.value.textId = hover.value.annotation.annotation.id;
         }
+        let content = generateTitle() + generateStringFromMetadata();
 
         hover.value.text = new paper.PointText(position);
         hover.value.text.justification = "left";

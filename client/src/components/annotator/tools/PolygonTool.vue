@@ -292,7 +292,9 @@ watch(
   }
 );
 
-watch(color.value.auto, (value) => {
+watch(
+  () => color.value.auto, 
+  (value) => {
   if (value && polygon.value.path) {
     color.value.circle = new paper.Path.Circle(
       new paper.Point(0, 0),

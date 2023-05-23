@@ -65,72 +65,72 @@
   </div>
 </template>
 
-<script>
+<script setup>
 import axios from "axios";
-import toastrs from "@/mixins/toastrs";
-import { mapMutations } from "vuex";
+import useAxiosRequest from "@/composables/axiosRequest";
+const {axiosReqestError, axiosReqestSuccess} = useAxiosRequest();
 
-export default {
-  name: "AdminPanel",
-  mixins: [toastrs],
-  data() {
-    return {
-      changePassword: {
+import { ref, watch, computed } from 'vue';
+
+
+import { useStore } from 'vuex';
+const store = useStore();
+
+
+const changePassword = ref({
         password: "",
         new_password: "",
         confirm_password: ""
-      }
-    };
-  },
-  methods: {
-    ...mapMutations(["addProcess", "removeProcess"]),
-    changeUserPassword() {
-      if (!this.validPassword(this.changePassword.new_password)) return;
-      if (this.changePassword.password.length === 0) return;
+      });
 
+const validPassword = (password) => {
+      return password.length > 4;
+};
+
+const changeUserPassword = () => {
+      if (!validPassword(changePassword.value.new_password)) return;
+      if (changePassword.value.password.length === 0) return;
       axios
-        .post("/api/user/password", { ...this.changePassword })
+        .post("/api/user/password", { ...changePassword.value })
         .then(() => {
-          this.axiosReqestSuccess(
+          axiosReqestSuccess(
             "Changing Password",
             "Password has been changed"
           );
         })
         .catch((error) => {
-          this.axiosReqestError(
+          axiosReqestError(
             "Changing Password",
             error.response.data.message
           );
         });
-    },
-    validPassword(password) {
-      return password.length > 5;
-    },
-    inputPasswordClasses(password) {
-      let isValid = password.length > 4;
+};
+
+const inputPasswordClasses = (password) => {
+      let isValid  = validPassword(password);
 
       return {
         "is-invalid": !isValid && password.length != 0,
         "is-valid": isValid
       };
-    }
-  },
-  computed: {
-    user() {
-      return this.$store.state.user.user;
-    },
-    displayName() {
-      if (this.user == null) return "";
-      if (this.user.name.length == 0) return this.user.username;
-
-      return this.user.name;
-    }
-  },
-  watch: {
-    limit: "updatePage"
-  },
-  created() {}
 };
+
+const user = computed(() => store.state.user.user);
+
+const displayName = computed(() => {
+  if (!user.value) return '';
+  if (user.value.name.length === 0) return user.value.username;
+  return user.value.name;
+});
+
+/*
+watch(
+  () => limit,
+  () => updatePage()
+);
+*/
+
+
 </script>
 
 <style scoped>
