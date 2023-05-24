@@ -458,7 +458,8 @@ const onMouseMove = (event) => {
 
         let categoryId = event.item.data.categoryId;
         let annotationId = event.item.data.annotationId;
-        localHover.value.categoryId = categoryId;
+        console.log('id:', annotationId);
+        localHover.value.category = categoryId;
         localHover.value.annotation = annotationId;
 
         // hover.value.category = $parent.getCategory(categoryId);

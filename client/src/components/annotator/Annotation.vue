@@ -369,9 +369,11 @@ const activeTool = ref(props.activeTool);
 const keypointColors = ref(props.keypointColors);
 const keypointLabels = ref(props.keypointLabels);
 const search = ref(props.search);
-const hover = ref(props.hover);
 const scale = ref(props.scale);
-const current = ref(props.current);
+
+const hover = toRef(props, 'hover');
+const current = toRef(props, 'current');
+
 const index = ref(props.index);
 const opacity = ref(props.opacity);
 const annotation = ref(props.annotation);
@@ -759,7 +761,7 @@ const subtract = (compound, simplify = true, undoable = true) => {
 const setColor = () => {
   if (compoundPath.value == null) return;
   
-  // getShowAnnotations() is workaround to get shoAnnotations, 
+  // getShowAnnotations() is workaround to get showAnnotations, 
   // value is not propagating when changing in category 
   // and I don't understand why
   // if (!showAnnotations.value) {
@@ -833,9 +835,9 @@ const emitModify = () => {
   const uuid = Math.random().toString(36).replace(/[^a-z]+/g, "");
   annotation.value.paper_object = compoundPath.value.exportJSON({ asString: false, precision: 1 });
   app.__vue_app__.config.globalProperties.$socket.emit("annotation", {
-    uuid,
+    uuid: uuid,
     action: "modify",
-    annotation
+    annotation: annotation.value
   });
 };
 
