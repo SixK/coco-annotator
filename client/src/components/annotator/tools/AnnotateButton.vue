@@ -44,7 +44,8 @@ const validUrl = computed(() => {
 });
 
 watch(
-      [() => loading.value, validUrl.value],
+      // do not use validURL.value here
+      [() => loading.value, validUrl],
       ([loading, validUrl]) => {
         icon.value = loading ? 'fa-spinner fa-spin' : 'fa-cloud-download';
         disabled.value = !validUrl;

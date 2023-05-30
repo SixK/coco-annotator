@@ -479,14 +479,14 @@ const createCompoundPath = (json = null, segments = null) => {
         compoundPath.value.importJSON(json);
     } else if (segments != null) {
         // Load segments input compound path
-        const center = new Point(width / 2, height / 2);
+        const center = new paper.Point(width / 2, height / 2);
 
         for (let i = 0; i < segments.length; i++) {
             const polygon = segments[i];
-            const path = new Path();
+            const path = new paper.Path();
 
             for (let j = 0; j < polygon.length; j += 2) {
-                const point = new Point(polygon[j], polygon[j + 1]);
+                const point = new paper.Point(polygon[j], polygon[j + 1]);
                 path.add(point.subtract(center));
             }
             path.closePath();
