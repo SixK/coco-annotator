@@ -93,7 +93,7 @@ For examples and more information check out the [wiki](https://github.com/jsbrok
 
 - [x] Make source code work with Vue3 in Vue2 compatibility mode
 - [x] Modify to Vuex4 style files using Vuex store
-- [ ] convert mixins to composable API and components 
+- [x] convert mixins to composable API and components 
 - [ ] Fix eslint errors 
 - [x] Remove JQuery library
 - [ ] find a library to replace vue-touch for pinching
