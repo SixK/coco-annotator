@@ -15,7 +15,6 @@
     "axios": "^0.21.4",
     "bootstrap": "^5.2.3",
     "intersection-observer": "^0.12.2",
-    "jquery": "^3.6.0",
     "paper": "^0.12.17",
     "postcss": "^8.1.7",
     "postcss-loader": "^4.0.3",

@@ -92,14 +92,14 @@ For examples and more information check out the [wiki](https://github.com/jsbrok
 # Vue3 porting attempt
 
 - [x] Make source code work with Vue3 in Vue2 compatibility mode
-- [ ] Modify to Vuex4 style files using Vuex store
+- [x] Modify to Vuex4 style files using Vuex store
 - [ ] convert mixins to composable API and components 
 - [ ] Fix eslint errors 
-- [ ] Remove JQuery library
+- [x] Remove JQuery library
 - [ ] find a library to replace vue-touch for pinching
 - [ ] Make source code work without Vue2 compatibility mode
 - [ ] Understand Keypoints and make them fully work
-- [ ] Restore all shortcuts
+- [x] Restore all shortcuts
 - [ ] Fix undefined Category error when clicking on some annotations
 
 At this state, source code tested only using docker-compose.dev.yml.

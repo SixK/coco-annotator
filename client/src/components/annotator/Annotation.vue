@@ -262,11 +262,9 @@
 import paper from "paper";
 import axios from "axios";
 import simplifyjs from "simplify-js";
-// import JQuery from "jquery";
 import { Modal } from "bootstrap";
 
 import { Keypoint, Keypoints, VisibilityOptions } from "@/libs/keypoints";
-// import { mapMutations } from "vuex";
 import { useStore } from 'vuex';
 import UndoAction from "@/undo";
 
@@ -286,12 +284,6 @@ const getShowAnnotations = inject('getShowAnnotations');
 const store = useStore();
 
 const emit = defineEmits(['set-color', 'keypoints-complete', 'keypoint-click', 'click', 'deleted']);
-
-/*
-let modal = ref(null);
-const closeModal = () => Modal.getInstance(modal.value)?.hide();
-const showModal = () => Modal.getInstance(modal.value)?.show();
-*/
 
 const props = defineProps({
     annotation: {

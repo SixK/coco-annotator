@@ -117,7 +117,6 @@ import TagsInput from "@/components/TagsInput";
 import { watch, computed, ref, defineProps, inject, onMounted, toRefs, reactive, watchEffect } from 'vue'
 
 import useAxiosRequest from "@/composables/axiosRequest";
-// let $ = JQuery;
 import { useStore } from 'vuex';
 
 const store = useStore();
