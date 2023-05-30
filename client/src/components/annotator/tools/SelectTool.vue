@@ -10,7 +10,7 @@ import paper from "paper";
 import { useTools } from "@/composables/toolBar/tools";
 import { useStore } from 'vuex';
 
-import { ref, computed, watch, inject, onMounted, provide, defineEmits, defineProps } from 'vue'
+import { nextTick, ref, computed, watch, inject, onMounted, provide, defineEmits, defineProps } from 'vue'
 
 const getCategory = inject('getCategory');
 const getHover = inject('getHover');
@@ -86,19 +86,6 @@ const hitOptions = ref({
 const localHover = ref(getHover());
 const localPaper = ref(getPaper());
 
-watch(
-  () => getHover(),
-  (value) => {
-      localHover.value=value;
-  }
-);
-
-watch(
-  () => getPaper(),
-  (value) => {
-      localPaper.value=value;
-  }
-);
 
 
 const isDisabled = computed(() => {
@@ -225,8 +212,8 @@ const generateStringFromMetadata = () => {
   let string = "";
   
   ////////////// may not work here $refs ????
-  let metadata = hover.value.annotation.$refs.metadata.metadataList;
-  if (metadata == null || metadata.length === 0) {
+  let metadata = hover.value.annotation.$refs.metadata?.metadataList;
+  if ( metadata == null || metadata.length === 0) {
     string += "No Metadata \n";
   } else {
     string += "Metadata \n";
@@ -299,14 +286,19 @@ const hoverText = () => {
 
 const checkBbox = (paperObject) => {
   if (!paperObject) return false;
-  const annotationId = paperObject.data.annotationId;
+  let annotationId = paperObject.data.annotationId;
   
   if(!paperObject.data.categoryId) return false;
-  const categoryId = paperObject.data.categoryId;  
+  let categoryId = paperObject.data.categoryId;  
   
-  const category = getCategory(categoryId);
-  const annotation = category.getAnnotation(annotationId);
-  return annotation.annotation.isbbox;
+  
+  let category = getCategory(categoryId);
+  let annotation = category.getAnnotation(annotationId);
+  // let annotation = category.category.annotations[annotationId];
+  if (annotation == null) return false;
+  
+  return annotation.isbbox;
+  // return annotation.annotation.isbbox;
 };
 
 
@@ -326,7 +318,6 @@ const onMouseDown = (event) => {
     }
     return;
   }
- 
 
   const path = hitResult.item;
   let paperObject = null;
@@ -441,6 +432,7 @@ const onMouseMove = (event) => {
           }
         }
       }
+
       localHover.value.annotation = -1;
       localHover.value.category = -1;
 

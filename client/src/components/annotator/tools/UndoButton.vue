@@ -31,7 +31,7 @@ const execute = () => {
 };
 
 watch(
-  undoList,
+  undoList.value,
   () => {
     disabled.value = undoList.value.length === 0;
     /*

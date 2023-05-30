@@ -273,7 +273,7 @@ import UndoAction from "@/undo";
 // import TagsInput from "@/components/TagsInput";
 import MetaData from "@/components/MetaData";
 
-import { inject, watch, reactive, ref, computed, onMounted, onUnmounted, defineExpose,toRef } from 'vue';
+import { watchEffect, inject, watch, reactive, ref, computed, onMounted, onUnmounted, defineExpose,toRef } from 'vue';
 
 const addKeypointEdge = inject('addKeypointEdge');
 const removeKeypointEdge = inject('removeKeypointEdge');
@@ -285,7 +285,7 @@ const getShowAnnotations = inject('getShowAnnotations');
 
 const store = useStore();
 
-const emit = defineEmits(['set-color', 'keypoints-complete', 'click']);
+const emit = defineEmits(['set-color', 'keypoints-complete', 'keypoint-click', 'click', 'deleted']);
 
 /*
 let modal = ref(null);
@@ -366,6 +366,7 @@ const showAnnotations = ref(props.showAnnotations);
 
 const simplify = ref(props.simplify);
 const activeTool = ref(props.activeTool);
+const keypointEdges = ref(props.keypointEdges);
 const keypointColors = ref(props.keypointColors);
 const keypointLabels = ref(props.keypointLabels);
 const search = ref(props.search);
@@ -374,10 +375,14 @@ const scale = ref(props.scale);
 const hover = toRef(props, 'hover');
 const current = toRef(props, 'current');
 
+const annotation = toRef(props, 'annotation');
+const category = toRef(props, 'category');
+
+
 const index = ref(props.index);
 const opacity = ref(props.opacity);
-const annotation = ref(props.annotation);
-const category = ref(props.category);
+// const annotation = ref(props.annotation);
+// const category = ref(props.category);
 const isVisible = ref(true);
 const showKeypoints = ref(false);
 const color = ref(props.annotation.color);
@@ -454,11 +459,11 @@ const createCompoundPath = (json = null, segments = null) => {
   };
 
     keypoints.value = new Keypoints(
-      props.keypointEdges,
-      props.keypointLabels,
-      props.keypointColors,
+      keypointEdges.value,
+      keypointLabels.value,
+      keypointColors.value,
       {
-        annotationId: props.annotation.id,
+        annotationId: annotation.value.id,
         categoryName: category.value.name,
       }
     );
@@ -466,7 +471,7 @@ const createCompoundPath = (json = null, segments = null) => {
     keypoints.value.radius = scale.value * 6;
     keypoints.value.lineWidth = scale.value * 2;
     
-    let annotationKeypoints = props.annotation.keypoints;
+    let annotationKeypoints = annotation.value.keypoints;
     if (annotationKeypoints) {
       for (let i = 0; i < annotationKeypoints.length; i += 3) {
         let x = annotationKeypoints[i] - width / 2,
@@ -570,7 +575,7 @@ const onDeleteKeypointClick = (labelIndex) => {
 };
 
 const onMouseEnter = () => {
-      if (props.compoundPath == null) return;
+      if (compoundPath.value == null) return;
       compoundPath.value.selected = true;
 };
 
@@ -597,7 +602,7 @@ const createUndoAction = (actionName) => {
       pervious.value.push(copy);
 
       const action = new UndoAction({
-        name: `Annotation ${props.annotation.id}`,
+        name: `Annotation ${annotation.value.id}`,
         action: actionName,
         func: undoCompound,
         args: {},
@@ -667,7 +672,7 @@ const addKeypoint = (point, visibility, label) => {
       
       if (currentKeypoint.value) {
         let i1 = currentKeypoint.value.indexLabel;
-        let i2 = index.value;
+        let i2 = targetkeypoint.indexLabel;
         if (keypoints.value && i1 > 0 && i2 > 0) {
           let edge = [i1, i2];
           if (!keypoints.value.getLine(edge)) {
@@ -696,13 +701,13 @@ const addKeypoint = (point, visibility, label) => {
     },
     onMouseDrag: (event) => {
         const targetkeypoint = event.target.keypoint;
-        if (!["Select", "Keypoints"].includes(activeTool)) return;
+        if (!["Select", "Keypoints"].includes(activeTool.value)) return;
         keypoints.value.moveKeypoint(event.point, targetkeypoint);
     }
   });
 
   keypoints.value.addKeypoint(newkeypoint);
-  isEmpty.value = keypoints.value.isEmpty();
+  isEmpty.value = compoundPath.value.isEmpty() && keypoints.value.isEmpty();
   let unusedLabels = notUsedKeypointLabels.value;
   delete unusedLabels[String(label)];
   let unusedLabelKeys = Object.keys(unusedLabels);
@@ -953,7 +958,7 @@ const notUsedKeypointLabels = computed(() => {
 });
 
 watch(
-    () => props.activeTool,
+    () => activeTool.value,
     (tool) => {
       if (isCurrent.value) {
         session.value.tools.push(tool);
@@ -986,11 +991,6 @@ watch(
     }
 );
 
-watch(
-  () => props.activeTool,
-  (value) => {
-      activeTool.value = value;
-});
 
 watch(
     () => opacity.value, 
@@ -1030,7 +1030,6 @@ watch(
 watch(
     () => keypoints.value, 
     () => {
-    console.log('watch keypoints:', compoundPath.value.isEmpty(), keypoints.value.isEmpty());
     isEmpty.value = compoundPath.value.isEmpty() && keypoints.value.isEmpty();
 });
 
@@ -1039,7 +1038,8 @@ watch(
     () => {
     console.log('watch annotation value');
     initAnnotation();
-});
+},{ flush: 'post'});
+
 
 watch(
   () => isCurrent.value, 
@@ -1047,7 +1047,7 @@ watch(
   if (newcurrent) {
     // Start new session
     session.value.start = Date.now();
-    session.value.tools = [activeTool];
+    session.value.tools = [activeTool.value];
   } else {
     currentKeypoint.value = null;
   }
@@ -1061,7 +1061,7 @@ watch(
 });
 
 watch(
-  () => currentKeypoint, 
+  () => currentKeypoint.value, 
   (point, old) => {
   if (old) old.selected = false;
   if (point) point.selected = true;
@@ -1141,7 +1141,7 @@ defineExpose({annotation, keypoint, notUsedKeypointLabels,
                               color, metadata, isEmpty, name, uuid, pervious,
                               count, currentKeypoint, sessions, session, 
                               tagRecomputeCounter, addKeypoint,
-                              deleteKeypoint});
+                              deleteKeypoint, deleteAnnotation});
 
 </script>
 

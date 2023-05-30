@@ -384,10 +384,6 @@ watch(
       initCategory();
 });
 
-onMounted(() => {
-  initCategory();
-  isMounted.value = true;
-});
 
 const show = (index) => {
   if (search.value.length === 0) return true;
@@ -582,21 +578,23 @@ const setColor = () => {
       annotations.forEach((a) => a.setColor());
     } else {
       annotations.forEach((a) => {
-        a.compoundPath.fillColor = color.value;
-        a.keypoints.color = darkHSL.value;
-        a.keypoints.bringToFront();
+          if(a.compoundPath!=null) {
+                a.compoundPath.fillColor = color.value;
+                a.keypoints.color = darkHSL.value;
+                a.keypoints.bringToFront();
+            }
       });
     }
 };
 
-const annotationDeleted = (index) => {
-    if (selectedAnnotation.value >= index) {
+const annotationDeleted = (indexDeleted) => {
+    if (selectedAnnotation.value >= indexDeleted) {
       selectedAnnotation.value--;
     }
 
     let indices = {
       annotation: selectedAnnotation.value,
-      category: index,
+      category: index.value,
       keypoint: -1,
     };
     emit("click", indices);
@@ -607,11 +605,11 @@ const annotationDeleted = (index) => {
 // probably need to use something like $socket.on with vue3...
 const onAnnotation = (data) => {
       let action = data.action;
-      let annotation = data.annotation;
-      if (annotation.image_id != getImageId()) return;
-      if (annotation.category_id != props.category.id) return;
-      let found = props.category.annotations.findIndex(
-        (a) => a.id == annotation.id
+      let annot = data.annotation;
+      if (annot.image_id != getImageId()) return;
+      if (annot.category_id != category.value.id) return;
+      let found = category.value.annotations.findIndex(
+        (a) => a.id == annot.id
       );
 
       if (found == -1) {
@@ -623,8 +621,10 @@ const onAnnotation = (data) => {
 };
 
 onMounted( () => {
+    initCategory();
     // app.__vue_app__.config.globalProperties.$socket.on('annotation', onAnnotation);
      app.__vue_app__._instance.ctx.sockets.subscribe('annotation', onAnnotation);
+     isMounted.value = true;
 });
 
 onUnmounted(() => {

@@ -169,6 +169,7 @@ const typeaheadActivationThreshold = ref(props.typeaheadActivationThreshold);
 // const existingTags = ref(props.existingTags);
 const typeaheadMaxResults = ref(props.typeaheadMaxResults);
 const deleteOnBackspace = ref(props.deleteOnBackspace);
+const selectedCategories = ref(props.selectedCategories);
 const taginput = ref(null);
 // const validate = props.validate;
 
@@ -193,7 +194,7 @@ watch(
 );
 
 watch(
-  () => props.selectedCategories,
+  () => selectedCategories.value,
   () => {
     tagsFromValue();
   }

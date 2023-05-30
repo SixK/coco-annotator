@@ -149,12 +149,12 @@ const erase = () => {
 };
 
 const decreaseRadius = () => {
-      if (!isActive.value) return;
+      if (!state.isActive) return;
       eraser.value.pathOptions.radius -= 2;
 };
 
 const increaseRadius = () => {
-      if (!isActive.value) return;
+      if (!state.isActive) return;
       eraser.value.pathOptions.radius += 2;
 };
 

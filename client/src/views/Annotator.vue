@@ -70,7 +70,7 @@
       <div v-show="mode == 'segment'">
         <CopyAnnotationsButton
           :categories="categories"
-          :imageId="parseInt(image.id)"
+          :imageId="parseInt(props.identifier)"
           :next="image.next"
           :previous="image.previous"
         />
@@ -177,37 +177,37 @@
           class="tool-section"
           style="max-height: 30%; color: lightgray"
         >
-          <div v-if="$refs.bbox != null">
-            <BBoxPanel :bbox="$refs.bbox" />
+          <div v-if="bbox != null">
+            <BBoxPanel :bbox="bbox" />
           </div>
-          <div v-if="$refs.polygon != null">
-            <PolygonPanel :polygon="$refs.polygon" />
-          </div>
-
-          <div v-if="$refs.select != null">
-            <SelectPanel :select="$refs.select" />
+          <div v-if="polygon != null">
+            <PolygonPanel :polygon="polygon" />
           </div>
 
-          <div v-if="$refs.magicwand != null">
-            <MagicWandPanel :magicwand="$refs.magicwand" />
+          <div v-if="select != null">
+            <SelectPanel :select="select" />
           </div>
 
-          <div v-if="$refs.brush != null">
-            <BrushPanel :brush="$refs.brush" />
+          <div v-if="magicwand != null">
+            <MagicWandPanel :magicwand="magicwand" />
           </div>
 
-          <div v-if="$refs.eraser != null">
-            <EraserPanel :eraser="$refs.eraser" />
+          <div v-if="brush != null">
+            <BrushPanel :brush="brush" />
           </div>
 
-          <div v-if="$refs.keypoint != null">
+          <div v-if="eraser != null">
+            <EraserPanel :eraser="eraser" />
+          </div>
+
+          <div v-if="keypoint != null">
             <KeypointPanel
-              :keypoint="$refs.keypoint"
+              :keypoint="keypoint"
               :current-annotation="currentAnnotation"
             />
           </div>
-          <div v-if="$refs.dextr != null">
-            <DEXTRPanel :dextr="$refs.dextr" />
+          <div v-if="dextr != null">
+            <DEXTRPanel :dextr="dextr" />
           </div>
         </div>
       </div>
@@ -301,7 +301,6 @@ const router = useRouter();
 const route = useRoute();
 
 import useShortcuts from "@/composables/shortcuts";
-const {commands, undo, annotator} = useShortcuts();
 
 import useAxiosRequest from "@/composables/axiosRequest";
 const {axiosReqestError, axiosReqestSuccess} = useAxiosRequest();
@@ -309,7 +308,7 @@ const {axiosReqestError, axiosReqestSuccess} = useAxiosRequest();
 import { useStore } from 'vuex';
 const store = useStore();
 
-import { nextTick, markRaw, toRef, ref, computed, watch, inject, onMounted, provide, defineEmits, defineProps } from 'vue';
+import { toRaw, onUpdated, nextTick, markRaw, toRef, ref, computed, watch, inject, onMounted, provide, defineEmits, defineProps } from 'vue';
 
 const props = defineProps({
   identifier: {
@@ -318,7 +317,7 @@ const props = defineProps({
   }
 });
 
-
+const backup = ref(null);
 const refcanvas = ref(null);
 // bind all components
 const bbox = ref(null);
@@ -332,7 +331,7 @@ const keypoint  = ref(null);
 const category = ref(null);
 const annotation = ref(null);
 const filetitle = ref(null);
-
+const dextr = ref(null);
 
 
 const activeTool = ref("Select");
@@ -697,8 +696,11 @@ const onCategoryClick = (indices) => {
         let kpTool = keypoint.value;
         let selectTool = select.value;
         let cat = category.value[current.value.category];
+        
+        let annot = cat.$refs.annotation[current.value.annotation];
+        
         // let annotation = category.$refs.annotation[this.current.annotation];
-        let annot = cat.annotation[current.value.annotation];
+        // let annot = annotation.value[current.value.annotation];
         annot.showKeypoints = true;
         let keypoints = annot.keypoints;
         if (keypoints._labelled[indices.keypoint + 1]) {
@@ -729,18 +731,18 @@ const onKeypointsComplete = () => {
       activeTool.value = select.value;
       activeTool.value.click();
 };
-    
+
 const getCategory = (index) => {
       if (index == null) return null;
       if (index < 0) return null;
 
       // let cat = category.value;
-      let cat = category.value;
+      let cat = backup.value;
 
       if (cat == null) return null;
       if (cat.length < 1 || index >= cat.length) return null;
 
-      return category.value[index];
+      return backup.value[index];
 };
 
 const uniteCurrentAnnotation = (compound, simplify = true, undoable = true, isBBox = false) => {
@@ -772,6 +774,38 @@ const getCurrentAnnotation = () => {
 const setCursor = (newCursor) => {
       cursor.value = newCursor;
 };
+
+const currentCategory = computed(() => {
+  return getCategory(current.value.category);
+});
+
+const currentAnnotation = computed(() => {
+  if (currentCategory.value == null) {
+    return null;
+  }
+  return currentCategory.value.getAnnotation(current.value.annotation);
+});
+
+const currentKeypoint = computed(() => {
+  if (currentCategory.value == null) {
+    return null;
+  }
+  if (
+    currentAnnotation.value == null ||
+    !currentAnnotation.value.keypointLabels ||
+    currentAnnotation.value.keypointLabels.length === 0 ||
+    !currentAnnotation.value.showKeypoints
+  ) {
+    return null;
+  }
+  if (current.value.keypoint === -1) {
+    return null;
+  }
+  return {
+    label: [String(current.value.keypoint + 1)],
+    visibility: currentAnnotation.value.getKeypointVisibility(current.value.keypoint),
+  };
+});
 
 
 const incrementCategory = () => {
@@ -863,9 +897,9 @@ const decrementKeypoint = () => {
 };
 
 const moveUp = () => {
-  if (currentCategory.value !== null) {
-    if (currentAnnotation.value !== null) {
-      if (currentKeypoint.value !== null) {
+  if (currentCategory.value != null) {
+    if (currentAnnotation.value != null) {
+      if (currentKeypoint.value != null) {
         decrementKeypoint();
       } else if (
         currentAnnotation.value.showKeypoints &&
@@ -924,7 +958,9 @@ const stepIn = () => {
           currentAnnotation.value.showKeypoints = false;
           current.value.keypoint = -1;
         } else if (
+          currentAnnotation.value != null &&
           !currentAnnotation.value.showKeypoints &&
+          currentAnnotation.value.keypointLabels &&
           currentAnnotation.value.keypointLabels.length > 0
         ) {
           currentAnnotation.value.showKeypoints = true;
@@ -951,6 +987,51 @@ const stepOut = () => {
       currentCategory.value.isVisible = false;
     }
   }
+};
+
+const createAnnotation = () => {
+        if (currentCategory.value) {
+          currentCategory.value.createAnnotation();
+        }
+};
+
+const deleteAnnotation = () => {
+    if (currentAnnotation.value) {
+        let currentKeypoint = currentAnnotation.value.currentKeypoint;
+        if (currentKeypoint) {
+            currentAnnotation.value.keypoints.deleteKeypoint(
+                        currentKeypoint
+            );
+            currentAnnotation.value.tagRecomputeCounter++;
+            currentAnnotation.value.currentKeypoint = null;
+        } else {
+            currentAnnotation.value.deleteAnnotation();
+        }
+    }
+};
+
+const doShortcutAction = (action) => {
+    switch(action) {
+      case "cancelBbox":
+            bbox.value.deleteBbox();
+      break;
+      case "cancelPolygon":
+            polygon.value.deletePolygon();
+      break;
+      case "eraserIncreaseRadius":
+            eraser.value.increaseRadius();
+      break;
+      case "eraserDecreaseRadius":
+            eraser.value.decreaseRadius();
+      break;
+      case "brushIncreaseRadius":
+            brush.value.increaseRadius();
+      break;
+      case "brushDecreaseRadius":
+            brush.value.decreaseRadius();
+      break;
+      default:
+    }
 };
 
 const scrollElement = (element) => {
@@ -1065,36 +1146,6 @@ const currentKeypointLength = computed(() => {
   return currentAnnotation.value.annotation.keypoints.length;
 });
 
-const currentCategory = computed(() => {
-  return getCategory(current.value.category);
-});
-
-const currentAnnotation = computed(() => {
-  if (currentCategory.value == null) {
-    return null;
-  }
-  return currentCategory.value.getAnnotation(current.value.annotation);
-});
-
-const currentKeypoint = computed(() => {
-  if (currentCategory.value === null) {
-    return null;
-  }
-  if (
-    currentAnnotation.value === null ||
-    currentAnnotation.value.keypointLabels.length === 0 ||
-    !currentAnnotation.value.showKeypoints
-  ) {
-    return null;
-  }
-  if (current.value.keypoint === -1) {
-    return null;
-  }
-  return {
-    label: [String(current.value.keypoint + 1)],
-    visibility: currentAnnotation.value.getKeypointVisibility(current.value.keypoint),
-  };
-});
 
 const user = computed(() => {
   return store.getters['user/user'];
@@ -1209,13 +1260,25 @@ onBeforeRouteLeave((to, from, next) => {
     });
 });
 
+// Dirty Hack, we backup category since we loose them at some moments
+// Dunno if it's a Vue3 bug or something wrong in this Vue2 to Vue3 port
+// Hope someone will find how to do without this
+onUpdated(() => {
+    console.log('on updated');
+      if(category.value != null) {
+        console.log('update category:', category.value);
+
+        // backup.value = JSON.parse(JSON.stringify(toRaw(category)));
+        backup.value = {...category.value};
+        console.log('backup:', backup.value);
+    }
+});
 
 onMounted(() => {
     app.__vue_app__._instance.ctx.sockets.subscribe('annotating', onAnnotating);
 
     // can't call this command like this, but work without !??
     // paper = new paper.PaperScope();
-
     image.value.id = parseInt(props.identifier);
     image.value.url = "/api/image/" + image.value.id;
 
@@ -1258,6 +1321,12 @@ provide('fit', fit);
 provide('scrollElement', scrollElement);
 provide('selectLastEditorTool', selectLastEditorTool);
 provide('updateAnnotationCategory', updateAnnotationCategory);
+
+
+const {commands, undo, annotator} = useShortcuts(moveUp, moveDown, stepIn, stepOut, 
+                                                                                                      createAnnotation, deleteAnnotation,
+                                                                                                      setActiveTool, nextImage, previousImage,
+                                                                                                      fit, save, doShortcutAction);
 
 defineExpose({simplify, dataset, bbox, select, category});
 

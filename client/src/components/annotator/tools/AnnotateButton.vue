@@ -6,7 +6,7 @@
 </template>
 <script setup>
 import axios from "axios";
-import { ref, computed, watch, inject, onMounted, provide, defineEmits } from 'vue'
+import { ref, computed, watch, inject, onMounted, provide, defineEmits } from 'vue';
 import { useButton } from "@/composables/toolBar/button";
 import useAxiosRequest from "@/composables/axiosRequest";
 
@@ -44,7 +44,7 @@ const validUrl = computed(() => {
 });
 
 watch(
-      [() => loading.value, validUrl],
+      [() => loading.value, validUrl.value],
       ([loading, validUrl]) => {
         icon.value = loading ? 'fa-spinner fa-spin' : 'fa-cloud-download';
         disabled.value = !validUrl;

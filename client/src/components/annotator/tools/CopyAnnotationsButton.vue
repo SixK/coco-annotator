@@ -131,7 +131,6 @@ const resetUndo = () => store.commit('resetUndo');
 const injectedSave = inject('save')
 const injectedGetData = inject('getData')
 
-
 const props = defineProps({
   imageId: {
     type: Number,
@@ -174,7 +173,7 @@ const copyAnnotations =  () => {
   const scategories = selectedCategories.value.map((category) => parseInt(category))
 
   injectedSave(() => {
-    console.log('new proc:', process);
+
     addProcess(process);
     axios
       .post(`/api/image/copy/${fromId.value}/${imageId.value}/annotations`, {
