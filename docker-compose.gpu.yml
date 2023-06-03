@@ -6,6 +6,12 @@ networks:
 
 services:
   webserver:
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              capabilities: [gpu]
     image: annotator_webclient_gpu
     container_name: annotator_webclient
     restart: "no"
