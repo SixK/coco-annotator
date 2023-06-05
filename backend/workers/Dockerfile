@@ -2,6 +2,8 @@ FROM jsbroks/coco-annotator:python-env
 
 WORKDIR /workspace/
 
+RUN apt-get update && apt-get install -y libsm6 libxrender1 libfontconfig1
+
 # Install python package dependices
 COPY ./backend/ /workspace/
 
