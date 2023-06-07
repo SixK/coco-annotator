@@ -112,23 +112,22 @@ This version still has some bugs mainly introduced by vue3 new behaviour or vue3
 Most of libraries has been updated to more recent versions.
 
 To use SAM you will need a Cuda capable graphic card (or modify sources to use CPU. Untested). 
-First rebuild a new base image using the following command from build_gu.sh:  
+First rebuild a new base image using the following command from build_gpu.sh:  
 >    docker build -f ./backend/Dockerfile . -t jsbroks/coco-annotator:python-env
 
 Download SAM model :
 >    cd models;bash sam_model.sh
 
-Then rebuild webserver and workers images using docker-compose.dev.yml or docker-compose.gpu.yml docker-compose file :  
->    docker-compose -f ./docker-compose.dev.yml build webserver
->    docker-compose -f ./docker-compose.dev.yml build workers
+Then rebuild/build coco-annotator images using docker-compose.dev.yml or docker-compose.gpu.yml files :  
+>    docker-compose -f ./docker-compose.dev.yml build
 
 You can then run coco-annotator:  
 >    docker-compose -f ./docker-compose.dev.yml up
 
 Now select or create a new annotation.  
-Select the new SAM button in the left pannel (under DEXTR button).
-Click on the object you want to create mask.
-A new mask should be created.
+Select the new SAM button in the left pannel (under DEXTR button).  
+Click on the object you want to create mask.  
+A new mask should be created.  
 
 
 # Demo
