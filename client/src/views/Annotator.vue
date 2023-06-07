@@ -62,6 +62,12 @@
           :scale="image.scale"
           @setcursor="setCursor"
         />
+        <SamTool
+          ref="sam"
+          v-model="activeTool"
+          :scale="image.scale"
+          @setcursor="setCursor"
+        />
       </div>
       <hr>
 
@@ -209,6 +215,9 @@
           <div v-if="dextr != null">
             <DEXTRPanel :dextr="dextr" />
           </div>
+          <div v-if="sam != null">
+            <SamPanel :sam="sam" />
+          </div>
         </div>
       </div>
     </aside>
@@ -274,6 +283,7 @@ import EraserTool from "@/components/annotator/tools/EraserTool";
 import BrushTool from "@/components/annotator/tools/BrushTool";
 import KeypointTool from "@/components/annotator/tools/KeypointTool";
 import DEXTRTool from "@/components/annotator/tools/DEXTRTool";
+import SamTool from "@/components/annotator/tools/SamTool";
 
 import CopyAnnotationsButton from "@/components/annotator/tools/CopyAnnotationsButton";
 import CenterButton from "@/components/annotator/tools/CenterButton";
@@ -295,6 +305,7 @@ import BrushPanel from "@/components/annotator/panels/BrushPanel";
 import EraserPanel from "@/components/annotator/panels/EraserPanel";
 import KeypointPanel from "@/components/annotator/panels/KeypointPanel";
 import DEXTRPanel from "@/components/annotator/panels/DEXTRPanel";
+import SamPanel from "@/components/annotator/panels/SamPanel";
 
 import { onBeforeRouteLeave, useRouter, useRoute } from 'vue-router';
 const router = useRouter();
@@ -332,6 +343,8 @@ const category = ref(null);
 const annotation = ref(null);
 const filetitle = ref(null);
 const dextr = ref(null);
+const sam = ref(null);
+
 
 
 const activeTool = ref("Select");

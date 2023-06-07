@@ -1,6 +1,6 @@
 import datetime
 
-from flask_restplus import Namespace, Resource
+from flask_restx import Namespace, Resource
 from flask_login import login_required, current_user
 from flask import request
 

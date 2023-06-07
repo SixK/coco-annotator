@@ -86,6 +86,7 @@ Several annotation tools are currently available, with most applications as a de
 - User authentication system
 - Auto Annotate using MaskRCNN, MaskFormer (thank's to [rune-l](https://github.com/rune-l/coco-annotator) work)
  or Detectron2 models
+- Auto Annotate using SAM (Facebook Segment Anything)
 
 For examples and more information check out the [wiki](https://github.com/jsbroks/coco-annotator/wiki).
 
@@ -104,6 +105,31 @@ For examples and more information check out the [wiki](https://github.com/jsbrok
 
 At this state, source code tested only using docker-compose.dev.yml.
 Lot of eslint errors appears, but application is functionnal
+
+# Using SAM (Segment Anything)
+This coco annotator version is a vue3 port from original jsbrok coco-annotator based on vue2.
+This version still has some bugs mainly introduced by vue3 new behaviour or vue3 conversion, so use it at your own risks.
+Most of libraries has been updated to more recent versions.
+
+To use SAM you will need a Cuda capable graphic card (or modify sources to use CPU. Untested). 
+First rebuild a new base image using the following command from build_gu.sh:  
+>    docker build -f ./backend/Dockerfile . -t jsbroks/coco-annotator:python-env
+
+Download SAM model :
+>    cd models;bash sam_model.sh
+
+Then rebuild webserver and workers images using docker-compose.dev.yml or docker-compose.gpu.yml docker-compose file :  
+>    docker-compose -f ./docker-compose.dev.yml build webserver
+>    docker-compose -f ./docker-compose.dev.yml build workers
+
+You can then run coco-annotator:  
+>    docker-compose -f ./docker-compose.dev.yml up
+
+Now select or create a new annotation.  
+Select the new SAM button in the left pannel (under DEXTR button).
+Click on the object you want to create mask.
+A new mask should be created.
+
 
 # Demo
 

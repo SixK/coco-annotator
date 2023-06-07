@@ -1,5 +1,5 @@
 from flask import send_file
-from flask_restplus import Namespace, Resource, reqparse
+from flask_restx import Namespace, Resource, reqparse
 from flask_login import login_required, current_user
 
 import datetime

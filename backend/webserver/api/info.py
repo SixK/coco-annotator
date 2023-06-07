@@ -1,4 +1,4 @@
-from flask_restplus import Namespace, Resource
+from flask_restx import Namespace, Resource
 
 from workers.tasks import long_task
 from config import Config

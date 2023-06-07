@@ -1,4 +1,4 @@
-from flask_restplus import Namespace, Resource
+from flask_restx import Namespace, Resource
 from flask_login import login_required
 
 from ..util import query_util

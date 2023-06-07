@@ -1,7 +1,6 @@
 import os
 import subprocess
-import json
-from typing import Optional
+
 
 def get_tag():
     result = subprocess.run(["git", "describe", "--abbrev=0", "--tags"], stdout=subprocess.PIPE)
@@ -14,20 +13,6 @@ def _get_bool(key, default_value):
             return True
         return False
     return default_value
-
-def mask_classes(code_json: str='/models/code_config.json') -> Optional[str]:
-
-    base_class = "BG"
-
-    if not os.path.exists(code_json):
-        return base_class
-
-    with open(code_json, 'r') as f:
-        class_dict = json.load(f)
-
-    class_list = [class_name.replace(',', '') for class_name in class_dict.keys()]
-
-    return base_class + ',' + ','.join(class_list)
 
 class Config:
 
@@ -79,8 +64,12 @@ class Config:
     ALLOW_REGISTRATION = _get_bool('ALLOW_REGISTRATION', True)
 
     ### Models
-    MASK_RCNN_FILE = os.getenv("MASK_RCNN_FILE", "/models/mask_rcnn_ade20k_0080.h5")
-    MASK_RCNN_CLASSES = os.getenv("MASK_RCNN_CLASSES", mask_classes())
+    SAM_MODEL_FILE = os.getenv("SAM_MODEL_FILE", "")
+    SAM_MODEL_TYPE = os.getenv("SAM_MODEL_TYPE", "")
+    DEVICE = os.getenv("DEVICE", "cuda")
+    
+    MASK_RCNN_FILE = os.getenv("MASK_RCNN_FILE", "")
+    MASK_RCNN_CLASSES = os.getenv("MASK_RCNN_CLASSES", "BG")
 
     DEXTR_FILE = os.getenv("DEXTR_FILE", "/models/dextr_pascal-sbd.h5")
 

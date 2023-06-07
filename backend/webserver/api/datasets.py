@@ -1,5 +1,5 @@
 from flask import request
-from flask_restplus import Namespace, Resource, reqparse, inputs
+from flask_restx import Namespace, Resource, reqparse, inputs
 from flask_login import login_required, current_user
 from werkzeug.datastructures import FileStorage
 from mongoengine.errors import NotUniqueError

@@ -1,4 +1,4 @@
-from flask_restplus import Namespace, Resource, reqparse
+from flask_restx import Namespace, Resource, reqparse
 from werkzeug.datastructures import FileStorage
 from imantics import Mask
 from flask_login import login_required
@@ -6,11 +6,21 @@ from config import Config
 from PIL import Image
 from database import ImageModel
 
+
+import json
 import os
 import logging
 
+from flask import Flask, request, jsonify
+import numpy as np
+
 logger = logging.getLogger('gunicorn.error')
 
+SAM_LOADED = os.path.isfile(Config.SAM_MODEL_FILE)
+if SAM_LOADED:
+    from ..util.sam import model as sam
+else:
+    logger.warning("SAM model is disabled.")
 
 MASKRCNN_LOADED = os.path.isfile(Config.MASK_RCNN_FILE)
 logger.info('MaskRCNN path: {}'.format(Config.MASK_RCNN_FILE))
@@ -56,6 +66,9 @@ dextr_args.add_argument('points', location='json', type=list, required=True)
 dextr_args.add_argument('padding', location='json', type=int, default=50)
 dextr_args.add_argument('threshold', location='json', type=int, default=80)
 
+sam_args = reqparse.RequestParser()
+sam_args.add_argument('data', type=str, required=True)
+sam_args.add_argument('image', location='files', type=FileStorage, required=True, help='Image')
 
 @api.route('/dextr/<int:image_id>')
 class MaskRCNN(Resource):
@@ -83,7 +96,7 @@ class MaskRCNN(Resource):
         image = Image.open(image_model.path)
         result = dextr.predict_mask(image, points)
 
-        return { "segmentation": Mask(result).polygons().segmentation }
+        return { "segmentaiton": Mask(result).polygons().segmentation }
 
 
 @api.route('/maskrcnn')
@@ -145,3 +158,29 @@ class MaskRCNN(Resource):
         im = Image.open(args.get('image'))
         coco = maskcoco.detect(im)
         return {"coco": coco}
+
+@api.route('/sam')
+class MaskRCNN(Resource):
+
+    @login_required
+    @api.expect(image_upload)
+    def post(self):
+
+        """ COCO data test """
+        if not SAM_LOADED:
+             return {"disabled": True, "message": "SAM is disabled"}, 400
+
+        args = sam_args.parse_args()
+        # logger.warning("args: {}".format(args))
+        data = json.loads(args['data'])
+        points=data['points'][0]
+
+        img_file = args['image']
+        im = Image.open(img_file.stream).convert('RGB')
+        im = np.asarray(im)
+        
+        logger.warning("points: {}".format(points))
+        sam.setImage(im)
+        sam.calcMasks(np.array([points]), np.array([1]))
+        sam.getSegmentation()
+        return { "segmentaiton": sam.getSegmentation() }
