@@ -73,8 +73,10 @@ class Config:
 
     DEXTR_FILE = os.getenv("DEXTR_FILE", "/models/dextr_pascal-sbd.h5")
 
-    DETECTRON2_FILE = os.getenv("DETECTRON2_FILE", "/models/ade20k-150/maskformer_R50_bs16_160k.yaml")
-    DETECTRON2_WEIGHTS = os.getenv("DETECTRON2_WEIGHTS", "https://dl.fbaipublicfiles.com/maskformer/semantic-ade20k/maskformer_R50_bs16_160k/model_final_d8dbeb.pkl")
+    DETECTRON2_FILE = os.getenv("DETECTRON2_FILE", "")
+    DETECTRON2_WEIGHTS = os.getenv("DETECTRON2_WEIGHTS", "")
+    # DETECTRON2_FILE = os.getenv("DETECTRON2_FILE", "/models/ade20k-150/maskformer_R50_bs16_160k.yaml")
+    # DETECTRON2_WEIGHTS = os.getenv("DETECTRON2_WEIGHTS", "https://dl.fbaipublicfiles.com/maskformer/semantic-ade20k/maskformer_R50_bs16_160k/model_final_d8dbeb.pkl")
     # MASK_FORMER_FILE = os.getenv("MASK_FORMER_FILE", "/models/ade20k-150/maskformer_R50_bs16_160k.yaml")
     # MASK_FORMER_WEIGHTS = os.getenv("MASK_FORMER_WEIGHTS", "https://dl.fbaipublicfiles.com/maskformer/semantic-ade20k/maskformer_R50_bs16_160k/model_final_d8dbeb.pkl")
     MASK_FORMER_FILE = os.getenv("MASK_FORMER_FILE", "")

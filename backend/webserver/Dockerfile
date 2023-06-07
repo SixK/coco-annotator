@@ -19,6 +19,8 @@ RUN git clone --depth=1 https://github.com/iamlab-cmu/DEXTR-KerasTensorflow.git 
             rm -Rf /tmp/dextr2
 
 RUN pip install segment-anything
+RUN python -m pip install detectron2 -f \
+  https://dl.fbaipublicfiles.com/detectron2/wheels/cu113/torch1.10/index.html
 
 ENV FLASK_ENV=development
 ENV DEBUG=true
