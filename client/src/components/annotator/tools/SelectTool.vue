@@ -412,7 +412,7 @@ const onMouseMove = (event) => {
       initPoint.value = event.point;
       const hitResult = localPaper.value.project.hitTest(
         event.point,
-        hitOptions
+        hitOptions.value
       );
 
       if (hitResult) {
