@@ -58,7 +58,7 @@
       <i
         class="fa fa-trash-o annotation-icon"
         style="float: right"
-        @click="deleteAnnotation"
+        @click="deleteAnnotation(index)"
       />
     </li>
 
@@ -240,7 +240,7 @@
               type="button"
               class="btn btn-danger"
               data-bs-dismiss="modal"
-              @click="deleteAnnotation"
+              @click="deleteAnnotation(index)"
             >
               Delete
             </button>
@@ -507,20 +507,22 @@ const createCompoundPath = (json = null, segments = null) => {
     };
 };
 
-const deleteAnnotation = () => {
+const deleteAnnotation = (id) => {
   axios.delete("/api/annotation/" + annotation.value.id).then(() => {
     // workaround to try to emit action to socket
     app.__vue_app__.config.globalProperties.$socket.emit("annotation", {
       action: "delete",
       annotation: annotation.value,
     });
-    deleteAnnot();
-    emit("deleted", index.value);
+    deleteAnnot(id);
+    emit("deleted", id);
   });
 };
 
-const deleteAnnot = () => {
-  category.value.annotations.splice(index.value, 1);
+const deleteAnnot = (id) => {
+  console.log('deleting id:', id);
+  // we delete annotation on category component to avoid index desynchro between category.annotations and 
+  // category.value.annotations.splice(id, 1);
   if (compoundPath.value != null) compoundPath.value.remove();
   if (keypoints.value != null) {
     keypoints.value._keypoints.forEach((keypoint) => {
@@ -605,7 +607,7 @@ const createUndoAction = (actionName) => {
 
 const simplifyPath = () => {
       if (compoundPath.value != null && compoundPath.value.isEmpty() && keypoints.value.isEmpty()) {
-        deleteAnnotation();
+        deleteAnnotation(index.value);
         return;
       }
 
