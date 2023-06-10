@@ -1101,7 +1101,7 @@ const onAnnotation = (data) => {
     createCompoundPath(localannotation.paper_object, localannotation.segmentation);
   }
   if (data.action === 'delete') {
-    deleteAnnotation();
+    deleteAnnotation(index.value);
   }
 };
 
