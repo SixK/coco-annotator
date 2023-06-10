@@ -1048,10 +1048,12 @@ const doShortcutAction = (action) => {
 };
 
 const scrollElement = (element) => {
-  element.scrollIntoView({
-    behavior: "smooth",
-    block: "center"
-  });
+  if (element != null) {
+        element.scrollIntoView({
+            behavior: "smooth",
+            block: "center"
+        });
+  }
 };
 
 const showAll = () => {

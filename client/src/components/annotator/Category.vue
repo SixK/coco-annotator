@@ -94,7 +94,7 @@
         :all-categories="getCategoriesList"
         :is-hover="isHover"
         @keypoints-complete="$emit('keypoints-complete')"
-        @deleted="annotationDeleted"
+        @deleted="annotationDeleted(listIndex)"
         @set-color="setColor"
       />
     </ul>
@@ -597,6 +597,9 @@ const annotationDeleted = (indexDeleted) => {
       category: index.value,
       keypoint: -1,
     };
+    // We delete here instead of deleting in annotation component
+    // to avoid index desynchro - dunno how to handle better in vue3 ?
+    category.value.annotations.splice(indexDeleted, 1);
     emit("click", indices);
     if (category.value.annotations.length === 0) isVisible.value = false;
 };
