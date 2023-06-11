@@ -83,7 +83,7 @@
         :opacity="opacity"
         :index="listIndex"
         :keypoint-edges="keypoint.edges"
-        ref="annotation"
+        :ref="setAnnotationRef"
         :keypoint-labels="keypoint.labels"
         :keypoint-colors="keypoint.colors"
         :hover="hover.annotation"
@@ -191,7 +191,7 @@ import KeypointsDefinition from "@/components/KeypointsDefinition";
 
 import { nextTick } from 'vue';
 
-import { provide, inject, watch, reactive, ref, computed, onMounted, onUnmounted, defineExpose,toRef } from 'vue';
+import { provide, inject, watch, reactive, ref, computed, onMounted, onUnmounted, onBeforeUpdate, defineExpose,toRef } from 'vue';
 
 const props = defineProps({
     category: {
@@ -267,8 +267,16 @@ const current = ref(props.current);
 const allCategories = ref(props.allCategories);
 const categorysearch = ref(props.categorysearch);
 
-const annotation = ref(null);
+// const annotation = ref(null);
 const keypoints = ref(null);
+
+
+const annotation = ref([]);
+const setAnnotationRef = el => {
+      if (el) {
+        annotation.value.push(el)
+      }
+}
 
 const getShowAnnotations  = () => {
     return showAnnotations.value;
@@ -622,6 +630,11 @@ const onAnnotation = (data) => {
         }
       }
 };
+
+
+onBeforeUpdate(() => {
+      annotation.value = []
+});
 
 onMounted( () => {
     initCategory();
