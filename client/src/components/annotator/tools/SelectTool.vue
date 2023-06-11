@@ -275,8 +275,7 @@ const hoverText = () => {
 
       hover.value.shift =
         (hover.value.text.bounds.bottomRight.x -
-          hover.value.text.bounds.bottomLeft.x) /
-        2;
+          hover.value.text.bounds.bottomLeft.x) /  2;
       hover.value.box.position = position.add(hover.value.shift, 0);
       hover.value.text.position = position.add(hover.value.shift, 0);
 
@@ -290,7 +289,6 @@ const checkBbox = (paperObject) => {
   
   if(!paperObject.data.categoryId) return false;
   let categoryId = paperObject.data.categoryId;  
-  
   
   let category = getCategory(categoryId);
   let annotation = category.getAnnotation(annotationId);

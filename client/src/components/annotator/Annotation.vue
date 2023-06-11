@@ -369,12 +369,12 @@ const current = toRef(props, 'current');
 
 const annotation = toRef(props, 'annotation');
 const category = toRef(props, 'category');
+// const category = ref(props.category);
 
 
 const index = ref(props.index);
 const opacity = ref(props.opacity);
 // const annotation = ref(props.annotation);
-// const category = ref(props.category);
 const isVisible = ref(true);
 const showKeypoints = ref(false);
 const color = ref(props.annotation.color);

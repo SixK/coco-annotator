@@ -147,7 +147,7 @@
             :category="category"
             :all-categories="categories"
             :opacity="shapeOpacity"
-            ref="category"
+            :ref="setCategoryRef"
             :hover="hover"
             :index="index"
             :current="current"
@@ -319,7 +319,7 @@ const {axiosReqestError, axiosReqestSuccess} = useAxiosRequest();
 import { useStore } from 'vuex';
 const store = useStore();
 
-import { toRaw, onUpdated, nextTick, markRaw, toRef, ref, computed, watch, inject, onMounted, provide, defineEmits, defineProps } from 'vue';
+import { toRaw, onBeforeUpdate, onUpdated, nextTick, markRaw, toRef, ref, computed, watch, inject, onMounted, provide, defineEmits, defineProps } from 'vue';
 
 const props = defineProps({
   identifier: {
@@ -339,7 +339,7 @@ const magicwand = ref(null);
 const select = ref(null);
 const settings = ref(null);
 const keypoint  = ref(null);
-const category = ref(null);
+// const category = ref(null);
 const annotation = ref(null);
 const filetitle = ref(null);
 const dextr = ref(null);
@@ -404,6 +404,13 @@ const annotating = ref([]);
 const pinching = ref({
       old_zoom: 1
 });
+
+const category = ref([])
+const setCategoryRef = el => {
+      if (el) {
+        category.value.push(el)
+      }
+}
 
 
 // should try toRef on activeTool, this function could probably be removed 
@@ -749,13 +756,15 @@ const getCategory = (index) => {
       if (index == null) return null;
       if (index < 0) return null;
 
-      // let cat = category.value;
-      let cat = backup.value;
+      let cat = category.value;
+      
+      // let cat = backup.value;
 
       if (cat == null) return null;
       if (cat.length < 1 || index >= cat.length) return null;
 
-      return backup.value[index];
+      return cat[index];
+      // return backup.value[index];
 };
 
 const uniteCurrentAnnotation = (compound, simplify = true, undoable = true, isBBox = false) => {
@@ -1307,6 +1316,13 @@ onMounted(() => {
     app.__vue_app__.config.globalProperties.$socket.emit("annotating", {image_id: image.value.id, active: true });
 
 });
+
+
+
+onBeforeUpdate(() => {
+      category.value = []
+});
+
 
 // Shoudl try to group all methods in a single provide like this :
 // provide('annotator', { setCursor, updateCurrentAnnotation, ...,updateAnnotationCategory});
