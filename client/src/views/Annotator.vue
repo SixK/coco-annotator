@@ -1284,19 +1284,6 @@ onBeforeRouteLeave((to, from, next) => {
     });
 });
 
-// Dirty Hack, we backup category since we loose them at some moments
-// Dunno if it's a Vue3 bug or something wrong in this Vue2 to Vue3 port
-// Hope someone will find how to do without this
-onUpdated(() => {
-    console.log('on updated');
-      if(category.value != null) {
-        console.log('update category:', category.value);
-
-        // backup.value = JSON.parse(JSON.stringify(toRaw(category)));
-        backup.value = {...category.value};
-        console.log('backup:', backup.value);
-    }
-});
 
 onMounted(() => {
     app.__vue_app__._instance.ctx.sockets.subscribe('annotating', onAnnotating);
@@ -1316,7 +1303,6 @@ onMounted(() => {
     app.__vue_app__.config.globalProperties.$socket.emit("annotating", {image_id: image.value.id, active: true });
 
 });
-
 
 
 onBeforeUpdate(() => {
