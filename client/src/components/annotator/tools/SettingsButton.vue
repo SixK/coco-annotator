@@ -144,10 +144,7 @@ const setPreferences = (preferences) => {
     commands.value.forEach((shortcut) => {
         preferences.shortcuts.forEach((pref) => {
             if (shortcut.name == pref.name) {
-                shortcut.default = [];
-                pref.keys.forEach((k) => {
-                    shortcut.default.push(k)
-                });
+                shortcut.default = pref.keys;
             }
         });
     });
