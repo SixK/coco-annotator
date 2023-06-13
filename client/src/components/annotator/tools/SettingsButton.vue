@@ -145,7 +145,9 @@ const setPreferences = (preferences) => {
         preferences.shortcuts.forEach((pref) => {
             if (shortcut.name == pref.name) {
                 shortcut.default = [];
-                shortcut.default.push(pref.keys[0])
+                pref.keys.forEach((k) => {
+                    shortcut.default.push(k)
+                });
             }
         });
     });
