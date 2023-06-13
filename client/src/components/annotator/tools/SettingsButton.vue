@@ -114,7 +114,7 @@
 <script setup>
 import MetaData from "@/components/MetaData.vue";
 import CustomShortcut from "@/components/annotator/CustomShortcut.vue";
-import { ref, reactive } from 'vue';
+import { toRef, ref, reactive } from 'vue';
 
 const props= defineProps({
     metadata: {
@@ -130,6 +130,8 @@ const props= defineProps({
 const metadata = ref(props.metadata);
 const name = ref("Image Settings");
 const shortcuts = ref(null); 
+// const commands = ref(props.commands);
+const commands = toRef(props, 'commands');
 
 
 const exportMetadata = (() => {
@@ -137,7 +139,19 @@ const exportMetadata = (() => {
       // return {};
       return metadata.value.exportMetadata();
     });
-    
+
+const setPreferences = (preferences) => {   
+    commands.value.forEach((shortcut) => {
+        preferences.shortcuts.forEach((pref) => {
+            if (shortcut.name == pref.name) {
+                shortcut.default = [];
+                shortcut.default.push(pref.keys[0])
+            }
+        });
+    });
+    commands.value = {...commands.value};
+}
+
 const exportSettings = (() => {
       let data = { shortcuts: [] };
       
@@ -148,7 +162,7 @@ const exportSettings = (() => {
       return data;
 });
 
-defineExpose({exportSettings, exportMetadata});
+defineExpose({exportSettings, exportMetadata, setPreferences});
 
 </script>
 

@@ -642,6 +642,8 @@ const setPreferences = (preferences) => {
       magicwand.value.setPreferences(preferences.magicwand || {});
       brush.value.setPreferences(preferences.brush || {});
       eraser.value.setPreferences(preferences.eraser || {});
+      
+      settings.value.setPreferences(preferences.settings || {});
 };
 
 const updateCurrentAnnotation = (value) => {
