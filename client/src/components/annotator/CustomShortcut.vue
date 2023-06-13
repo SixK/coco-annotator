@@ -35,7 +35,7 @@
 </template>
 
 <script setup>
-import { reactive, ref, computed, onMounted, onUnmounted, defineExpose,toRef } from 'vue';
+import { reactive, ref, computed, onMounted, onUnmounted, defineExpose,toRef, watch } from 'vue';
 import { useRoute } from 'vue-router';
 
 const route = useRoute();
@@ -55,6 +55,17 @@ const toggleKey = computed(() => {
   return keysDown.value.toString().replace(/,/g, '+');
 });
 
+const compkeys = computed (() => {
+    return props.shortcut.default;
+});
+
+
+watch(
+    () => compkeys.value,
+    () => {
+        keys.value =  compkeys.value;
+    }
+);
 
 const myexport = (() => {
       console.log('in myexport');
