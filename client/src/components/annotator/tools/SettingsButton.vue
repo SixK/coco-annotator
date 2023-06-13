@@ -151,7 +151,6 @@ const setPreferences = (preferences) => {
             }
         });
     });
-    commands.value = {...commands.value};
 }
 
 const exportSettings = (() => {
