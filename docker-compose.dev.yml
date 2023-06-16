@@ -46,7 +46,8 @@ services:
       - FLASK_ENV=development
       - DEBUG=true
       - DEVICE=cuda
-      - SAM_MODEL_FILE=/models/sam_vit_b_01ec64.pth
+      # - SAM_MODEL_FILE=/models/sam_vit_b_01ec64.pth
+      - SAM_MODEL_FILE=/models/sam_hq_vit_b.pth
       - SAM_MODEL_TYPE=vit_b
       - MASK_RCNN_FILE=/models/mask_rcnn_coco.h5
       # # Default coco classes (order matters)

@@ -106,7 +106,7 @@ For examples and more information check out the [wiki](https://github.com/jsbrok
 At this state, source code tested only using docker-compose.dev.yml.
 Lot of eslint errors appears, but application is functionnal
 
-# Using SAM (Segment Anything)
+# Using SAM (Segment Anything) - Deprecated to SAM-HQ
 This coco annotator version is a vue3 port from original jsbrok coco-annotator based on vue2.
 This version still has some bugs mainly introduced by vue3 new behaviour or vue3 conversion, so use it at your own risks.
 Most of libraries has been updated to more recent versions.
@@ -128,6 +128,35 @@ Now select or create a new annotation.
 Select the new SAM button in the left pannel (under DEXTR button).  
 Click on the object you want to create mask.  
 A new mask should be created.  
+
+# Using SAM-HQ (Segment Anything in High Quality)
+SAM-HQ is a drop in place of SAM with more precision:
+https://github.com/SysCV/sam-hq
+
+Simply download SAM-HQ model:
+>    cd models;bash sam_hq_model.sh
+
+Rebuild docker images :
+>    docker-compose -f ./docker-compose.dev.yml build
+
+You can then run coco-annotator:
+>    docker-compose -f ./docker-compose.dev.yml up
+
+SAM-HQ is now default, but you still can use original SAM modifying backend/webserver/Dockerfile  
+to comment line with sam-hq and uncomment line before installing segment-anything.
+`
+# RUN pip install segment-anything
+RUN git clone https://github.com/SysCV/sam-hq.git && cd sam-hq && pip install -e .
+`
+
+And modify docker-compose.dev.yml:
+
+`
+      - SAM_MODEL_FILE=/models/sam_vit_b_01ec64.pth
+      # - SAM_MODEL_FILE=/models/sam_hq_vit_b.pth
+`
+
+Download SAM model (if not already done) rebuild docker images and restart coco-annotator using docker-compose. 
 
 
 # Demo

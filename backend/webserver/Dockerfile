@@ -18,7 +18,9 @@ RUN git clone --depth=1 https://github.com/iamlab-cmu/DEXTR-KerasTensorflow.git 
             cp networks/classifiers.py /opt/conda/lib/python3.8/site-packages/dextr-0.0.1-py3.8.egg/dextr/ && \            
             rm -Rf /tmp/dextr2
 
-RUN pip install segment-anything
+# RUN pip install segment-anything
+RUN git clone https://github.com/SysCV/sam-hq.git && cd sam-hq && pip install -e .
+
 RUN python -m pip install detectron2 -f \
   https://dl.fbaipublicfiles.com/detectron2/wheels/cu113/torch1.10/index.html
 
