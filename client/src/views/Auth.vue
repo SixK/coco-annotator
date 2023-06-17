@@ -207,7 +207,7 @@
 <script setup>
 import { useStore } from 'vuex';
 import useAxiosRequest from "@/composables/axiosRequest";
-import { ref, computed, watch, inject, onMounted, provide, defineEmits, defineProps } from 'vue';
+import { ref, computed, watch, inject, onMounted, provide } from 'vue';
 import { useRouter } from 'vue-router';
 import {useLoading} from 'vue-loading-overlay'
 

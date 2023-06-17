@@ -271,7 +271,7 @@ import UndoAction from "@/undo";
 // import TagsInput from "@/components/TagsInput";
 import MetaData from "@/components/MetaData";
 
-import { watchEffect, inject, watch, reactive, ref, computed, onMounted, onUnmounted, defineExpose,toRef } from 'vue';
+import { watchEffect, inject, watch, reactive, ref, computed, onMounted, onUnmounted, toRef } from 'vue';
 
 const addKeypointEdge = inject('addKeypointEdge');
 const removeKeypointEdge = inject('removeKeypointEdge');

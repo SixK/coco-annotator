@@ -66,7 +66,7 @@
 
 <script setup>
 import Tasks from "@/models/tasks";
-import { toRef, ref, computed, watch, inject, onMounted, onUnmounted, defineEmits, defineProps } from 'vue';
+import { toRef, ref, computed, watch, inject, onMounted, onUnmounted } from 'vue';
 
 const tasksUpdatePage = inject('tasksUpdatePage');
 

@@ -6,7 +6,7 @@
 </template>
 <script setup>
 import axios from "axios";
-import { ref, computed, watch, inject, onMounted, provide, defineEmits } from 'vue'
+import { ref, inject } from 'vue'
 import { useButton } from "@/composables/toolBar/button";
 
 const { iconColor, click } = useButton();

@@ -17,7 +17,7 @@
   </div>
 </template>
 <script setup>
-import { defineProps, ref, inject, watchEffect, computed } from 'vue';
+import { ref, inject, watchEffect, computed } from 'vue';
 import PanelText from '@/components/PanelText';
 import PanelInputDropdown from '@/components/PanelInputDropdown';
 import { VisibilityOptions } from '@/libs/keypoints';

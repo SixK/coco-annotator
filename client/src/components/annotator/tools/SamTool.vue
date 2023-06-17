@@ -8,7 +8,7 @@
 import paper from "paper";
 import { useTools } from "@/composables/toolBar/tools";
 import axios from "axios";
-import { ref, computed, watch, inject, onMounted, provide, defineEmits, defineProps } from 'vue'
+import { ref, computed, watch, inject, onMounted, provide } from 'vue'
 
 const getCurrentAnnotation = inject('getCurrentAnnotation');
 const getImageRaster = inject('getImageRaster');

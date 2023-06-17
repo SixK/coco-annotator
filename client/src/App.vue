@@ -9,7 +9,7 @@
 import VLazyImage from "v-lazy-image";
 import NavBar from "@/components/NavBar";
 
-import { nextTick, markRaw, toRef, ref, computed, watch, inject, onMounted, provide, defineEmits, defineProps } from 'vue';
+import { computed, watch, onMounted } from 'vue';
 
 import {useToast} from 'vue-toast-notification';
 const $toast = useToast();

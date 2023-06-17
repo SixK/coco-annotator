@@ -218,7 +218,7 @@ import CategoryCard from "@/components/cards/CategoryCard";
 import Pagination from "@/components/Pagination";
 import KeypointsDefinition from "@/components/KeypointsDefinition";
 
-import { ref, computed, watch, inject, onMounted, provide, defineEmits, defineProps } from 'vue';
+import { ref, computed, watch, inject, onMounted, provide } from 'vue';
 
 import useAxiosRequest from "@/composables/axiosRequest";
 const {axiosReqestError, axiosReqestSuccess} = useAxiosRequest();

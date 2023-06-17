@@ -70,7 +70,7 @@
 
 <script setup>
 
-import { ref, watchEffect, onMounted, defineExpose } from 'vue';
+import { ref, watchEffect, onMounted } from 'vue';
 
 const props = defineProps({
   metadata: {

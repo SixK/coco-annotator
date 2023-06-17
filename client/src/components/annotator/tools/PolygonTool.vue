@@ -12,7 +12,7 @@ import { invertColor } from "@/libs/colors";
 // import { mapMutations } from "vuex";
 import { useStore } from 'vuex';
 import { useTools } from "@/composables/toolBar/tools";
-import { ref, computed, watch, inject, onMounted, provide, defineEmits, defineProps } from 'vue'
+import { ref, computed, watch, inject, onMounted, provide } from 'vue'
 
 const uniteCurrentAnnotation = inject('uniteCurrentAnnotation');
 const save = inject('save');

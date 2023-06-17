@@ -57,7 +57,7 @@
 </template>
 
 <script setup>
-import { computed, defineExpose } from "vue";
+import { computed } from "vue";
 import { useStore } from "vuex";
 import { useRouter, useRoute } from 'vue-router';
 

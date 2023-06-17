@@ -21,7 +21,7 @@
 
 <script setup>
 import PanelInputNumber from "@/components/PanelInputNumber";
-import { defineProps, ref, inject, watchEffect } from 'vue';
+import { ref, inject, watchEffect } from 'vue';
 
 const props = defineProps({
   dextr: {
