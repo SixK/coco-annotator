@@ -11,7 +11,7 @@
   </div>
 </template>
 <script setup>
-import { ref, watch, defineProps, defineEmits, onMounted } from 'vue';
+import { ref, watch, onMounted } from 'vue';
 const props = defineProps({
   name: {
     type: String,

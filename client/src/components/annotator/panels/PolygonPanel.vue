@@ -49,7 +49,7 @@ import PanelButton from "@/components/PanelButton";
 import PanelToggle from "@/components/PanelToggle";
 import PanelInputString from "@/components/PanelInputString";
 import PanelInputNumber from "@/components/PanelInputNumber";
-import { defineProps, ref, inject, watchEffect } from 'vue';
+import { ref, inject, watchEffect } from 'vue';
 
 const props = defineProps({
   polygon: {

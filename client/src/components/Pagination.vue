@@ -30,7 +30,7 @@
 </template>
 
 <script setup>
-import { defineProps, defineEmits, ref, computed, watch, onUnmounted, onMounted} from 'vue';
+import { ref, computed, watch, onUnmounted, onMounted} from 'vue';
 
 const props = defineProps({
   pages: {

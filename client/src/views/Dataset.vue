@@ -715,7 +715,7 @@ import TagsInput from "@/components/TagsInput";
 
 import { Modal } from "bootstrap";
 
-import { ref, computed, watch, inject, onUnmounted, onMounted, provide, defineEmits, defineProps } from 'vue';
+import { ref, computed, watch, inject, onUnmounted, onMounted, provide } from 'vue';
 
 import { useStore } from 'vuex';
 const store = useStore();

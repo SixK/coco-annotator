@@ -114,7 +114,7 @@
 import axios from "axios";
 import { Modal } from "bootstrap";
 import TagsInput from "@/components/TagsInput";
-import { watch, computed, ref, defineProps, inject, onMounted, toRefs, reactive, watchEffect } from 'vue'
+import { watch, computed, ref, inject, onMounted, toRefs, reactive, watchEffect } from 'vue'
 
 import useAxiosRequest from "@/composables/axiosRequest";
 import { useStore } from 'vuex';

@@ -8,7 +8,7 @@
 </template>
 
 <script setup>
-import { defineProps, ref, inject, watchEffect } from 'vue';
+import { ref, inject, watchEffect } from 'vue';
 import PanelToggle from "@/components/PanelToggle";
 
 const props = defineProps({

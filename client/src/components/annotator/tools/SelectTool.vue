@@ -10,7 +10,7 @@ import paper from "paper";
 import { useTools } from "@/composables/toolBar/tools";
 import { useStore } from 'vuex';
 
-import { nextTick, ref, computed, watch, inject, onMounted, provide, defineEmits, defineProps } from 'vue'
+import { nextTick, ref, computed, watch, inject, onMounted, provide } from 'vue'
 
 const getCategory = inject('getCategory');
 const getHover = inject('getHover');

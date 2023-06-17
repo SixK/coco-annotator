@@ -5,7 +5,7 @@
   </div>
 </template>
 <script setup>
-import { ref, computed, watch, inject, onMounted, provide, defineEmits } from 'vue'
+import { ref, computed, watch, inject, onMounted, provide } from 'vue'
 import { useButton } from "@/composables/toolBar/button";
 
 const { iconColor, click } = useButton();

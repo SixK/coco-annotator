@@ -101,7 +101,7 @@
 
 <script setup>
 import TagsInput from '@/components/TagsInput.vue';
-import { ref, watchEffect, onMounted, defineExpose, computed, watch } from 'vue';
+import { ref, watchEffect, onMounted, computed, watch } from 'vue';
 
 
 const DISTINCT_COLORS = [

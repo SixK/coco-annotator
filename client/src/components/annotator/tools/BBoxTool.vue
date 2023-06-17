@@ -11,7 +11,7 @@ import UndoAction from "@/undo";
 import { invertColor } from "@/libs/colors";
 import { BBox } from "@/libs/bbox";
 import { useStore } from 'vuex';
-import { ref, computed, watch, inject, onMounted, provide, defineEmits } from 'vue'
+import { ref, computed, watch, inject, onMounted, provide } from 'vue'
 import { useTools } from "@/composables/toolBar/tools";
 
 const emits = defineEmits(['update']);

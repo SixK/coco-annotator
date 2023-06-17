@@ -157,7 +157,7 @@
 <script setup>
 import Undo from "@/models/undos";
 import { useStore } from 'vuex';
-import { ref, computed, watch, inject, onMounted, provide, defineEmits, defineProps } from 'vue';
+import { ref, computed, watch, inject, onMounted, provide } from 'vue';
 import {useLoading} from 'vue-loading-overlay'
 
 

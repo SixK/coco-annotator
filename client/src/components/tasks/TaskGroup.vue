@@ -31,7 +31,7 @@
 
 <script setup>
 import AppTask from "@/components/tasks/Task";
-import { toRef, ref, computed, defineExpose } from 'vue'
+import { toRef, ref, computed } from 'vue'
 
 const props = defineProps({
   tasks: {
