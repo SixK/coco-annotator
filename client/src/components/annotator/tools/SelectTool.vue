@@ -133,12 +133,12 @@ watch(
 }, { immediate: true });
 
 watch(
-  () => isActive.value, 
+  () => state.isActive, 
   (active) => {
   if (active) {
     if(state.tool)  {
         state.tool.activate();
-        // localStorage.setItem('editorTool', name.value);
+        localStorage.setItem('editorTool', name.value);
     }
   } else {
     if (hover.value.text) {
