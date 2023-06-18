@@ -135,17 +135,6 @@ function checkPoints(newPoints) {
     }
 };
 
-
-watch(
-  () => state.isActive,
-  (active) => {
-    if (active) {
-      state.tool.activate();
-      localStorage.setItem('editorTool', name.value);
-    }
-  }
-);
-
 onMounted(() => {
     state.tool.onMouseDown = onMouseDown;
     // state.tool.onMouseDrag = onMouseDrag;

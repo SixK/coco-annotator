@@ -246,15 +246,6 @@ const isActive = computed(() => {
   return state.isActive;
 });
 
-watch(
-   () => state.isActive, 
-   (active) => {
-  if (active) {
-    state.tool.activate();
-    localStorage.setItem("editorTool", name.value);
-  }
-});
-
 // need to understand why this scale is not triggered !?
 watch(
    () => props.scale, 

@@ -82,10 +82,6 @@ watch(
     if (brush.value.path != null) {
       brush.value.path.visible = active;
     }
-    if (active) {
-      state.tool.activate();
-      localStorage.setItem('editorTool', name.value);
-    }
   }
 );
 

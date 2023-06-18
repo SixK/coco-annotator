@@ -96,15 +96,6 @@ const isActive = computed(() => {
   return state.isActive;
 });
 
-watch(
-   () => state.isActive, 
-   (active) => {
-  if (active) {
-    state.tool.activate();
-    localStorage.setItem("editorTool", name.value);
-  }
-});
-
 const exportWand = () => {
   return {
     threshold: wand.value.threshold,

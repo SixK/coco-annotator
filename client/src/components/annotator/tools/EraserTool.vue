@@ -86,10 +86,6 @@ watch(
     if (eraser.value.brush != null) {
       eraser.value.brush.visible = active;
     }
-    if (active) {
-      state.tool.activate();
-      localStorage.setItem('editorTool', name.value);
-    }
   }
 );
 

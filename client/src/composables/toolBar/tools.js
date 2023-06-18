@@ -1,4 +1,4 @@
-import { ref, watch, onMounted, reactive,computed, defineProps, defineEmits, inject, watchEffect } from 'vue';
+import { ref, watch, onMounted, reactive,computed, inject, watchEffect } from 'vue';
 import paper from 'paper';
 
 export  function useTools(emit) {
@@ -46,7 +46,7 @@ watchEffect(() => {
         console.log('disabled all 2');
     }else{
         if(!state.isDisabled){
-            setCursor(cursor.value);
+           setCursor(cursor.value);
            emit('update', name.value);
            state.isActive = true;
         }
@@ -170,6 +170,17 @@ watch(
       }
     }
 );
+
+watch(
+  () => state.isActive, 
+  (active) => {
+      if (active) {
+        if(state.tool)  {
+            state.tool.activate();
+            localStorage.setItem('editorTool', name.value);
+        }
+      }
+});
 
 onMounted(() => {
     state.tool = new paper.Tool();

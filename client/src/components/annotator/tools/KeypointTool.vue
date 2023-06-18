@@ -59,16 +59,6 @@ watch(
   }
 );
 
-watch(
-  () => state.isActive,
-  (active) => {
-    if (active) {
-      state.tool.activate();
-      localStorage.setItem('editorTool', name.value);
-    }
-  }
-);
-
 const onMouseDown = (event) => {
   if(state.isActive)  localCurrentAnnotation.value.addKeypoint(event.point);
 };

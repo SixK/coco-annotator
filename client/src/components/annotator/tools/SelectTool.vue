@@ -135,29 +135,24 @@ watch(
 watch(
   () => state.isActive, 
   (active) => {
-  if (active) {
-    if(state.tool)  {
-        state.tool.activate();
-        localStorage.setItem('editorTool', name.value);
-    }
-  } else {
-    if (hover.value.text) {
-      hover.value.text.remove();
-      hover.value.box.remove();
-      hover.value.box = null;
-      hover.value.text = null;
-    }
-    
-    console.log('watch active point:', point);
-    if (point.value) {
-      point.value.remove();
-      point.value = null;
-      segment.value = null;
-    }
-    if (hover.value.annotation) {
-      hover.value.annotation.compoundPath.selected = false;
-    }
-  }
+      if (!active) {
+        if (hover.value.text) {
+          hover.value.text.remove();
+          hover.value.box.remove();
+          hover.value.box = null;
+          hover.value.text = null;
+        }
+        
+        console.log('watch active point:', point);
+        if (point.value) {
+          point.value.remove();
+          point.value = null;
+          segment.value = null;
+        }
+        if (hover.value.annotation) {
+          hover.value.annotation.compoundPath.selected = false;
+        }
+      }
 });
 
 
