@@ -247,7 +247,7 @@ const isActive = computed(() => {
 });
 
 watch(
-   () => isActive.value, 
+   () => state.isActive, 
    (active) => {
   if (active) {
     state.tool.activate();
