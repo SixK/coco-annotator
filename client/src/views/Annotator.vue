@@ -796,7 +796,11 @@ const getCurrentAnnotation = () => {
 };
 
 const setCursor = (newCursor) => {
-      cursor.value = newCursor;
+        // wait for next Dom update before changing cursor
+        // or vue 3 don't see cursor has changed
+        nextTick(() => {
+              cursor.value = newCursor;
+        });
 };
 
 const currentCategory = computed(() => {
