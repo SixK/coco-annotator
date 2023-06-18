@@ -233,16 +233,6 @@ const isActive = computed(() => {
 });
 
 watch(
-  () => state.isActive, 
-  (active) => {
-  if (active) {
-    state.tool.activate();
-    localStorage.setItem("editorTool", name.value);
-  }
-});
-
-
-watch(
  () => props.scale, 
  (newScale) => {
   polygon.value.pathOptions.strokeWidth = newScale * scaleFactor;
