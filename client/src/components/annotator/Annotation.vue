@@ -564,7 +564,7 @@ const onAnnotationKeypointSettingsClick = (labelIndex) => {
 const onDeleteKeypointClick = (labelIndex) => {
       let label = String(labelIndex + 1);
       if (label in keypoints.value._labelled) {
-        emit('deleteKeypoint', keypoints.value._labelled[label]);
+        deleteKeypoint(keypoints.value._labelled[label]);
       }
 };
 
