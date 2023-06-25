@@ -207,7 +207,7 @@ const generateStringFromMetadata = () => {
   let string = "";
   
   ////////////// may not work here $refs ????
-  let metadata = hover.value.annotation.$refs.metadata?.metadataList;
+  let metadata = hover.value.annotation.$refs?.metadata?.metadataList;
   if ( metadata == null || metadata.length === 0) {
     string += "No Metadata \n";
   } else {

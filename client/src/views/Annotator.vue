@@ -719,13 +719,14 @@ const onCategoryClick = (indices) => {
         let selectTool = select.value;
         let cat = category.value[current.value.category];
         
-        let annot = cat.$refs.annotation[current.value.annotation];
+        // let annot = cat.$refs.annotation[current.value.annotation];
+        let annot = cat.category.annotations[current.value.annotation]
         
         // let annotation = category.$refs.annotation[this.current.annotation];
         // let annot = annotation.value[current.value.annotation];
         annot.showKeypoints = true;
         let keypoints = annot.keypoints;
-        if (keypoints._labelled[indices.keypoint + 1]) {
+        if (keypoints._labelled && keypoints._labelled[indices.keypoint + 1]) {
           let indexLabel = String(current.value.keypoint + 1);
           let keypoint = keypoints._labelled[indexLabel];
           keypoint.selected = true;
