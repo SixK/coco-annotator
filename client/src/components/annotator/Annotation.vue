@@ -283,7 +283,7 @@ const getShowAnnotations = inject('getShowAnnotations');
 
 const store = useStore();
 
-const emit = defineEmits(['set-color', 'keypoints-complete', 'keypoint-click', 'click', 'deleted']);
+const emit = defineEmits(['set-color', 'keypointsComplete', 'keypoint-click', 'click', 'deleted']);
 
 const props = defineProps({
     annotation: {
@@ -405,6 +405,7 @@ const tagRecomputeCounter = ref(0);
 const visibilityOptions = ref(VisibilityOptions);
 
 let annotationSettingsModal = null;
+let keypointSettingsModal = null;
 
 
 
@@ -690,8 +691,8 @@ const addKeypoint = (point, visibility, label) => {
       keypoint.value.tag = indexLabel == -1 ? [] : [indexLabel.toString()];
       keypoint.value.visibility = currentKeypoint.value.visibility;
       // $(id).modal("show");
-      // const annotationSettingsModal = Modal.getInstance(`#annotationSettings${annotation.value.id}`);
-      annotationSettingsModal.show();
+
+      keypointSettingsModal.show();
     },
     onMouseDrag: (event) => {
         const targetkeypoint = event.target.keypoint;
@@ -716,7 +717,7 @@ const addKeypoint = (point, visibility, label) => {
     keypoint.value.next.label = nextLabel;
   } else {
     keypoint.value.next.label = -1;
-    emit("keypoints-complete");
+    emit("keypointsComplete");
   }
   tagRecomputeCounter.value++;
 };
@@ -1107,10 +1108,13 @@ const onAnnotation = (data) => {
 
 onMounted( () => {
     initAnnotation();
-    
+
+    let keypointTag = document.getElementById(`keypointSettings${annotation.value.id}`);
+    keypointSettingsModal = new Modal(keypointTag, { });
+
     let modalTag = document.getElementById(`annotationSettings${annotation.value.id}`);
     annotationSettingsModal = new Modal(modalTag, { });
-    
+
     // seem's to not work. should probably trigger category resetCategorySettings on @hidden when editing an annotation
     // maybe we should directly invoke method?
     modalTag.addEventListener('hidden.bs.modal', () => {

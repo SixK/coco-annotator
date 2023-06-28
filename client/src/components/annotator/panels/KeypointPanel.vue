@@ -13,14 +13,17 @@
       v-model="visibility"
       name="Visibility"
       :values="visibilityOptions"
+      @update-order="updateOrder"
     />
   </div>
 </template>
 <script setup>
-import { ref, inject, watchEffect, computed } from 'vue';
+import { watch, ref, inject, watchEffect, computed } from 'vue';
 import PanelText from '@/components/PanelText';
 import PanelInputDropdown from '@/components/PanelInputDropdown';
 import { VisibilityOptions } from '@/libs/keypoints';
+
+const getCurrentAnnotation = inject('getCurrentAnnotation');
 
 const props = defineProps({
   keypoint: {
@@ -29,9 +32,12 @@ const props = defineProps({
   },
   currentAnnotation: {
     required: true,
-    validator: (prop) => typeof prop === 'object' || prop === undefined,
+    type: Object,
+    // validator: (prop) => typeof prop === 'object' || prop === undefined,
   },
 });
+
+const currentAnnotation = ref(props.currentAnnotation);
 
 const keypoint = ref(props.keypoint);
 const showme = ref('false');
@@ -46,10 +52,23 @@ watchEffect(() => {
 const visibility = ref(2);
 const label = ref(-1);
 const visibilityOptions = ref(VisibilityOptions);
+
+const updateOrder = (newOrder) => {
+    visibility.value = newOrder;
+};
+
 const keypointLabel = computed(() => {
-  if (!props.currentAnnotation) return {};
-  let labelIndex = props.currentAnnotation.keypoint.next.label;
-  let labels = props.currentAnnotation.notUsedKeypointLabels;
+  if(!currentAnnotation.value) { 
+      //hack since currentAnnotation is not propagated to props !?
+      currentAnnotation.value = getCurrentAnnotation(); 
+  } else { 
+      console.log("Seem's this hack is not necessary anymore, remove me !");
+  }
+  if (!currentAnnotation.value) return {};
+  if(!currentAnnotation.value.keypoint) return {};
+  let labelIndex = currentAnnotation.value.keypoint.next.label;
+  let labels = currentAnnotation.value.notUsedKeypointLabels;
+
   let labelKeys = Object.keys(labels);
   if ((labelIndex < 0 || labelIndex > labels) && labelKeys.length > 0) {
     return labels[labelKeys[0]];

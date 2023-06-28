@@ -443,7 +443,7 @@ const onMouseMove = (event) => {
 
         let categoryId = event.item.data.categoryId;
         let annotationId = event.item.data.annotationId;
-        console.log('id:', annotationId);
+
         localHover.value.category = categoryId;
         localHover.value.annotation = annotationId;
 

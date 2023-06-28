@@ -93,7 +93,7 @@
         @keypoint-click="onKeypointClick(listIndex, $event)"
         :all-categories="getCategoriesList"
         :is-hover="isHover"
-        @keypoints-complete="$emit('keypoints-complete')"
+        @keypoints-complete="$emit('keypointsComplete')"
         @deleted="annotationDeleted(listIndex)"
         @set-color="setColor"
       />
@@ -236,7 +236,7 @@ const props = defineProps({
     }
 });
 
-const emit = defineEmits(['click']);
+const emit = defineEmits(['click', 'keypointsComplete']);
 
 // const getCategory = inject('getCategory');
 const getImageId = inject('getImageId');
