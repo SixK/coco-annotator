@@ -202,6 +202,7 @@
 
           <div v-if="keypoint != null">
             <KeypointPanel
+              :key="updateKeypointPanel"
               :keypoint="keypoint"
               :current-annotation="currentAnnotation"
             />
@@ -333,6 +334,7 @@ const annotation = ref(null);
 const filetitle = ref(null);
 const dextr = ref(null);
 
+const updateKeypointPanel = ref(1);
 
 const activeTool = ref("Select");
 // const paper = ref(null);
@@ -960,7 +962,7 @@ const moveDown = () => {
 
 const stepIn = () => {
       if (currentCategory.value != null) {
-        if (!currentCategory.value.isVisible) {
+        if (!currentCategory.value.isVisible && currentAnnotation.value) {
           currentCategory.value.isVisible = true;
           current.value.annotation = 0;
           currentAnnotation.value.showKeypoints = false;
@@ -1197,6 +1199,7 @@ watch(
 watch(
   () => currentAnnotation.value, 
   (newElement) => {
+      updateKeypointPanel.value = updateKeypointPanel.value + 1;
       if (newElement != null) {
         if (newElement.showAnnotations) {
           let element = newElement.$el;
@@ -1230,6 +1233,7 @@ watch(
 watch(
   ()=> current.value.keypoint, 
   (sk) => {
+    updateKeypointPanel.value = updateKeypointPanel.value + 1;
     if (sk < -1) current.value.keypoint = -1;
     if (currentCategory.value != null) {
       let max = currentAnnotationLength.value;
