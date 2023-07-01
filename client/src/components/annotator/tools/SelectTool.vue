@@ -388,12 +388,12 @@ const onMouseDrag = (event) => {
       next.point = new paper.Point(next.point.x, event.point.y);
     }
     segment.value.point = event.point;
-  } else if (!keypoint.value) {
-    let delta_x = initPoint.value.x - event.point.x;
-    let delta_y = initPoint.value.y - event.point.y;
-    let center_delta = new paper.Point(delta_x, delta_y);
-    let new_center = localPaper.value.view.center.add(center_delta);
-    localPaper.value.view.setCenter(new_center);
+  } else if (!keypoint.value && initPoint.value) {
+        let delta_x = initPoint.value.x - event.point.x;
+        let delta_y = initPoint.value.y - event.point.y;
+        let center_delta = new paper.Point(delta_x, delta_y);
+        let new_center = localPaper.value.view.center.add(center_delta);
+        localPaper.value.view.setCenter(new_center);
   }
 };
 
