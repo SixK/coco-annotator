@@ -710,6 +710,10 @@ const onCategoryClick = (indices) => {
         
         // let annot = cat.$refs.annotation[current.value.annotation];
         let annot = cat.category.annotations[current.value.annotation]
+        if (currentAnnotation.value) {
+            // keypoints._labelled seem's only visible on currentAnnotation
+            annot = currentAnnotation.value;
+        }
         
         // let annotation = category.$refs.annotation[this.current.annotation];
         // let annot = annotation.value[current.value.annotation];
