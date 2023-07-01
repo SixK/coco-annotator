@@ -1080,7 +1080,7 @@ watch(
 });
 
 watch(
-  () => keypoint.value.edges, 
+  () => keypointEdges.value, 
   (newEdges) => {
   keypoints.value.color = darkHSL;
   newEdges.forEach((e) => keypoints.value.addEdge(e));
