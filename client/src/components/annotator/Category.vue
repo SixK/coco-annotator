@@ -243,13 +243,15 @@ const getImageId = inject('getImageId');
 const scrollElement = inject('scrollElement');
 const selectLastEditorTool = inject('selectLastEditorTool');
 
+const category = toRef(props, 'category');
+
 const group = ref(null);
 const supercategory = ref(props.category.supercategory);
 const color = ref(props.category.color);
 const keypoint = ref({
-      labels: [...props.category.keypoint_labels],
-      edges: [...props.category.keypoint_edges],
-      colors: [...props.category.keypoint_colors],
+      labels: [...category.value.keypoint_labels],
+      edges: [...category.value.keypoint_edges],
+      colors: [...category.value.keypoint_colors],
 });
 const selectedAnnotation = ref(-1);
 const showAnnotations = ref(false);
@@ -258,8 +260,6 @@ const search = ref("");
 const isMounted = ref(false);
 const activeTool = ref(props.activeTool);
 const opacity = ref(props.opacity);
-
-const category = toRef(props, 'category');
 
 const hover = ref(props.hover);
 const index = ref(props.index);
@@ -274,7 +274,7 @@ const keypoints = ref(null);
 const annotation = ref([]);
 const setAnnotationRef = el => {
       if (el) {
-        annotation.value.push(el)
+        annotation.value.push(el);
       }
 }
 
@@ -475,9 +475,9 @@ const exportCategory = () => {
       metadata: [],
       annotations: [],
       supercategory: props.category.supercategory,
-      keypoint_labels: props.category.keypoint_labels,
-      keypoint_edges: props.category.keypoint_edges,
-      keypoint_colors: props.category.keypoint_colors,
+      keypoint_labels: category.value.keypoint_labels,
+      keypoint_edges: category.value.keypoint_edges,
+      keypoint_colors: category.value.keypoint_colors,
     };
 
 

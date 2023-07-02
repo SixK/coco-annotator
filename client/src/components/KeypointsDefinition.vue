@@ -101,7 +101,7 @@
 
 <script setup>
 import TagsInput from '@/components/TagsInput.vue';
-import { ref, watchEffect, onMounted, computed, watch } from 'vue';
+import { toRef, ref, watchEffect, onMounted, computed, watch } from 'vue';
 
 
 const DISTINCT_COLORS = [
@@ -168,7 +168,8 @@ const keypoints = ref([]);
 const hiddenValue = ref({ edges: [], labels: [], colors: [] });
 const isMounted = ref(false);
 const nextDistinct = ref(-1);
-const keypointsDef = ref(props.keypointsDef);
+// const keypointsDef = ref(props.keypointsDef);
+const keypointsDef = toRef(props, 'keypointsDef');
 
 const valid = computed(() => {
     if (!isMounted.value) {
@@ -182,7 +183,8 @@ const valid = computed(() => {
     return true;
 });
 
-watch(hiddenValue.value, 
+watch(
+      () => hiddenValue.value, 
       () => {
           if (hiddenValue.value !== keypointsDef.value) {
             hiddenValue.value = keypointsDef.value;
@@ -406,7 +408,7 @@ const nextDistinctColor = () => {
   return DISTINCT_COLORS[nextDistinct.value];
 };
 
-defineExpose({exportKeypoints, valid});
+defineExpose({exportKeypoints, valid, keypoints});
 
 
 </script>
