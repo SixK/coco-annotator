@@ -359,8 +359,11 @@ const showAnnotations = ref(props.showAnnotations);
 const simplify = ref(props.simplify);
 const activeTool = ref(props.activeTool);
 const keypointEdges = ref(props.keypointEdges);
-const keypointColors = ref(props.keypointColors);
-const keypointLabels = ref(props.keypointLabels);
+// const keypointColors = ref(props.keypointColors);
+// const keypointLabels = ref(props.keypointLabels);
+const keypointLabels = toRef(props, 'keypointLabels');
+const keypointColors = toRef(props, 'keypointColors');
+// const keypointEdges = toRef(props, 'keypointEdges');
 const search = ref(props.search);
 const scale = ref(props.scale);
 
@@ -1109,10 +1112,10 @@ const onAnnotation = (data) => {
 onMounted( () => {
     initAnnotation();
 
-    let keypointTag = document.getElementById(`keypointSettings${annotation.value.id}`);
+    const keypointTag = document.getElementById(`keypointSettings${annotation.value.id}`);
     keypointSettingsModal = new Modal(keypointTag, { });
 
-    let modalTag = document.getElementById(`annotationSettings${annotation.value.id}`);
+    const modalTag = document.getElementById(`annotationSettings${annotation.value.id}`);
     annotationSettingsModal = new Modal(modalTag, { });
 
     // seem's to not work. should probably trigger category resetCategorySettings on @hidden when editing an annotation
@@ -1130,6 +1133,8 @@ onMounted( () => {
 onUnmounted(() => {
     // app.__vue_app__.config.globalProperties.$socket.off('annotation', onAnnotation);
     app.__vue_app__._instance.ctx.sockets.unsubscribe('annotation');
+    annotationSettingsModal.hide();
+    keypointSettingsModal.hide();
 });
 
 defineExpose({annotation, keypoint, notUsedKeypointLabels, 

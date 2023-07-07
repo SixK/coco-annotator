@@ -87,8 +87,8 @@
 import { nextTick } from 'vue';
 import { ref, computed, watch, onMounted } from 'vue';
 
-// const emit = defineEmits(["update:selectedCategories", "selectedCategories", "initialized", 
-const emit = defineEmits([ "selectedCategories", "initialized", 
+const emit = defineEmits(["update:selectedCategories", "selectedCategories", "initialized", 
+// const emit = defineEmits([ "selectedCategories", "initialized", 
                                                      "tag-added", "tags-updated", "tag-removed"]);
 
 const props = defineProps({
@@ -191,7 +191,7 @@ watch(
     hiddenInput.value = tags.value.join(",");
     // Update the bound v-model value
     emit("selectedCategories", tags.value);
-    // emit("update:selectedCategories", tags.value);
+    emit("update:selectedCategories", tags.value);
   }
 );
 
