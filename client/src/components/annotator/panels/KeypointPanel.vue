@@ -23,7 +23,7 @@ import PanelText from '@/components/PanelText';
 import PanelInputDropdown from '@/components/PanelInputDropdown';
 import { VisibilityOptions } from '@/libs/keypoints';
 
-// const getCurrentAnnotation = inject('getCurrentAnnotation');
+const getCurrentAnnotation = inject('getCurrentAnnotation');
 
 const props = defineProps({
   keypoint: {
@@ -60,7 +60,8 @@ const updateOrder = (newOrder) => {
 const keypointLabel = computed(() => {
   if(!currentAnnotation.value) { 
       //hack since currentAnnotation is not propagated to props !?
-      // currentAnnotation.value = getCurrentAnnotation(); 
+       console.log("Still need to hack !");
+      currentAnnotation.value = getCurrentAnnotation(); 
   } else { 
       console.log("Seem's this hack is not necessary anymore, remove me !");
   }
