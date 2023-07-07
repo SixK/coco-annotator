@@ -68,7 +68,7 @@
             <div class="col-sm-1 keypoint-color">
               <!-- <input v-model="object.color" type="color" class="form-control" /> -->
               <input
-                :value="object.color"
+                :value="getColor(index)"
                 type="color"
                 class="form-control"
                 @input="colorUpdated(index, $event.target.value)"
@@ -101,7 +101,7 @@
 
 <script setup>
 import TagsInput from '@/components/TagsInput.vue';
-import { toRef, ref, watchEffect, onMounted, computed, watch } from 'vue';
+import { nextTick, toRef, ref, watchEffect, onMounted, computed, watch } from 'vue';
 
 
 const DISTINCT_COLORS = [
@@ -188,7 +188,9 @@ watch(
       () => {
           if (hiddenValue.value !== keypointsDef.value) {
             hiddenValue.value = keypointsDef.value;
-            keypoints.value = keypointsFromProp();
+            nextTick(() => {
+                keypoints.value = keypointsFromProp();
+            });
           }
 });
 
@@ -250,8 +252,9 @@ const keypointsFromProp = () => {
         }
 
         keypointsDef.value.edges.forEach((edge) => {
-          let label0 = edge[0] - 1;
-          let label1 = edge[1] - 1;
+          let label0 = Math.max(0, edge[0] - 1);
+          let label1 = Math.max(0, edge[1] - 1);
+
           if (label0 < keypointsArr.length && label1 < keypointsArr.length) {
             keypointsArr[label0].edges.push(keypointsDef.value.labels[label1]);
             keypointsArr[label1].edges.push(keypointsDef.value.labels[label0]);
@@ -261,11 +264,21 @@ const keypointsFromProp = () => {
       return keypointsArr;
 };
 
+const getEdge = (index) => {
+    return keypointsDef.value.edges[index];
+    // return keypoints.value[index].color;
+}
+
+const getColor = (index) => {
+    return keypointsDef.value.colors[index];
+    // return keypoints.value[index].color;
+}
+
 const  colorUpdated = (index, color) => {
-  keypoints.value[index].color = color;
-  hiddenValue.value = propFomKeypoints();  
-  // emit('input', hiddenValue.value);
-  emit('update:keypoints-def', hiddenValue.value);
+        keypoints.value[index].color = color;
+        hiddenValue.value = propFomKeypoints();  
+        // emit('input', hiddenValue.value);
+        emit('update:keypoints-def', hiddenValue.value);
 };
 
 const keypointLabelUpdated = (index, label) => {

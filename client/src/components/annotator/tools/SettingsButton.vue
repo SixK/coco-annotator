@@ -112,9 +112,11 @@
 </template>
 
 <script setup>
+import { Modal } from "bootstrap";
+
 import MetaData from "@/components/MetaData.vue";
 import CustomShortcut from "@/components/annotator/CustomShortcut.vue";
-import { toRef, ref, reactive } from 'vue';
+import { onMounted, onUnmounted, toRef, ref, reactive } from 'vue';
 
 const props= defineProps({
     metadata: {
@@ -133,6 +135,7 @@ const shortcuts = ref(null);
 // const commands = ref(props.commands);
 const commands = toRef(props, 'commands');
 
+let settingsModal = null;
 
 const exportMetadata = (() => {
       // return props.$refs.metadata.export();
@@ -158,6 +161,16 @@ const exportSettings = (() => {
           data.shortcuts.push(shortcut.myexport());
       });
       return data;
+});
+
+onMounted( () => {
+    const settingsTag = document.getElementById('settings');
+    console.log('SettingsTag:', settingsTag);
+    settingsModal = new Modal(settingsTag, { });
+});
+
+onUnmounted(() => {
+    settingsModal.hide();
 });
 
 defineExpose({exportSettings, exportMetadata, setPreferences});

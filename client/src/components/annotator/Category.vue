@@ -184,6 +184,7 @@
 
 <script setup>
 import paper from "paper";
+import { Modal } from "bootstrap";
 
 import Annotations from "@/models/annotations";
 import Annotation from "@/components/annotator/Annotation";
@@ -269,7 +270,7 @@ const categorysearch = ref(props.categorysearch);
 
 // const annotation = ref(null);
 const keypoints = ref(null);
-
+let categorySettingsModal = null;
 
 const annotation = ref([]);
 const setAnnotationRef = el => {
@@ -410,6 +411,14 @@ const resetCategorySettings = () => {
   };
 };
 
+const onUpdateClick = () => {
+  console.log("onUpdateClick:", keypoint.value.labels, keypoint.value.edges, keypoint.value.colors);
+  category.value.keypoint_labels = [...keypoint.value.labels];
+  category.value.keypoint_edges = [...keypoint.value.edges];
+  category.value.keypoint_colors = [...keypoint.value.colors];
+  category.value.supercategory = supercategory.value;
+};
+
 const createAnnotation = () => {
       // let parent = $parent;
       let annotationId = category.value.annotations.length;
@@ -452,13 +461,6 @@ const createAnnotation = () => {
           scrollElement(tmp_annotation.$el);
         }
       });
-};
-
-const onUpdateClick = () => {
-  category.value.keypoint_labels = [...keypoint.value.labels];
-  category.value.keypoint_edges = [...keypoint.value.edges];
-  category.value.keypoint_colors = [...keypoint.value.colors];
-  category.value.supercategory = supercategory.value;
 };
 
 const exportCategory = () => {
@@ -641,11 +643,15 @@ onMounted( () => {
     // app.__vue_app__.config.globalProperties.$socket.on('annotation', onAnnotation);
      app.__vue_app__._instance.ctx.sockets.subscribe('annotation', onAnnotation);
      isMounted.value = true;
+    let categoryTag = document.getElementById(`categorySettings${category.value.id}`);
+    console.log('CategoryTag:', categoryTag);
+    categorySettingsModal = new Modal(categoryTag, { });
 });
 
 onUnmounted(() => {
     // app.__vue_app__.config.globalProperties.$socket.off('annotation', onAnnotation);
     app.__vue_app__._instance.ctx.sockets.unsubscribe('annotation');
+    categorySettingsModal.hide();
 });
     
 

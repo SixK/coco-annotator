@@ -744,8 +744,10 @@ const onKeypointsComplete = () => {
          currentAnnotation.value.keypoint.next.label = -1;
        }
        /********* Remove me when this.currentAnnotation will not be empty at start ********/
-      activeTool.value = select.value;
-      activeTool.value.click();
+       if ( activeTool.value === 'Keypoints') {
+            activeTool.value = select.value;
+            activeTool.value.click();
+        }
 };
 
 const getCategory = (index) => {

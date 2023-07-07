@@ -49,16 +49,21 @@ const options = computed(() => {
     array.push({
       key: k,
       value: props.values[k],
-      selected: props.value == k,
+      selected: localValue.value == k,
     });
   });
   return array;
 });
-watch(localValue, () => {
-  emits('update-order', localValue.value);
+watch(
+  () => localValue.value, 
+  () => {
+    console.log('localValue changed:',  localValue.value);
+    emits('update-order', localValue.value);
 });
-watch(() => props.value, (newValue) => {
-  localValue.value = newValue;
+watch(
+  () => props.value, 
+  (newValue) => {
+      localValue.value = newValue;
 });
 </script>
 
