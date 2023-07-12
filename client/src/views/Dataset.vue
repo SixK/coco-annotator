@@ -898,7 +898,7 @@ const createScanTask = () => {
           scan.value.id = id;
         })
         .catch(error => {
-          this.axiosReqestError(
+          axiosReqestError(
             "Scanning Dataset",
             error.response.data.message
           );
@@ -965,7 +965,7 @@ const importCOCO = () => {
       importing.value.id = id;
     })
     .catch(error => {
-      this.axiosReqestError("Importing COCO", error.response.data.message);
+      axiosReqestError("Importing COCO", error.response.data.message);
     })
     .finally(() => {
         store.commit('removeProcess', process);
