@@ -6,6 +6,12 @@ networks:
 
 services:
   webserver:
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              capabilities: [gpu]
     image: annotator_webclient_gpu
     container_name: annotator_webclient
     restart: "no"
@@ -15,6 +21,7 @@ services:
       - SECRET_KEY=RandomSecretKeyHere
       - FILE_WATCHER=true
       - NAME=Test Annotator
+      - DEVICE=cuda
       - MASK_RCNN_FILE=/models/mask_rcnn_coco.h5
       # # Default coco classes (order matters)
       - MASK_RCNN_CLASSES=

@@ -14,7 +14,9 @@ from database import (
 from flask import Flask
 from flask_cors import CORS
 from flask_socketio import SocketIO
-from werkzeug.contrib.fixers import ProxyFix
+# from werkzeug.contrib.fixers import ProxyFix
+from werkzeug.middleware.proxy_fix import ProxyFix
+
 
 from celery import Celery
 
@@ -51,7 +53,7 @@ def create_app():
     flask.register_blueprint(api)
 
     login_manager.init_app(flask)
-    socketio.init_app(flask, message_queue=Config.CELERY_BROKER_URL)
+    socketio.init_app(flask, cors_allowed_origins="*", message_queue=Config.CELERY_BROKER_URL)
     # Remove all poeple who were annotating when
     # the server shutdown
     ImageModel.objects.update(annotating=[])

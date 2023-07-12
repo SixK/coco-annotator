@@ -1,4 +1,4 @@
-from flask_restplus import Namespace, Resource, reqparse
+from flask_restx import Namespace, Resource, reqparse
 from flask_login import login_required, current_user
 from werkzeug.datastructures import FileStorage
 from flask import send_file
@@ -129,7 +129,8 @@ class ImageId(Resource):
         
         pil_image = image.open_thumbnail() if thumbnail else Image.open(image.path)
 
-        pil_image.thumbnail((width, height), Image.ANTIALIAS)
+        pil_image.thumbnail((width, height), Image.Resampling.LANCZOS)
+        # pil_image.thumbnail((width, height), Image.ANTIALIAS)
         image_io = io.BytesIO()
         pil_image = pil_image.convert("RGB")
         pil_image.save(image_io, "JPEG", quality=90)
