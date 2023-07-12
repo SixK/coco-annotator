@@ -58,17 +58,19 @@ const updateOrder = (newOrder) => {
 };
 
 const keypointLabel = computed(() => {
+  let localAnnot = null;
   if(!currentAnnotation.value) { 
       //hack since currentAnnotation is not propagated to props !?
        console.log("Still need to hack !");
-      currentAnnotation.value = getCurrentAnnotation(); 
+      localAnnot = getCurrentAnnotation();
   } else { 
+      localAnnot = currentAnnotation.value;
       console.log("Seem's this hack is not necessary anymore, remove me !");
   }
-  if (!currentAnnotation.value) return {};
-  if(!currentAnnotation.value.keypoint) return {};
-  let labelIndex = currentAnnotation.value.keypoint.next.label;
-  let labels = currentAnnotation.value.notUsedKeypointLabels;
+  if (!localAnnot) return {};
+  if(!localAnnot.keypoint) return {};
+  let labelIndex = localAnnot.keypoint.next.label;
+  let labels = localAnnot.notUsedKeypointLabels;
 
   let labelKeys = Object.keys(labels);
   if ((labelIndex < 0 || labelIndex > labels) && labelKeys.length > 0) {
