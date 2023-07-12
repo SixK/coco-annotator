@@ -22,6 +22,8 @@ services:
       - FILE_WATCHER=true
       - NAME=Test Annotator
       - DEVICE=cuda
+      - SAM_MODEL_FILE=/models/sam_hq_vit_b.pth
+      - SAM_MODEL_TYPE=vit_b
       - MASK_RCNN_FILE=/models/mask_rcnn_coco.h5
       # # Default coco classes (order matters)
       - MASK_RCNN_CLASSES=
