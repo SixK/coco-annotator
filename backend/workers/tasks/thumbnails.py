@@ -1,10 +1,12 @@
 from database import ImageModel
-# from celery import task
 from celery import shared_task
 
-# @task
-@shared_task
-def thumbnail_generate_single_image(image_id):
+@shared_task(
+    name="expensive_api_call",
+    bind=True,
+    acks_late=True,)
+# acks_late seem's necessary to avoid task timeout
+def thumbnail_generate_single_image(self, image_id):
     image = ImageModel.objects(id=image_id).first()
     image.thumbnail()
     image.flag_thumbnail(flag=False)
