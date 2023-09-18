@@ -92,7 +92,7 @@
         :scale="scale"
         @keypoint-click="onKeypointClick(listIndex, $event)"
         :all-categories="getCategoriesList"
-        :is-hover="isHover"
+        :isHoverCategory="isHover"
         @keypoints-complete="$emit('keypointsComplete')"
         @deleted="annotationDeleted(listIndex)"
         @set-color="setColor"
