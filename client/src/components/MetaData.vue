@@ -96,7 +96,8 @@ const props = defineProps({
 });
 
 const metadataList = ref([]);
-const metadata = ref([]);
+// const metadata = ref([]);
+const metadata = ref(props.metadata);
 
 watchEffect(() => {
     loadMetadata();
