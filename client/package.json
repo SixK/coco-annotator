@@ -12,7 +12,7 @@
     "@popperjs/core": "^2.11.8",
     "@vue/compat": "^3.3.4",
     "autoprefixer": "^9.8.6",
-    "axios": "^0.27.2",
+    "axios": "^1.5.0",
     "bootstrap": "^5.2.3",
     "intersection-observer": "^0.12.2",
     "paper": "^0.12.17",
@@ -44,7 +44,8 @@
     "babel-jest": "^29.7.0",
     "eslint": "^8.49.0",
     "eslint-plugin-vue": "^9.17.0",
-    "eslint-plugin-prettier": "^5.0.0"
+    "eslint-plugin-prettier": "^5.0.0",
+    "prettier": "^3.0.3"
   },
   "eslintConfig": {
     "root": true,
@@ -57,7 +58,8 @@
     "extends": [
       "plugin:vue/strongly-recommended",
       "plugin:prettier/recommended",
-      "@vue/prettier"
+      "@vue/prettier",
+      "prettier"
     ],
     "parserOptions": {
       "parser": "@babel/eslint-parser"
