@@ -29,7 +29,8 @@ COPY ./backend/requirements.txt /workspace/
 RUN pip install --upgrade pip && \
     pip install -r requirements.txt && \
     pip install gunicorn[eventlet]==19.9.0 && \
-    pip install pycocotools
+    pip install pycocotools && \
+    pip install urllib3==1.26.16
 
 # Install maskrcnn
 RUN git clone --single-branch --depth 1 https://github.com/matterport/Mask_RCNN.git /tmp/maskrcnn
