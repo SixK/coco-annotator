@@ -294,7 +294,7 @@ const props = defineProps({
       type: Boolean,
       required: true
     },
-    isHover: {
+    isHoverCategory: {
       type: Boolean,
       required: true
     },
@@ -356,6 +356,7 @@ const showAnnotations = ref(props.showAnnotations);
 // don't know why toRef does not synchronize showAnnotations
 // const showAnnotations = toRef(props, 'showAnnotations');
 
+const isHoverCategory = ref(props.isHoverCategory)
 const simplify = ref(props.simplify);
 const activeTool = ref(props.activeTool);
 const keypointEdges = ref(props.keypointEdges);
@@ -868,7 +869,7 @@ const getKeypointVisibility = (index) => {
 };
 
 const getKeypointBackgroundColor = (index) => {
-    if (isHover.value && props.isHover) return "#646c82";
+    if (isHover.value && isHoverAnnotation.value) return "#646c82";
     // if (keypoint.tag == index + 1) return "#4b624c";
     let activeIndex = keypoint.value.next.label;
 
@@ -922,7 +923,7 @@ const isHover = computed(() => {
 
 const backgroundColor = computed(() => {
       // console.log('change Background color');
-      if (isHover.value && props.isHover) return "#646c82";
+      if (isHover.value && isHoverCategory.value) return "#646c82";
       if (isCurrent.value) return "#4b624c";
       return "inherit";
 });
