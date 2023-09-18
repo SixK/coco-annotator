@@ -23,6 +23,7 @@ RUN git clone --depth=1 https://github.com/iamlab-cmu/DEXTR-KerasTensorflow.git 
 
 # RUN pip install segment-anything
 RUN git clone https://github.com/SysCV/sam-hq.git && cd sam-hq && pip install -e .
+RUN  pip install timm
 
 RUN python -m pip install detectron2 -f \
   https://dl.fbaipublicfiles.com/detectron2/wheels/cu113/torch1.10/index.html
