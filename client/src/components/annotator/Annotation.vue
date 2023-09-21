@@ -869,7 +869,7 @@ const getKeypointVisibility = (index) => {
 };
 
 const getKeypointBackgroundColor = (index) => {
-    if (isHover.value && isHoverAnnotation.value) return "#646c82";
+    if (isHover.value && isHoverCategory.value) return "#646c82";
     // if (keypoint.tag == index + 1) return "#4b624c";
     let activeIndex = keypoint.value.next.label;
 
