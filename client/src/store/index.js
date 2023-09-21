@@ -1,46 +1,96 @@
-import { createStore } from 'vuex';
+import { defineStore } from 'pinia';
 
-import user from "./user";
-import info from "./info";
+import { ref } from 'vue';
 
-export default createStore({
-  modules: {
-    user,
-    info
-  },
-  state: {
-    process: [],
-    undo: [],
-    dataset: ""
-  },
-  mutations: {
-    setDataset(state, dataset) {
-      state.dataset = dataset;
+export const useProcStore = defineStore('proc', () => {
+  const process = ref([]);
+  const undo = ref([]);
+  const dataset = ref('');
+
+  function setDataset(newDataset) {
+    dataset.value = newDataset;
+  }
+
+  function addProcess(newProcess) {
+    process.value.push(newProcess);
+  }
+
+  function removeProcess(processToRemove) {
+    const index = process.value.indexOf(processToRemove);
+    if (index > -1) {
+      process.value.splice(index, 1);
+    }
+  }
+
+  function resetUndo() {
+    undo.value.splice(0);
+  }
+
+  function addUndo(action) {
+    undo.value.push(action);
+  }
+
+  function doUndo() {
+    const action = undo.value.pop();
+    if (action != null) {
+      action.undo();
+    }
+  }
+
+  function removeUndos(actionToRemove) {
+    undo.value = undo.value.filter((undoAction) => undoAction.action !== actionToRemove);
+  }
+
+  return {
+    process,
+    undo,
+    dataset,
+    setDataset,
+    addProcess,
+    removeProcess,
+    resetUndo,
+    addUndo,
+    doUndo,
+    removeUndos,
+  };
+});
+
+/*
+export const useProcStore = defineStore( { id: 'proc',
+  state: () => ({
+      process: [],
+      undo: [],
+      dataset: ''
+  }),
+  
+  actions: {
+    setDataset(dataset) {
+      this.dataset = dataset;
     },
-    addProcess(state, process) {
-      state.process.push(process);
+    addProcess(process) {
+      this.process.push(process);
     },
-    removeProcess(state, process) {
-      let index = state.process.indexOf(process);
+    removeProcess(process) {
+      const index = this.process.indexOf(process);
       if (index > -1) {
-        state.process.splice(index, 1);
+        this.process.splice(index, 1);
       }
     },
-    resetUndo(state) {
-      state.undo = [];
+    resetUndo() {
+      this.undo = [];
     },
-    addUndo(state, action) {
-      state.undo.push(action);
+    addUndo(action) {
+      this.undo.push(action);
     },
-    undo(state) {
-      let action = state.undo.pop();
+    undo() {
+      const action = this.undo.pop();
       if (action != null) {
         action.undo();
       }
     },
-    removeUndos(state, action) {
-      state.undo = state.undo.filter(undo => undo.action !== action);
+    removeUndos(action) {
+      this.undo = this.undo.filter(undo => undo.action !== action);
     }
-  },
-  actions: {}
+  }
 });
+*/

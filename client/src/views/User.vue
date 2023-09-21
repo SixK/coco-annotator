@@ -72,10 +72,13 @@ const {axiosReqestError, axiosReqestSuccess} = useAxiosRequest();
 
 import { ref, watch, computed } from 'vue';
 
+import { useAuthStore } from "@/store/user";
+const authStore = useAuthStore();
 
+/*
 import { useStore } from 'vuex';
 const store = useStore();
-
+*/
 
 const changePassword = ref({
         password: "",
@@ -115,7 +118,12 @@ const inputPasswordClasses = (password) => {
       };
 };
 
-const user = computed(() => store.state.user.user);
+const user = computed(() => {
+    console.log('ZZZZ - user:',  authStore.user);
+    return authStore.user;
+    });
+
+// const user = computed(() => authStore.state.user.user);
 
 const displayName = computed(() => {
   if (!user.value) return '';

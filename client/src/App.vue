@@ -14,12 +14,23 @@ import { computed, watch, onMounted } from 'vue';
 import {useToast} from 'vue-toast-notification';
 const $toast = useToast();
 
+import { storeToRefs } from 'pinia';
+
 import { useRoute, useRouter } from 'vue-router';
 const router = useRouter();
 const route = useRoute();
 
+/*
 import { useStore } from 'vuex';
 const store = useStore();
+*/
+
+
+import { useInfoStore } from "@/store/info";
+const infoStore = useInfoStore();
+import { useAuthStore } from "@/store/user";
+const authStore = useAuthStore();
+
 
 import {useLoading} from 'vue-loading-overlay'
 const $loading = useLoading({});
@@ -36,11 +47,15 @@ const showNavBar = computed(() => {
 });
 
 const isAuthenticated = computed(() => {
-      return store.state.user.isAuthenticated;
+      // return store.state.user.isAuthenticated;
+     console.log('zzzzz - authenticated:', authStore.isAuthenticated);
+
+      return authStore.isAuthenticated;
 });
 
 const isAuthenticatePending = computed(() => {
-      return store.state.user.isAuthenticatePending;
+      return authStore.isAuthenticatePending;
+      // return store.state.user.isAuthenticatePending;
 });
 
 const loginRequired = computed(() => {
@@ -50,12 +65,20 @@ const loginRequired = computed(() => {
       return !isAuthenticated.value;
 });
 
+// const loading = computed(() => infoStore.loading);
+const { loading, getLoadingStatus } = storeToRefs(infoStore);
+
+/*
 const loading = computed(() => {
-      return store.state.info.loading;
+     //  return store.state.info.loading;
+     console.log('zzzzz - loading page:', infoStore.loading);
+     return infoStore.loading;
 });
+*/
 
 const socketConnection = computed(() => {
-      return store.state.info.socket;
+      // return store.state.info.socket;
+      return infoStore.socket;
 });
 
 watch(
@@ -104,11 +127,15 @@ onMounted(() => {
         height: 100
       });
       
-    store.commit('user/setUserInfo');
-    store.commit('info/getServerInfo');
+    authStore.setUserInfo();
+    //store.commit('user/setUserInfo');
+    infoStore.getServerInfo();
+    //store.commit('info/getServerInfo');
+
     
     // dunno why, but app.__vue_app__ is undefined here, let's consider socket are alaways connected
-    store.commit('info/socket', true);
+    // store.commit('info/socket', true);
+    infoStore.setSocket(true);
 });
 
 </script>

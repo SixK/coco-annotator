@@ -8,7 +8,16 @@
 <script setup>
 import paper from "paper";
 import { useTools } from "@/composables/toolBar/tools";
-import { useStore } from 'vuex';
+// import { useStore } from 'vuex';
+
+import { useProcStore } from "@/store/index";
+const procStore = useProcStore();
+import { useAuthStore } from "@/store/user";
+const authStore = useAuthStore();
+/*
+import { useInfoStore } from "@/store/info";
+const infoStore = useInfoStore();
+*/
 
 import { nextTick, ref, computed, watch, inject, onMounted, provide } from 'vue'
 
@@ -16,7 +25,7 @@ const getCategory = inject('getCategory');
 const getHover = inject('getHover');
 const getPaper = inject('getPaper');
 
-const store = useStore();
+// const store = useStore();
 
 const emits = defineEmits(['update']);
 
@@ -191,7 +200,8 @@ const generateTitle = () => {
     string += "ID: " + id + " \n";
     string += "Category: " + category + " \n";
   }
-  if (store.getters["user/loginEnabled"]) {
+  // if (store.getters["user/loginEnabled"]) {
+  if (authStore.loginEnabled()) {
     let creator = hover.value.annotation.annotation.creator;
     if (creator != null) {
       string += "Created by " + creator + "\n\n";

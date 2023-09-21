@@ -60,7 +60,7 @@
       </div>
 
       <div
-        v-show="$store.getters['user/loginEnabled']"
+        v-show="authStore.loginEnabled()"
         class="card-footer text-muted"
       >
         Created by {{ category.creator }}
@@ -170,6 +170,8 @@ import axios from "axios";
 import KeypointsDefinition from "@/components/KeypointsDefinition";
 import useAxiosRequest from "@/composables/axiosRequest";
 
+import { useAuthStore } from "@/store/user";
+const authStore = useAuthStore();
 
 const {axiosReqestError, axiosReqestSuccess} = useAxiosRequest();
 

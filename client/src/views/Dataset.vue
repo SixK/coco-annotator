@@ -717,8 +717,18 @@ import { Modal } from "bootstrap";
 
 import { ref, computed, watch, inject, onUnmounted, onMounted, provide } from 'vue';
 
+/*
 import { useStore } from 'vuex';
 const store = useStore();
+*/
+import { useProcStore } from "@/store/index";
+const procStore = useProcStore();
+/*
+import { useAuthStore } from "@/store/user";
+const authStore = useAuthStore();
+import { useInfoStore } from "@/store/info";
+const infoStore = useInfoStore();
+*/
 
 import useAxiosRequest from "@/composables/axiosRequest";
 const {axiosReqestError, axiosReqestSuccess} = useAxiosRequest();
@@ -822,7 +832,8 @@ const generateDataset = () => {
 
 const updatePage = (page) => {
   let process = "Loading images from dataset";
-  store.commit('addProcess', process);
+  // store.commit('addProcess', process);
+  procStore.addProcess(process);
   
   console.log('queryannotated:', queryAnnotated);
   Dataset.getData(dataset.value.id, {
@@ -847,7 +858,8 @@ const updatePage = (page) => {
       axiosReqestError("Loading Dataset", error.response.data.message);
     })
     .finally(() => {
-              store.commit('removeProcess', process);
+              // store.commit('removeProcess', process);
+              procStore.removeProcess(process);
     });
 }
 
@@ -904,7 +916,8 @@ const createScanTask = () => {
           );
         })
         .finally(() => {
-            store.commit('removeProcess', process);
+            // store.commit('removeProcess', process);
+            procStore.removeProcess(process);
         });
 };
 
@@ -936,7 +949,8 @@ const exportCOCO = () => {
       axiosReqestError("Exporting COCO", error.response.data.message);
     })
     .finally(() => {
-        store.commit('removeProcess', process);
+        // store.commit('removeProcess', process);
+        procStore.removeProcess(process);
     });
 };
 
@@ -968,7 +982,8 @@ const importCOCO = () => {
       axiosReqestError("Importing COCO", error.response.data.message);
     })
     .finally(() => {
-        store.commit('removeProcess', process);
+        // store.commit('removeProcess', process);
+        procStore.removeProcess(process);
     });
 };
 
@@ -1138,9 +1153,6 @@ onBeforeRouteUpdate ((to, from, next) => {
 
 
 onMounted(() => {
-      app.__vue_app__._instance.ctx.sockets.subscribe('taskProgress', onTaskProgress);
-      app.__vue_app__._instance.ctx.sockets.subscribe('annotating', onAnnotating);
-
       window.addEventListener('mouseup', stopDrag);
       window.addEventListener('mousedown', startDrag);
 
@@ -1157,8 +1169,11 @@ onMounted(() => {
       const importTag = document.getElementById("cocoUpload");
       cocoImportModal = new Modal(importTag, { });
 
-    const exportTag = document.getElementById("exportDataset");
-    cocoExportModal = new Modal(exportTag, { });
+      const exportTag = document.getElementById("exportDataset");
+      cocoExportModal = new Modal(exportTag, { });
+    
+      app.__vue_app__._instance.ctx.sockets.subscribe('taskProgress', onTaskProgress);
+      app.__vue_app__._instance.ctx.sockets.subscribe('annotating', onAnnotating);
 });
 
 onUnmounted(() => {

@@ -10,9 +10,18 @@ import UndoAction from "@/undo";
 
 import { invertColor } from "@/libs/colors";
 import { BBox } from "@/libs/bbox";
-import { useStore } from 'vuex';
+// import { useStore } from 'vuex';
 import { ref, computed, watch, inject, onMounted, provide } from 'vue'
 import { useTools } from "@/composables/toolBar/tools";
+
+import { useProcStore } from "@/store/index";
+const procStore = useProcStore();
+/*
+import { useAuthStore } from "@/store/user";
+const authStore = useAuthStore();
+import { useInfoStore } from "@/store/info";
+const infoStore = useInfoStore();
+*/
 
 const emits = defineEmits(['update']);
 
@@ -30,9 +39,11 @@ const {
     cursor
   }= useTools(emits);
 
-const store = useStore();
+// const store = useStore();
 // const addUndo = store.commit('addUndo');
-const removeUndos = store.commit('removeUndos');
+// const removeUndos = store.commit('removeUndos');
+// const removeUndos = procStore.removeUndos();
+
 const uniteCurrentAnnotation = inject('uniteCurrentAnnotation');
 const getCurrentCategory = inject('getCurrentCategory');
 const getCurrentAnnotation = inject('getCurrentAnnotation');
@@ -216,7 +227,8 @@ function completeBBox() {
     color.value.circle = null;
   }
   // removeUndos(actionTypes.ADD_POINTS);
-  store.commit('removeUndos', actionTypes.ADD_POINTS);
+  // store.commit('removeUndos', actionTypes.ADD_POINTS);
+  procStore.removeUndos(actionTypes.ADD_POINTS);
   return true;
 };
 

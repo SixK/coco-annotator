@@ -265,8 +265,17 @@ import simplifyjs from "simplify-js";
 import { Modal } from "bootstrap";
 
 import { Keypoint, Keypoints, VisibilityOptions } from "@/libs/keypoints";
-import { useStore } from 'vuex';
+// import { useStore } from 'vuex';
 import UndoAction from "@/undo";
+
+import { useProcStore } from "@/store/index";
+const procStore = useProcStore();
+/*
+import { useAuthStore } from "@/store/user";
+const authStore = useAuthStore();
+import { useInfoStore } from "@/store/info";
+const infoStore = useInfoStore();
+*/
 
 // import TagsInput from "@/components/TagsInput";
 import MetaData from "@/components/MetaData";
@@ -281,7 +290,7 @@ const getCategoryIndex = inject('getCategoryIndex');
 const resetCategorySettings = inject('resetCategorySettings');
 const getShowAnnotations = inject('getShowAnnotations');
 
-const store = useStore();
+// const store = useStore();
 
 const emit = defineEmits(['set-color', 'keypointsComplete', 'keypoint-click', 'click', 'deleted']);
 
@@ -607,7 +616,9 @@ const createUndoAction = (actionName) => {
         args: {},
       });
       // addUndo(action);
-      store.commit('addUndo', action);
+      // store.commit('addUndo', action);
+      procStore.addUndo(action);
+      
 };
 
 const simplifyPath = () => {

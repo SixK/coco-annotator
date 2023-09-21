@@ -2,9 +2,10 @@ import "intersection-observer";
 
 import { createApp, h, configureCompat } from "vue";
 import Vue from "vue";
+import { createPinia } from 'pinia';
 import App from "./App.vue";
 import router from "./router";
-import store from "./store";
+// import store from "./store";
 // import VueToastr2 from "vue-toastr-2";
 // import {useToast} from 'vue-toast-notification';
 import {VueToast} from 'vue-toast-notification';
@@ -36,14 +37,15 @@ const app = createApp({
   render: () => h(App),
 });
 
+app.use(createPinia());
 // app.use(VueToastr2);
 app.use(VueToast, {
     // One of the options
     position: 'top'
-})
+});
 app.use(VTooltip);
 app.use(router);
-app.use(store);
+// app.use(store);
 app.use(socketio);
 // app.use(Loading);
 app.use(LoadingPlugin);

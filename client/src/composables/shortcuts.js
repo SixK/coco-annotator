@@ -1,7 +1,7 @@
 import { reactive, ref, onMounted, inject} from "vue";
 import { useRoute } from 'vue-router';
-import { useStore } from 'vuex';
-
+// import { useStore } from 'vuex';
+import { useProcStore } from "@/store/index";
 
 export default function useShortcuts(moveUp, moveDown, stepIn, stepOut, 
                                                                                 createAnnotation, deleteAnnotation,
@@ -9,10 +9,13 @@ export default function useShortcuts(moveUp, moveDown, stepIn, stepOut,
                                                                                 fit, save, doShortcutAction) {
   const route = useRoute();
   const commands = ref([]);
-  const store = useStore();
+  // const store = useStore();
+
+  const procStore = useProcStore();
 
   const undo = () => {
-      store.commit("undo");
+      // store.commit("undo");
+      procStore.doUndo();
   }
   
     const annotator = (() =>  {

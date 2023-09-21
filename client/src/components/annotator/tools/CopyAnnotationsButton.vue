@@ -117,14 +117,24 @@ import TagsInput from "@/components/TagsInput";
 import { watch, computed, ref, inject, onMounted, toRefs, reactive, watchEffect } from 'vue'
 
 import useAxiosRequest from "@/composables/axiosRequest";
+/*
 import { useStore } from 'vuex';
-
 const store = useStore();
+*/
+
+import { useProcStore } from "@/store/index";
+const procStore = useProcStore();
+/*
+import { useAuthStore } from "@/store/user";
+const authStore = useAuthStore();
+import { useInfoStore } from "@/store/info";
+const infoStore = useInfoStore();
+*/
 
 const {axiosReqestError, axiosReqestSuccess} = useAxiosRequest();
-const addProcess = (process) => store.commit('addProcess', {process});
-const removeProcess = (process) => store.commit('removeProcess', {process});
-const resetUndo = () => store.commit('resetUndo');
+const addProcess = (process) => procStore.addProcess(process);
+const removeProcess = (process) => procStore.removeProcess(process);
+const resetUndo = () => procStore.resetUndo();
 
 
 const injectedSave = inject('save')

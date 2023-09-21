@@ -156,13 +156,15 @@
 
 <script setup>
 import Undo from "@/models/undos";
-import { useStore } from 'vuex';
+// import { useStore } from 'vuex';
 import { ref, computed, watch, inject, onMounted, provide } from 'vue';
 import {useLoading} from 'vue-loading-overlay'
 
+import { useProcStore } from "@/store/index";
+const procStore = useProcStore();
 
 const $loading = useLoading({});
-const store = useStore();
+// const store = useStore();
 
 const undos = ref([]);
 const limit = ref(50);
@@ -176,13 +178,15 @@ const updatePage = () => {
     color: "#383c4a"
   });
   const process = `Loading undo for ${type.value} instance type`;
-  store.commit('addProcess', process);
+  // store.commit('addProcess', process);
+  procStore.addProcess(process);
   Undo.all(limit.value, type.value)
     .then(response => {
       undos.value = response.data;
     })
     .finally(() => {
-      store.commit('removeProcess', process);
+      procStore.removeProcess(process);
+      // store.commit('removeProcess', process);
       // isLoading.value = false;
       loader.hide()
     });
