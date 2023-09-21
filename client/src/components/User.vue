@@ -23,7 +23,7 @@
       >
         <li>
           <a
-            v-show="$store.getters['user/isAdmin']"
+            v-show="authStore.isAdmin"
             class="dropdown-item"
             href="#"
           >
@@ -58,15 +58,21 @@
 
 <script setup>
 import { computed } from "vue";
-import { useStore } from "vuex";
+// import { useStore } from "vuex";
 import { useRouter, useRoute } from 'vue-router';
 
-    const store = useStore();
+import { useAuthStore } from "@/store/user";
+const authStore = useAuthStore();
+import { useInfoStore } from "@/store/info";
+const infoStore = useInfoStore();
+
+    // const store = useStore();
     const router = useRouter();
     const route = useRoute();
     
     const logout = () => {
-      store.dispatch("user/logout");
+      // store.dispatch("user/logout");
+      authStore.logout()
     };
     
     const logoutButton = () => {
@@ -79,7 +85,8 @@ import { useRouter, useRoute } from 'vue-router';
       logout();
     };
     const user = computed(() => {
-      return store.state.user.user;
+      // return store.state.user.user;
+      return authStore.user;
     });
     const display = computed(() => {
       if (!user.value) return "";

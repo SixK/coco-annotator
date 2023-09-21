@@ -95,7 +95,7 @@
       </div>
 
       <div
-        v-show="$store.getters['user/loginEnabled']"
+        v-show="authStore.loginEnabled()"
         class="card-footer text-muted"
       >
         Created by {{ dataset.owner }}
@@ -238,16 +238,26 @@ import TagsInput from "@/components/TagsInput";
 
 import { ref, computed, inject, watch, onMounted } from "vue";
 import { useRouter } from 'vue-router';
-import { useStore } from 'vuex';
+//import { useStore } from 'vuex';
+//const store = useStore();
 
-const store = useStore();
+import { useAuthStore } from "@/store/user";
+const authStore = useAuthStore();
+import { useProcStore } from "@/store/index";
+const procStore = useProcStore();
+import { useInfoStore } from "@/store/info";
+const infoStore = useInfoStore();
+
 const router = useRouter();
 const emit = defineEmits(['updatePage']);
 
 const getUsers = inject('getUsers');
 
-const addProcess = (process) => store.commit('addProcess', {process});
-const removeProcess = (process) => store.commit('removeProcess', {process});
+const addProcess = (process) => procStore.addProcess(process);
+const removeProcess = (process) => procStore.removeProcess(process);
+
+// const addProcess = (process) => store.commit('addProcess', {process});
+// const removeProcess = (process) => store.commit('removeProcess', {process});
 
 const props = defineProps({
   dataset: {

@@ -306,8 +306,18 @@ import useShortcuts from "@/composables/shortcuts";
 import useAxiosRequest from "@/composables/axiosRequest";
 const {axiosReqestError, axiosReqestSuccess} = useAxiosRequest();
 
+import { useAuthStore } from "@/store/user";
+const authStore = useAuthStore();
+import { useProcStore } from "@/store/index";
+const procStore = useProcStore();
+import { useInfoStore } from "@/store/info";
+const infoStore = useInfoStore();
+
+/*
 import { useStore } from 'vuex';
 const store = useStore();
+*/
+
 
 import { toRaw, onBeforeUpdate, onUpdated, nextTick, markRaw, toRef, ref, computed, watch, inject, onMounted, provide } from 'vue';
 
@@ -426,7 +436,9 @@ const getPaper = () => {
 const save = (callback) => {
       let process = "Saving";
       // this.addProcess(process);
-      store.commit('addProcess', process);
+      // store.commit('addProcess', process);
+      procStore.addProcess(process);
+      
       
       let data = {
         mode: mode.value,
@@ -480,7 +492,8 @@ const save = (callback) => {
           if (callback != null) callback();
         })
         .finally(() => {
-            store.commit('removeProcess', process);
+            // store.commit('removeProcess', process);
+            procStore.removeProcess(process);
         });
 };
 
@@ -568,7 +581,9 @@ const changeZoom = (delta, p) => {
 const initCanvas = () => {
       let process = "Initializing canvas";
       // this.addProcess(process);
-      store.commit('addProcess', process);
+      // store.commit('addProcess', process);
+      procStore.addProcess(process);
+      
 
       loading.value.image = true;
 
@@ -591,7 +606,8 @@ const initCanvas = () => {
         fit();
         image.value.ratio = (width * height) / 1000000;
         // this.removeProcess(process);
-        store.commit('removeProcess', process);
+        // store.commit('removeProcess', process);
+        procStore.removeProcess(process);
 
         let tempCtx = document.createElement("canvas").getContext("2d");
         tempCtx.canvas.width = width;
@@ -642,7 +658,8 @@ const updateCurrentAnnotation = (value) => {
 const getData = (callback) => {
       let process = "Loading annotation data";
       // this.addProcess(process);
-       store.commit('addProcess', process);
+       // store.commit('addProcess', process);
+       procStore.addProcess(process);
 
       loading.value.data = true;
       axios
@@ -666,7 +683,8 @@ const getData = (callback) => {
 
           // Update status
           // setDataset(dataset.value);
-          store.commit('setDataset', dataset.value);
+          // store.commit('setDataset', dataset.value);
+          procStore.setDataset(dataset.value);
 
 
           let preferences = data.preferences;
@@ -690,7 +708,8 @@ const getData = (callback) => {
               router.go(-1);
         })
         .finally(() => {
-            store.commit('removeProcess', process);
+            procStore.removeProcess(process);
+            // store.commit('removeProcess', process);
         });
 };
 
@@ -1174,7 +1193,8 @@ const currentKeypointLength = computed(() => {
 
 
 const user = computed(() => {
-  return store.getters['user/user'];
+  // return store.getters['user/user'];
+  return authStore.user;
 });
 
 
@@ -1290,8 +1310,6 @@ onBeforeRouteLeave((to, from, next) => {
 
 
 onMounted(() => {
-    app.__vue_app__._instance.ctx.sockets.subscribe('annotating', onAnnotating);
-
     // can't call this command like this, but work without !??
     // paper = new paper.PaperScope();
     image.value.id = parseInt(props.identifier);
@@ -1299,11 +1317,13 @@ onMounted(() => {
 
 
     // setDataset(null);
-    store.commit('setDataset', null);
+    // store.commit('setDataset', null);
+    procStore.setDataset(null);
 
     initCanvas();
     getData();
 
+    app.__vue_app__._instance.ctx.sockets.subscribe('annotating', onAnnotating);
     app.__vue_app__.config.globalProperties.$socket.emit("annotating", {image_id: image.value.id, active: true });
 
 });

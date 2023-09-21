@@ -6,16 +6,23 @@
 
 <script setup>
 import { computed, ref, watch } from "vue";
-import { useStore } from "vuex";
+// import { useStore } from "vuex";
 import { useButton } from "@/composables/toolBar/button";
 
-const store = useStore();
+import { useAuthStore } from "@/store/user";
+const authStore = useAuthStore();
+import { useProcStore } from "@/store/index";
+const procStore = useProcStore();
+import { useInfoStore } from "@/store/info";
+const infoStore = useInfoStore();
+
+// const store = useStore();
 // const { iconColor, click, color } = useButton();
 const { iconColor, click } = useButton();
 
 const icon = ref("fa-undo");
 const disabled = ref(true);
-const undoList = computed(() => store.state.undo);
+const undoList = computed(() => procStore.undo);
 
 const name = computed(() => {
   let length = undoList.value.length;
@@ -27,7 +34,8 @@ const name = computed(() => {
   return "Undo (Last Action: " + last.name + " " + last.action + ")";
 });
 const execute = () => {
-  store.commit("undo");
+  // store.commit("undo");
+  procStore.doUndo();
 };
 
 watch(

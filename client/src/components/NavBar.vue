@@ -90,7 +90,7 @@
           </RouterLink>
         </li>
         <li
-          v-show="$store.getters['user/isAdmin']"
+          v-show="authStore.isAdmin"
           class="nav-item"
           :class="{ active: $route.name === 'admin' }"
         >
@@ -125,14 +125,34 @@
 
 <script setup>
 import { computed, watch, ref } from 'vue';
-import { useStore } from 'vuex';
+// import { useStore } from 'vuex';
 
 import User from '@/components/User';
 import Status from '@/components/Status';
 
-const store = useStore();
+import { useProcStore } from "@/store/index";
+const procStore = useProcStore();
+import { useAuthStore } from "@/store/user";
+const authStore = useAuthStore();
+import { useInfoStore } from "@/store/info";
+const infoStore = useInfoStore();
+
+// const store = useStore();
 const color = ref('white');
 const backendStatus = ref('Connection unknown');
+
+const version = computed(() => infoStore.version);
+const loginEnabled = computed(() => infoStore.loginEnabled);
+const name = computed(() => infoStore.name);
+const socket = computed(() => infoStore.socket);
+const dataset = computed(() => {
+  let dataset = procStore.dataset;
+  if (dataset == null) return { name: '', id: '' };
+  return dataset;
+});
+
+
+/*
 const version = computed(() => store.state.info.version);
 const loginEnabled = computed(() => store.state.info.loginEnabled);
 const name = computed(() => store.state.info.name);
@@ -142,6 +162,7 @@ const dataset = computed(() => {
   if (dataset == null) return { name: '', id: '' };
   return dataset;
 });
+*/
 watch(socket, (connected) => {
   if (connected == null) {
     color.value = 'white';

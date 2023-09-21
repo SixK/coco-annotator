@@ -230,12 +230,18 @@ import DatasetCard from "@/components/cards/DatasetCard";
 import Pagination from "@/components/Pagination";
 import TagsInput from "@/components/TagsInput";
 
-import { useStore } from 'vuex';
+// import { useStore } from 'vuex';
 import useAxiosRequest from "@/composables/axiosRequest";
 import { ref, computed, watch, inject, onMounted, provide } from 'vue';
 
 const {axiosReqestError, axiosReqestSuccess} = useAxiosRequest();
-const store = useStore();
+// import { useStore } from 'vuex';
+// const store = useStore();
+
+import { useAuthStore } from "@/store/user";
+const authStore = useAuthStore();
+import { useProcStore } from "@/store/index";
+const procStore = useProcStore();
 
 const pages = ref(1);
 const limit = ref(52);
@@ -255,7 +261,8 @@ const getUsers = () => {
 
 const updatePage = (p) => {
       let process = "Loading datasets";
-      store.commit('addProcess', process);
+      // store.commit('addProcess', process);
+      procStore.addProcess(process);
 
       p = p || page.value;
       page.value = p;
@@ -275,7 +282,8 @@ const updatePage = (p) => {
           });
         })
         .finally(() => { 
-            store.commit('removeProcess', process);
+            // store.commit('removeProcess', process);
+            procStore.removeProcess(process);
         });
 };
 
@@ -319,7 +327,8 @@ const validDatasetName = computed(() => {
 });
 
 const user = computed(() => {
-  return store.state.user.user;
+  // return store.state.user.user;
+  return authStore.user;
 });
 
 watch(

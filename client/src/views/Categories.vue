@@ -223,8 +223,17 @@ import { ref, computed, watch, inject, onMounted, provide } from 'vue';
 import useAxiosRequest from "@/composables/axiosRequest";
 const {axiosReqestError, axiosReqestSuccess} = useAxiosRequest();
 
+/*
+import { useAuthStore } from "@/store/user";
+const authStore = useAuthStore();
+*/
+import { useProcStore } from "@/store/index";
+const procStore = useProcStore();
+
+/*
 import { useStore } from 'vuex';
 const store = useStore();
+*/
 
 const categoryCount = ref(0);
 const pages = ref(1);
@@ -255,7 +264,8 @@ const isFormValid = computed(() => {
 
 const updatePage = (p) => {
   const process = "Loading categories";
-  store.commit('addProcess', process);
+  // store.commit('addProcess', process);
+  procStore.addProcess(process);
 
   p = p || page.value;
   page.value = p;
@@ -270,7 +280,8 @@ const updatePage = (p) => {
       categoryCount.value = response.data.pagination.total;
     })
     .finally(() => {
-              store.commit('removeProcess', process);
+               procStore.removeProcess(process);
+              // store.commit('removeProcess', process);
     });
 };
 
