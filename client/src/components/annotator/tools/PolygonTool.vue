@@ -259,7 +259,7 @@ const isActive = computed(() => {
 
 // need to understand why this scale is not triggered !?
 watch(
-   () => props.scale, 
+   () => scale.value, 
    (newScale) => {
   polygon.value.pathOptions.strokeWidth = newScale * scaleFactor;
   if (polygon.value.path != null) {

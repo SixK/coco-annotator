@@ -245,7 +245,7 @@ const isActive = computed(() => {
 });
 
 watch(
- () => props.scale, 
+ () => scale.value, 
  (newScale) => {
   polygon.value.pathOptions.strokeWidth = newScale * scaleFactor;
   if (polygon.value.path != null) {

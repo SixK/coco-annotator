@@ -90,7 +90,7 @@ watch(
 );
 
 watch(
-    () => props.scale, 
+    () => scale.value, 
     (newScale) => {
       eraser.value.pathOptions.strokeWidth = newScale * scaleFactor;
       if (eraser.value.brush != null)
