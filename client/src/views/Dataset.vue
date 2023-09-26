@@ -715,7 +715,7 @@ import TagsInput from "@/components/TagsInput";
 
 import { Modal } from "bootstrap";
 
-import { ref, computed, watch, inject, onUnmounted, onMounted, provide } from 'vue';
+import { getCurrentInstance, ref, computed, watch, inject, onUnmounted, onMounted, provide } from 'vue';
 
 /*
 import { useStore } from 'vuex';
@@ -1172,13 +1172,19 @@ onMounted(() => {
       const exportTag = document.getElementById("exportDataset");
       cocoExportModal = new Modal(exportTag, { });
     
-      app.__vue_app__._instance.ctx.sockets.subscribe('taskProgress', onTaskProgress);
-      app.__vue_app__._instance.ctx.sockets.subscribe('annotating', onAnnotating);
+      // app.__vue_app__._instance.ctx.sockets.subscribe('taskProgress', onTaskProgress);
+      // app.__vue_app__._instance.ctx.sockets.subscribe('annotating', onAnnotating);
+      
+      getCurrentInstance().ctx.sockets.subscribe('taskProgress', onTaskProgress);
+      getCurrentInstance().ctx.sockets.subscribe('annotating', onAnnotating);
+
 });
 
 onUnmounted(() => {
-      app.__vue_app__._instance.ctx.sockets.unsubscribe('taskProgress');
-      app.__vue_app__._instance.ctx.sockets.unsubscribe('annotating');
+      // app.__vue_app__._instance.ctx.sockets.unsubscribe('taskProgress');
+      // app.__vue_app__._instance.ctx.sockets.unsubscribe('annotating');
+      getCurrentInstance().ctx.sockets.unsubscribe('taskProgress');
+      getCurrentInstance().ctx.sockets.unsubscribe('annotating');
 
       window.removeEventListener('mouseup', stopDrag);
       window.removeEventListener('mousedown', startDrag);

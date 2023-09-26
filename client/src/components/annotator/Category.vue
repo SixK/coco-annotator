@@ -192,7 +192,7 @@ import KeypointsDefinition from "@/components/KeypointsDefinition";
 
 import { nextTick } from 'vue';
 
-import { provide, inject, watch, reactive, ref, computed, onMounted, onUnmounted, onBeforeUpdate,toRef } from 'vue';
+import { getCurrentInstance, provide, inject, watch, reactive, ref, computed, onMounted, onUnmounted, onBeforeUpdate,toRef } from 'vue';
 
 const props = defineProps({
     category: {
@@ -236,6 +236,8 @@ const props = defineProps({
       required: true
     }
 });
+
+const socket = inject('socket');
 
 const emit = defineEmits(['click', 'keypointsComplete']);
 
@@ -427,7 +429,9 @@ const createAnnotation = () => {
         category_id: category.value.id,
       }).then((response) => {
         // workaround to access to $socket
-        app.__vue_app__.config.globalProperties.$socket.emit("annotation", {
+        
+        // app.__vue_app__.config.globalProperties.$socket.emit("annotation", {
+       socket.io.emit("annotation", {
           action: "create",
           category_id: category.value.id,
           annotation: response.data
@@ -641,7 +645,8 @@ onBeforeUpdate(() => {
 onMounted( () => {
     initCategory();
     // app.__vue_app__.config.globalProperties.$socket.on('annotation', onAnnotation);
-     app.__vue_app__._instance.ctx.sockets.subscribe('annotation', onAnnotation);
+     // app.__vue_app__._instance.ctx.sockets.subscribe('annotation', onAnnotation);
+     getCurrentInstance().ctx.sockets.subscribe('annotation', onAnnotation);
      isMounted.value = true;
     let categoryTag = document.getElementById(`categorySettings${category.value.id}`);
     console.log('CategoryTag:', categoryTag);
@@ -650,7 +655,9 @@ onMounted( () => {
 
 onUnmounted(() => {
     // app.__vue_app__.config.globalProperties.$socket.off('annotation', onAnnotation);
-    app.__vue_app__._instance.ctx.sockets.unsubscribe('annotation');
+    // app.__vue_app__._instance.ctx.sockets.unsubscribe('annotation');
+    getCurrentInstance().ctx.sockets.unsubscribe('annotation');
+
     categorySettingsModal.hide();
 });
     
