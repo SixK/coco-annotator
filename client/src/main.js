@@ -1,7 +1,10 @@
 import "intersection-observer";
 
-import { createApp, h, configureCompat } from "vue";
-import Vue from "vue";
+// import { createApp, h, configureCompat } from "vue";
+import { createApp, h } from "vue";
+
+// import * as Vue from 'vue';
+import { Vue } from "vue";
 import { createPinia } from 'pinia';
 import App from "./App.vue";
 import router from "./router";
@@ -24,7 +27,7 @@ import 'vue-toast-notification/dist/theme-bootstrap.css';
 // import "vue-loading-overlay/dist/vue-loading.css";
 import 'vue-loading-overlay/dist/css/index.css';
 
-Vue.config.productionTip = false;
+// Vue.config.productionTip = false;
 
 // window.toastr = require("toastr");
 
@@ -47,10 +50,14 @@ app.use(VTooltip);
 app.use(router);
 // app.use(store);
 app.use(socketio);
+
+// app.config.globalProperties.$ssocketio = socketio;
+app.provide('socket', socketio)
 // app.use(Loading);
 app.use(LoadingPlugin);
 app.use(Vue3TouchEvents, { name: "v-touch" });
 
+/*
 configureCompat(
   {
     // default everything to Vue 2 behavior
@@ -58,5 +65,7 @@ configureCompat(
   },
   { RENDER_FUNCTION: false }
 );
+*/
 
 app.mount("#app");
+

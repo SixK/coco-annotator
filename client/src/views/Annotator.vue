@@ -297,6 +297,8 @@ import EraserPanel from "@/components/annotator/panels/EraserPanel";
 import KeypointPanel from "@/components/annotator/panels/KeypointPanel";
 import DEXTRPanel from "@/components/annotator/panels/DEXTRPanel";
 
+
+import { getCurrentInstance } from 'vue';
 import { onBeforeRouteLeave, useRouter, useRoute } from 'vue-router';
 const router = useRouter();
 const route = useRoute();
@@ -312,6 +314,8 @@ import { useProcStore } from "@/store/index";
 const procStore = useProcStore();
 import { useInfoStore } from "@/store/info";
 const infoStore = useInfoStore();
+
+const socket = inject('socket')
 
 /*
 import { useStore } from 'vuex';
@@ -1323,8 +1327,13 @@ onMounted(() => {
     initCanvas();
     getData();
 
-    app.__vue_app__._instance.ctx.sockets.subscribe('annotating', onAnnotating);
-    app.__vue_app__.config.globalProperties.$socket.emit("annotating", {image_id: image.value.id, active: true });
+    console.log('socket:', socket, getCurrentInstance());
+    // const instance = getCurrentInstance();
+    socket.io.emit("annotating", {image_id: image.value.id, active: true });
+    getCurrentInstance().ctx.sockets.subscribe('annotating', onAnnotating);
+    
+    // app.__vue_app__._instance.ctx.sockets.subscribe('annotating', onAnnotating);
+    // app.__vue_app__.config.globalProperties.$socket.emit("annotating", {image_id: image.value.id, active: true });
 
 });
 

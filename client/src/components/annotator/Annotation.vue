@@ -280,7 +280,7 @@ const infoStore = useInfoStore();
 // import TagsInput from "@/components/TagsInput";
 import MetaData from "@/components/MetaData";
 
-import { watchEffect, inject, watch, reactive, ref, computed, onMounted, onUnmounted, toRef } from 'vue';
+import { getCurrentInstance, watchEffect, inject, watch, reactive, ref, computed, onMounted, onUnmounted, toRef } from 'vue';
 
 const addKeypointEdge = inject('addKeypointEdge');
 const removeKeypointEdge = inject('removeKeypointEdge');
@@ -360,6 +360,8 @@ const props = defineProps({
       default: () => []
     }
 });
+
+const socket = inject('socket');
 
 const showAnnotations = ref(props.showAnnotations);
 // don't know why toRef does not synchronize showAnnotations
@@ -524,7 +526,8 @@ const createCompoundPath = (json = null, segments = null) => {
 const deleteAnnotation = (id) => {
   axios.delete("/api/annotation/" + annotation.value.id).then(() => {
     // workaround to try to emit action to socket
-    app.__vue_app__.config.globalProperties.$socket.emit("annotation", {
+    // app.__vue_app__.config.globalProperties.$socket.emit("annotation", {
+    socket.io.emit("annotation", {
       action: "delete",
       annotation: annotation.value,
     });
@@ -1138,13 +1141,17 @@ onMounted( () => {
     });
 
     /// app.__vue_app__.config.globalProperties.$socket.on('annotation', onAnnotation);
-    app.__vue_app__._instance.ctx.sockets.subscribe('annotation', onAnnotation);
+    // app.__vue_app__._instance.ctx.sockets.subscribe('annotation', onAnnotation);
+    getCurrentInstance().ctx.sockets.subscribe('annotation', onAnnotation);
+
     console.log('should be mounted Annotation');
 });
 
 onUnmounted(() => {
     // app.__vue_app__.config.globalProperties.$socket.off('annotation', onAnnotation);
-    app.__vue_app__._instance.ctx.sockets.unsubscribe('annotation');
+    // app.__vue_app__._instance.ctx.sockets.unsubscribe('annotation');
+    getCurrentInstance().ctx.sockets.unsubscribe('annotation');
+
     annotationSettingsModal.hide();
     keypointSettingsModal.hide();
 });
