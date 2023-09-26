@@ -1304,7 +1304,7 @@ onBeforeRouteLeave((to, from, next) => {
 
     nextTick(() => {
       // this.$socket.emit("annotating", {
-      app.__vue_app__.config.globalProperties.$socket.emit("annotating", {
+      socket.io.emit("annotating", {
         image_id: image.value.id,
         active: false
       });
