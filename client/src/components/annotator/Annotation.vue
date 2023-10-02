@@ -280,7 +280,7 @@ const infoStore = useInfoStore();
 // import TagsInput from "@/components/TagsInput";
 import MetaData from "@/components/MetaData";
 
-import { getCurrentInstance, watchEffect, inject, watch, reactive, ref, computed, onMounted, onUnmounted, toRef } from 'vue';
+import { nextTick, getCurrentInstance, watchEffect, inject, watch, reactive, ref, computed, onMounted, onUnmounted, toRef } from 'vue';
 
 const addKeypointEdge = inject('addKeypointEdge');
 const removeKeypointEdge = inject('removeKeypointEdge');
@@ -903,7 +903,11 @@ const categoryIndex = computed(() => {
 const isCurrent = computed(() => {
   if (index.value === current.value && categoryIsCurrent.value) {
     // if (compoundPath != null) compoundPath.bringToFront();
-    if (keypoints.value != null) keypoints.value.bringToFront();
+    // need NextTick to avoid infinite loop this seem's to generate infinite loop
+    // not sure about what bringToFront() do, seem's to change nothing 
+    // but it could be done elsewhere
+    if (keypoints.value != null) nextTick(() => {keypoints.value.bringToFront()});
+    // if (keypoints.value != null) keypoints.value.bringToFront();
     return true;
   }
   return false;
