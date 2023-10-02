@@ -1,4 +1,4 @@
-FROM node:14
+FROM node:18
 
 RUN npm install -g --quiet \
     @vue/cli@5.0.8 \
