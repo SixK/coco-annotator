@@ -62,7 +62,8 @@ watch(
            state.isActive = true;
            setCursor(cursor.value);
            setActiveTool('Select');
-           emit('update', tool);
+           // emit('update', tool);
+           emit('update', 'Select');
        }
        
        let tool = localStorage.getItem("editorTool") || "Select";
