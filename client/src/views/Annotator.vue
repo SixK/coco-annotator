@@ -227,10 +227,10 @@
       class="middle-panel"
       :style="{ cursor: cursor }"
     >
-      <v-touch
+      <!-- <v-touch
         @pinch="onpinch"
         @pinchstart="onpinchstart"
-      >
+      > -->
         <div
           id="frame"
           class="frame"
@@ -244,7 +244,7 @@
             resize
           />
         </div>
-     </v-touch>
+     <!-- </v-touch> -->
     </div>
 
     <div
