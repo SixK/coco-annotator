@@ -26,7 +26,7 @@
       name="Stroke Color"
     />
     <PanelInputNumber
-      v-model="polygon.polygon.completeDistance"
+      v-model:value="polygon.polygon.completeDistance"
       name="Auto Complete Distance"
       min="0"
       max="1000"
@@ -34,7 +34,7 @@
       @update="polygon.polygon.completeDistance = $event"
     />
     <PanelInputNumber
-      v-model="polygon.polygon.minDistance"
+      v-model:value="polygon.polygon.minDistance"
       name="Min Distance"
       min="0"
       max="500"

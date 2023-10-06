@@ -10,7 +10,7 @@
       </div>
     </div>
     <PanelInputDropdown
-      v-model="visibility"
+      v-model:value="visibility"
       name="Visibility"
       :values="visibilityOptions"
       @update-order="updateOrder"

@@ -1,7 +1,7 @@
 <template>
   <div v-show="showme">
     <PanelInputNumber
-      v-model="magicwand.wand.threshold"
+      v-model:value="magicwand.wand.threshold"
       name="Threshold"
       min="0"
       max="1000"
@@ -9,7 +9,7 @@
       @update="magicwand.wand.threshold"
     />
     <PanelInputNumber
-      v-model="magicwand.wand.blur"
+      v-model:value="magicwand.wand.blur"
       name="Blur"
       min="0"
       max="1000"

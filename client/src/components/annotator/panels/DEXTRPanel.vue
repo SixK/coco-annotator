@@ -1,7 +1,7 @@
 <template>
   <div v-show="showme">
     <PanelInputNumber
-      v-model="dextr.settings.padding"
+      v-model:value="dextr.settings.padding"
       name="Padding"
       min="0"
       max="1000"
@@ -9,7 +9,7 @@
       @update="dextr.settings.padding = $event"
     />
     <PanelInputNumber
-      v-model="dextr.settings.threshold"
+      v-model:value="dextr.settings.threshold"
       name="Threshold"
       min="0"
       max="100"
