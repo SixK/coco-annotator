@@ -1,7 +1,7 @@
 <template>
   <div v-show="showme">
     <PanelInputNumber
-      v-model="eraser.eraser.pathOptions.radius"
+      v-model:value="eraser.eraser.pathOptions.radius"
       name="Radius"
       min="0"
       max="1000"

@@ -39,7 +39,7 @@ const props = defineProps({
 });
 
 
-const emits = defineEmits(['update-order']);
+const emits = defineEmits(['update:value']);
 const localValue = ref(props.value);
 
 const options = computed(() => {
@@ -58,7 +58,7 @@ watch(
   () => localValue.value, 
   () => {
     console.log('localValue changed:',  localValue.value);
-    emits('update-order', localValue.value);
+    emits('update:value', localValue.value);
 });
 watch(
   () => props.value, 

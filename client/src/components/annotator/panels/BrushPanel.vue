@@ -1,7 +1,7 @@
 <template>
   <div v-show="showme">
     <PanelInputNumber
-      v-model="brush.brush.pathOptions.radius"
+      v-model:value="brush.brush.pathOptions.radius"
       name="Radius"
       min="0"
       max="1000"
