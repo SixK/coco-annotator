@@ -4,7 +4,7 @@ import "intersection-observer";
 import { createApp, h } from "vue";
 
 // import * as Vue from 'vue';
-import { Vue } from "vue";
+// import { Vue } from "vue";
 import { createPinia } from 'pinia';
 import App from "./App.vue";
 import router from "./router";
@@ -13,7 +13,9 @@ import router from "./router";
 // import {useToast} from 'vue-toast-notification';
 import {VueToast} from 'vue-toast-notification';
 import paper from "paper";
-import VTooltip from "v-tooltip";
+// import VTooltip from "v-tooltip";
+import FloatingVue from 'floating-vue'
+// import { VTooltip } from 'floating-vue';
 // import Loading from "vue-loading-overlay";
 import {LoadingPlugin} from "vue-loading-overlay";
 // import VueTouch from 'vue-touch'
@@ -26,6 +28,7 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import 'vue-toast-notification/dist/theme-bootstrap.css';
 // import "vue-loading-overlay/dist/vue-loading.css";
 import 'vue-loading-overlay/dist/css/index.css';
+import 'floating-vue/dist/style.css';
 
 // Vue.config.productionTip = false;
 
@@ -46,16 +49,18 @@ app.use(VueToast, {
     // One of the options
     position: 'top'
 });
-app.use(VTooltip);
+// app.use(VTooltip);
+app.use(FloatingVue);
 app.use(router);
 // app.use(store);
 app.use(socketio);
 
 // app.config.globalProperties.$ssocketio = socketio;
-app.provide('socket', socketio)
+// app.provide('socket', socketio)
 // app.use(Loading);
 app.use(LoadingPlugin);
-app.use(Vue3TouchEvents, { name: "v-touch" });
+// app.use(Vue3TouchEvents, { name: "v-touch" });
+// app.use(Vue3TouchEvents);
 
 /*
 configureCompat(
