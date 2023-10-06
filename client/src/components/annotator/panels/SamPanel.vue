@@ -1,7 +1,7 @@
 <template>
   <div v-show="showme">
     <PanelInputNumber
-      v-model="sam.settings.padding"
+      v-model:value="sam.settings.padding"
       name="Padding"
       min="0"
       max="1000"
@@ -9,7 +9,7 @@
       @update="sam.settings.padding = $event"
     />
     <PanelInputNumber
-      v-model="sam.settings.threshold"
+      v-model:value="sam.settings.threshold"
       name="Threshold"
       min="0"
       max="100"
