@@ -1,8 +1,9 @@
 FROM node:18
 
+RUN apt update && apt install -y libpango1.0-dev libcairo2-dev libpangocairo-1.0-0
+
 RUN npm install -g --quiet \
-    @vue/cli@5.0.8 \
-    @vue/cli-service@5.0.8
+    vite@latest
 
     # @vue/cli@3.12.1 \
     # @vue/cli-service@3.12.1
@@ -16,4 +17,4 @@ ENV NODE_PATH=/workspace/node_modules
 WORKDIR /workspace/client/
 
 EXPOSE 8080
-CMD npm run serve
+CMD npm run dev -- --host --mode dev

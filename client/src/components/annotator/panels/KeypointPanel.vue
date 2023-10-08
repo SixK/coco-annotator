@@ -31,9 +31,9 @@ const props = defineProps({
     required: true,
   },
   currentAnnotation: {
-    required: true,
+    // required: true,
     type: Object,
-    // validator: (prop) => typeof prop === 'object' || prop === undefined,
+    validator: (prop) => typeof prop === 'object' || prop === undefined,
   },
 });
 

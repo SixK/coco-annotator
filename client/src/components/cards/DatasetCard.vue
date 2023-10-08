@@ -273,8 +273,11 @@ const props = defineProps({
 const imageError = ref(false);
 const selectedCategories = ref([]);
 const defaultMetadata = ref(props.dataset.default_annotation_metadata);
-const noImageUrl = require("@/assets/no-image.png");
-const notFoundImageUrl = require("@/assets/404-image.png");
+// const noImageUrl = require("@/assets/no-image.png");
+// const notFoundImageUrl = require("@/assets/404-image.png");
+import noImageUrl from "@/assets/no-image.png";
+import notFoundImageUrl from "@/assets/404-image.png";
+
 const sharedUsers = ref([]);
 const localUsers = ref([]);
 const dataset = ref(props.dataset);

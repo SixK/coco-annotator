@@ -1,10 +1,15 @@
-FROM node:16 as build-stage
+FROM node:18 as build-stage
 
 WORKDIR /workspace/
 COPY ./client /workspace/client
 
-RUN npm install -g @vue/cli@5.0.8
-RUN npm install -g @vue/cli-service@5.0.8
+RUN apt update && apt install -y libpango1.0-dev libcairo2-dev libpangocairo-1.0-0
+
+
+RUN npm install -g vite@latest
+# RUN npm install -g SixK/paper.js#develop
+# RUN npm install -g @vue/cli@5.0.8
+# RUN npm install -g @vue/cli-service@5.0.8
 # RUN npm install --location=global @vue/cli@4.5.19
 # RUN npm install --location=global @vue/cli-service@4.5.19
 

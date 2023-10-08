@@ -123,7 +123,9 @@ const props = defineProps({
 
 const hover = ref(false);
 const showAnnotations = ref(true);
-const loaderUrl = require("@/assets/loader.gif");
+// const loaderUrl = require("@/assets/loader.gif");
+import loaderUrl from "@/assets/loader.gif";
+
 const imageUrl = computed(() => {
       let d = new Date();
       if (showAnnotations.value) {

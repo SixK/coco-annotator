@@ -48,7 +48,9 @@ const props = defineProps({
 });
 
 const _uid = reactive(`input-${Date.now()}-${Math.random()}`);
-const keys = ref(props.shortcut.default);
+// const keys = ref(props.shortcut.default);
+const keys = toRef(props.shortcut, 'default');
+
 const keysDown = ref([]);
 const readonly = ref(props.shortcut.readonly == null ? false : props.shortcut.readonly);
 const toggleKey = computed(() => {

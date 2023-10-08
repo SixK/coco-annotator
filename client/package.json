@@ -3,9 +3,10 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "serve": "vue-cli-service serve",
-    "build": "vue-cli-service build",
-    "lint": "vue-cli-service lint",
+    "dev": "vite --port 8080",
+    "build": "vite build",
+    "serve": "vite preview --port 8080",
+    "lint": "eslint --ext .js,.vue --ignore-path .gitignore --fix src",
     "test": "vue-cli-service test:unit"
   },
   "dependencies": {
@@ -14,38 +15,36 @@
     "autoprefixer": "^9.8.6",
     "axios": "^1.5.0",
     "bootstrap": "^5.2.3",
+    "floating-vue": "^2.0.0-beta.24",
     "intersection-observer": "^0.12.2",
-    "paper": "^0.12.17",
-    "postcss": "^8.4.29",
+    "nopt": "^7.2.0",
+    "paper": "file:../../paper.js",
+    "pinia": "^2.1.6",
+    "postcss": "^8.4.31",
     "postcss-loader": "^7.3.3",
     "postcss-modules": "^6.0.0",
     "simplify-js": "^1.2.4",
-    "vue-toast-notification": "^3.1.1",
     "v-lazy-image": "^2.1.1",
-    "floating-vue": "^2.0.0-beta.24",
     "vue": "^3.3.4",
+    "vue-3-socket.io": "^1.0.5",
     "vue-loader": "^17.2.2",
     "vue-loading-overlay": "^6.0.3",
-    "vue-router": "^4.2.4",
-    "vue-3-socket.io": "^1.0.5",
-    "vue3-touch-events": "^3.1.1",
-    "pinia": "^2.1.6"
+    "vue-router": "^4.2.5",
+    "vue-toast-notification": "^3.1.1",
+    "vue3-touch-events": "^3.1.1"
   },
   "devDependencies": {
     "@babel/core": "7.22.20",
     "@babel/eslint-parser": "^7.22.15",
-    "@vue/cli-plugin-babel": "^5.0.8",
-    "@vue/cli-plugin-eslint": "^5.0.8",
-    "@vue/cli-plugin-unit-jest": "^5.0.8",
-    "@vue/cli-service": "^5.0.8",
-    "@vue/compiler-sfc": "^3.3.4",
+    "@vitejs/plugin-vue": "^4.4.0",
     "@vue/eslint-config-prettier": "^8.0.0",
     "@vue/test-utils": "^2.4.1",
     "babel-jest": "^29.7.0",
-    "eslint": "^8.49.0",
-    "eslint-plugin-vue": "^9.17.0",
+    "eslint": "^8.51.0",
     "eslint-plugin-prettier": "^5.0.0",
-    "prettier": "^3.0.3"
+    "eslint-plugin-vue": "^9.17.0",
+    "prettier": "^3.0.3",
+    "vite": "^4.4.11"
   },
   "eslintConfig": {
     "root": true,
@@ -64,9 +63,10 @@
     "parserOptions": {
       "parser": "@babel/eslint-parser"
     },
-    "rules": { "vue/multi-word-component-names": 0,
-	       "vue/no-v-model-argument": 0
-             }
+    "rules": {
+      "vue/multi-word-component-names": 0,
+      "vue/no-v-model-argument": 0
+    }
   },
   "postcss": {
     "plugins": {
