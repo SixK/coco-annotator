@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "vite --port 8080",
     "build": "vite build",
+    "optimize": "vite optimize",
     "serve": "vite preview --port 8080",
     "lint": "eslint --ext .js,.vue --ignore-path .gitignore --fix src",
     "test": "vue-cli-service test:unit"
