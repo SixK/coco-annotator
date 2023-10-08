@@ -18,7 +18,7 @@
     "floating-vue": "^2.0.0-beta.24",
     "intersection-observer": "^0.12.2",
     "nopt": "^7.2.0",
-    "paper": "file:../../paper.js",
+    "paper": "^0.12.17",
     "pinia": "^2.1.6",
     "postcss": "^8.4.31",
     "postcss-loader": "^7.3.3",
