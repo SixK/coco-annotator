@@ -4,14 +4,17 @@ from database import (
     DatasetModel
 )
 
-from celery import shared_task
+# from celery import shared_task
+from workers import celery
+
 from ..socket import create_socket
 from .thumbnails import thumbnail_generate_single_image
 
 import os
 
 
-@shared_task
+# @shared_task
+@celery.task
 def scan_dataset(task_id, dataset_id):
 
     task = TaskModel.objects.get(id=task_id)
