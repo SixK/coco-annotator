@@ -15,12 +15,13 @@ import time
 import json
 import os
 
-from celery import shared_task
+from workers import celery
+# from celery import shared_task
 from ..socket import create_socket
 from mongoengine import Q
 
 
-@shared_task
+@celery.task
 def export_annotations(task_id, dataset_id, categories, with_empty_images=False):
 
     task = TaskModel.objects.get(id=task_id)
@@ -132,7 +133,7 @@ def export_annotations(task_id, dataset_id, categories, with_empty_images=False)
     task.set_progress(100, socket=socket)
 
 
-@shared_task
+@celery.task
 def import_annotations(task_id, dataset_id, coco_json):
 
     task = TaskModel.objects.get(id=task_id)
