@@ -85,7 +85,8 @@ class TaskModel(DynamicDocument):
                     'progress': percent,
                     'errors': self.errors,
                     'warnings': self.warnings
-                }, broadcast=True)
+                })
+                # }, broadcast=True) # dunno why this seem's to not exists anymore !?
             
             self._progress_update += self._update_every
     

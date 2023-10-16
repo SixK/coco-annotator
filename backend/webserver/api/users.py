@@ -50,7 +50,8 @@ class UserPassword(Resource):
         args = set_password.parse_args()
 
         if check_password_hash(current_user.password, args.get('password')):
-            current_user.update(password=generate_password_hash(args.get('new_password'), method='sha256'), new=False)
+            # current_user.update(password=generate_password_hash(args.get('new_password'), method='sha256'), new=False)
+            current_user.update(password=generate_password_hash(args.get('new_password'), method='pbkdf2:sha256'), new=False)
             return {'success': True}
 
         return {'success': False, 'message': 'Password does not match current passowrd'}, 400
@@ -75,7 +76,8 @@ class UserRegister(Resource):
 
         user = UserModel()
         user.username = args.get('username')
-        user.password = generate_password_hash(args.get('password'), method='sha256')
+        # user.password = generate_password_hash(args.get('password'), method='sha256')
+        user.password = generate_password_hash(args.get('password'), method='pbkdf2:sha256')
         user.name = args.get('name')
         user.email = args.get('email')
         if users == 0:

@@ -1,4 +1,6 @@
 from flask import Blueprint
+import restx_monkey as monkey
+monkey.patch_restx()
 from flask_restx import Api
 
 from .annotations import api as ns_annotations

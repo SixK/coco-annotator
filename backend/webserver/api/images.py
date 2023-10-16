@@ -136,7 +136,8 @@ class ImageId(Resource):
         pil_image.save(image_io, "JPEG", quality=90)
         image_io.seek(0)
 
-        return send_file(image_io, attachment_filename=image.file_name, as_attachment=as_attachment)
+        # return send_file(image_io, attachment_filename=image.file_name, as_attachment=as_attachment)
+        return send_file(image_io, download_name=image.file_name, as_attachment=as_attachment)
 
     @login_required
     def delete(self, image_id):

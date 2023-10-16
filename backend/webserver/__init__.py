@@ -2,7 +2,7 @@ import eventlet
 eventlet.monkey_patch(thread=False)
 
 import sys
-import workers
+# import workers
 
 from config import Config
 from database import (
@@ -32,14 +32,16 @@ import logging
 import time
 import os
 
-
 connect_mongo('webserver')
 
+socketio = SocketIO()
 
 def create_app():
 
-    if Config.FILE_WATCHER:
-        run_watcher()
+    # Dunno why observer.start() does not return 
+    # We disable it and see later if this is fixable
+    # if Config.FILE_WATCHER:
+    #   run_watcher()
 
     flask = Flask(__name__,
                   static_url_path='',
@@ -47,13 +49,18 @@ def create_app():
 
     flask.config.from_object(Config)
 
+
     CORS(flask)
 
     flask.wsgi_app = ProxyFix(flask.wsgi_app)
     flask.register_blueprint(api)
 
     login_manager.init_app(flask)
-    socketio.init_app(flask, cors_allowed_origins="*", message_queue=Config.CELERY_BROKER_URL)
+    
+    # socketio = SocketIO(flask, async_mode='eventlet', 
+    socketio.init_app(flask, async_mode='eventlet', 
+                             cors_allowed_origins="*", 
+                             message_queue=Config.CELERY_BROKER_URL)
     # Remove all poeple who were annotating when
     # the server shutdown
     ImageModel.objects.update(annotating=[])
