@@ -1,11 +1,11 @@
-
-from celery import shared_task
+from workers import celery
+# from celery import shared_task
 from database import TaskModel
 
 from ..socket import create_socket
 
 
-@shared_task
+@celery.task
 def long_task(n, task_id):
 
     task = TaskModel.objects.get(id=task_id)
