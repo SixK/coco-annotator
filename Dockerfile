@@ -41,7 +41,7 @@ RUN python set_path.py
 
 COPY --from=build-stage /workspace/client/dist /workspace/dist
 
-RUN apt update && apt install -y libsm6 libxext6 libxrender1
+RUN apt update && apt install -y libsm6 libxext6 libxrender1 libgl1
 
 RUN git clone https://github.com/SysCV/sam-hq.git && cd sam-hq && pip install -e .
 

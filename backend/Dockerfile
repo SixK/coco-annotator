@@ -12,13 +12,15 @@
 # 3.7.11 	1.9.1
 # 3.8.8 	1.8.0
 # 3.8.3 	1.7.0
-FROM pytorch/pytorch:1.11.0-cuda11.3-cudnn8-runtime
+# FROM pytorch/pytorch:1.11.0-cuda11.3-cudnn8-runtime
+FROM pytorch/pytorch:1.13.0-cuda11.6-cudnn8-runtime
+
 
 # RUN apt-key adv --keyserver keyserver.ubuntu.com --recv-keys A4B469963BF863CC
 ENV DEBIAN_FRONTEND noninteractive
 
 RUN apt-get update
-RUN apt-get install -y git pkg-config gcc python3-dev libfreetype6-dev gfortran
+RUN apt-get install -y git pkg-config gcc python3-dev libfreetype6-dev gfortran libgl1 libsm6 libxext6
 
 WORKDIR /workspace/
 
@@ -28,9 +30,7 @@ COPY ./backend/requirements.txt /workspace/
 # Install python package dependices
 RUN pip install --upgrade pip && \
     pip install -r requirements.txt && \
-    pip install gunicorn[eventlet]==21.2.0 && \
-    pip install pycocotools && \
-    pip install urllib3==2.0.6
+    pip install gunicorn[eventlet]==21.2.0
 
 # Install maskrcnn
 RUN git clone --single-branch --depth 1 https://github.com/matterport/Mask_RCNN.git /tmp/maskrcnn

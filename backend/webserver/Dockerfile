@@ -7,9 +7,8 @@ COPY ./backend/ /workspace/
 COPY ./.git /workspace/.git
 
 RUN apt-get update && apt-get install -y libsm6 libxrender1 libfontconfig1 libglib2.0-0
-RUN pip install importlib-metadata==4.4.0
-RUN pip install watchdog==3.0.0
-RUN pip install imantics==0.1.12
+# RUN pip install importlib-metadata==4.4.0
+# RUN pip install imantics==0.1.12
 
 RUN python set_path.py
 
