@@ -50,7 +50,7 @@ RUN git clone --depth=1 https://github.com/iamlab-cmu/DEXTR-KerasTensorflow.git 
            sed -i "s/from networks/from dextr/g" networks/classifiers.py && \
            sed -i "s/from keras.backend import tf/import tensorflow/g" networks/classifiers.py && \
            sed -i "s/from keras.layers.merge import Concatenate, Add/from keras.layers import concatenate, add/g" networks/classifiers.py && \
-            cp networks/classifiers.py /opt/conda/lib/python3.8/site-packages/dextr-0.0.1-py3.8.egg/dextr/ && \
+            cp networks/classifiers.py /opt/conda/lib/python3.9/site-packages/dextr-0.0.1-py3.9.egg/dextr/ && \
             rm -Rf /tmp/dextr2
 
 ENV FLASK_ENV=production

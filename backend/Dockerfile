@@ -40,6 +40,7 @@ RUN cd /tmp/maskrcnn && python3 setup.py install
 # Install DEXTR
 RUN git clone --single --depth 1 https://github.com/jsbroks/dextr-keras.git /tmp/dextr && \
     cd /tmp/dextr && \
+    sed -i "s/np.int/int/g" dextr/model.py && \
     python setup.py install && \
     rm -Rf /tmp/dextr
 
