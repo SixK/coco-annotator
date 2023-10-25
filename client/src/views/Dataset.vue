@@ -491,7 +491,7 @@
           name="Show Not Annotated"
         />
         <PanelDropdown
-          v-model="order"
+          v-model:value="order"
           name="Order"
           :values="orderTypes"
           @update-order="updateOrder"

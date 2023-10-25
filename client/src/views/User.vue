@@ -68,9 +68,9 @@
 <script setup>
 import axios from "axios";
 import useAxiosRequest from "@/composables/axiosRequest";
-const {axiosReqestError, axiosReqestSuccess} = useAxiosRequest();
+const { axiosReqestError, axiosReqestSuccess } = useAxiosRequest();
 
-import { ref, watch, computed } from 'vue';
+import { ref, watch, computed } from "vue";
 
 import { useAuthStore } from "@/store/user";
 const authStore = useAuthStore();

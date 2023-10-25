@@ -189,15 +189,15 @@ const category = ref(props.category);
 
 const state = reactive({
   group: null,
-  supercategory: props.category.supercategory,
+  supercategory: category.value.supercategory,
   color: props.category.color,
   metadata: [],
   keypoint: {
-    labels: [...props.category.keypoint_labels],
-    edges: [...props.category.keypoint_edges],
-    colors: [...props.category.keypoint_colors],
+    labels: [...category.value.keypoint_labels],
+    edges: [...category.value.keypoint_edges],
+    colors: [...category.value.keypoint_colors],
   },
-  name: props.category.name,
+  name: category.value.name,
   isMounted: false,
 });
 

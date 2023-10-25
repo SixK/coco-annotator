@@ -15,7 +15,7 @@ export default defineConfig({
     port: 8080, 
     strictPort: true,
 
-    allowedHosts: ["localhost"],
+    allowedHosts: ["localhost", "webserver"],
 
     proxy: {
       "/api": {
@@ -26,7 +26,7 @@ export default defineConfig({
       },
       "/socket.io": {
         target: "http://webserver:5000/socket.io",
-        changeOrigin: true,
+        changeOrigin: false,
                 secure: false,  
                 ws: true,
         rewrite: (path) => path.replace(/^\/socket.io/, ""),

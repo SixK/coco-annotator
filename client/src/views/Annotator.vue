@@ -1341,7 +1341,8 @@ onMounted(() => {
 
     console.log('socket:', socket, getCurrentInstance());
     // const instance = getCurrentInstance();
-    socket.io.emit("annotating", {image_id: image.value.id, active: true });
+    // socket.io.emit("annotating", {image_id: image.value.id, active: true });
+    socket.emit("annotating", {image_id: image.value.id, active: true });
     getCurrentInstance().ctx.sockets.subscribe('annotating', onAnnotating);
     
     // app.__vue_app__._instance.ctx.sockets.subscribe('annotating', onAnnotating);

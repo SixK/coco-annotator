@@ -20,7 +20,9 @@ import FloatingVue from 'floating-vue'
 import {LoadingPlugin} from "vue-loading-overlay";
 // import VueTouch from 'vue-touch'
 import Vue3TouchEvents from "vue3-touch-events";
-import VueSocketIO from "vue-3-socket.io";
+import VueSocketIO from "vue-3-socket.io-ext";
+// import VLazyImage from "v-lazy-image";
+import Unlazy from '@unlazy/vue';
 
 import "bootstrap";
 import "bootstrap/dist/css/bootstrap.min.css";
@@ -54,6 +56,7 @@ app.use(FloatingVue);
 app.use(router);
 // app.use(store);
 app.use(socketio);
+app.use(Unlazy);
 
 // app.config.globalProperties.$ssocketio = socketio;
 // app.provide('socket', socketio)

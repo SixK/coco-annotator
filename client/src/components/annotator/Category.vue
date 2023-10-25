@@ -471,16 +471,16 @@ const exportCategory = () => {
 
     const categoryData = {
       // Category Identification
-      id: props.category.id,
-      name: props.category.name,
+      id: category.value.id,
+      name: category.value.name,
       // Show in side bar
-      show: props.category.show,
+      show: category.value.show,
       // Show groups on canvas
       visualize: isVisible.value,
       color: color.value,
       metadata: [],
       annotations: [],
-      supercategory: props.category.supercategory,
+      supercategory: category.value.supercategory,
       keypoint_labels: category.value.keypoint_labels,
       keypoint_edges: category.value.keypoint_edges,
       keypoint_colors: category.value.keypoint_colors,

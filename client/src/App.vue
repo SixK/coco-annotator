@@ -6,10 +6,9 @@
 </template>
 
 <script setup>
-import VLazyImage from "v-lazy-image";
 import NavBar from "@/components/NavBar";
 
-import { computed, watch, onMounted } from 'vue';
+import { computed, watch, onMounted, inject, getCurrentInstance } from 'vue';
 
 import {useToast} from 'vue-toast-notification';
 const $toast = useToast();
@@ -19,6 +18,8 @@ import { storeToRefs } from 'pinia';
 import { useRoute, useRouter } from 'vue-router';
 const router = useRouter();
 const route = useRoute();
+
+const localsocket  = inject('socket');
 
 /*
 import { useStore } from 'vuex';

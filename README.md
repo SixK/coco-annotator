@@ -98,7 +98,7 @@ For examples and more information check out the [wiki](https://github.com/jsbrok
 - [ ] Fix eslint errors 
 - [x] Remove JQuery library
 - [ ] find a library to replace vue-touch for pinching
-- [ ] Make source code work without Vue2 compatibility mode
+- [x] Make source code work without Vue2 compatibility mode
 - [ ] Understand Keypoints and make them fully work
 - [x] Restore all shortcuts
 - [ ] Fix undefined Category error when clicking on some annotations
