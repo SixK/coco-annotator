@@ -10,7 +10,7 @@ import { ref, computed, watch, inject, watchEffect, onMounted, provide } from 'v
 import { useTools } from "@/composables/toolBar/tools";
 import paper from 'paper';
 
-const emits = defineEmits(['update']);
+// const emits = defineEmits(['update']);
 
 /*
 const emitUpdate = (value) => {
@@ -34,7 +34,7 @@ const {
     tooltip,
     name,
     cursor
-  }= useTools(emits);
+  }= useTools();
 
 name.value = "Eraser";
 cursor.value = "none";

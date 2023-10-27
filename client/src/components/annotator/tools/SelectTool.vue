@@ -27,7 +27,7 @@ const getPaper = inject('getPaper');
 
 // const store = useStore();
 
-const emits = defineEmits(['update']);
+// const emits = defineEmits(['update']);
 
 /*
 const emitUpdate = (value) => {
@@ -42,7 +42,7 @@ const {
     tooltip,
     name,
     cursor
-  }= useTools(emits);
+  }= useTools();
 
 
 const props = defineProps({

@@ -9,7 +9,7 @@ import { ref, computed, watch, inject, onMounted, provide} from 'vue'
 import { useTools } from "@/composables/toolBar/tools";
 import paper from 'paper';
 
-const emits = defineEmits(['update']);
+// const emits = defineEmits(['update']);
 
 /*
 const emitUpdate = (value) => {
@@ -32,7 +32,7 @@ const {
     tooltip,
     name,
     cursor
-  }= useTools(emits);
+  }= useTools();
 
 name.value = "Brush";
 cursor.value = "none";

@@ -27,7 +27,7 @@ const props = defineProps({
     }
 });
 
-const emits = defineEmits(['update']);
+// const emits = defineEmits(['update']);
 
 /*
 const emitUpdate = (value) => {
@@ -42,7 +42,7 @@ const {
     tooltip,
     name,
     cursor
-  }= useTools(emits);
+  }= useTools();
 
 name.value = 'Magic Wand';
 cursor.value = 'crosshair';

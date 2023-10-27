@@ -29,7 +29,7 @@ const infoStore = useInfoStore();
 */
 
 
-const emits = defineEmits(['update']);
+// const emits = defineEmits(['update']);
 
 /*
 const emitUpdate = (value) => {
@@ -43,7 +43,7 @@ const {
     tooltip,
     name,
     cursor
-  }= useTools(emits);
+  }= useTools();
 
 const props = defineProps({
   scale: {

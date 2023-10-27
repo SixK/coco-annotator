@@ -12,7 +12,7 @@ import { useTools } from "@/composables/toolBar/tools";
 const getCurrentAnnotation = inject('getCurrentAnnotation');
 
 
-const emits = defineEmits(['update']);
+// const emits = defineEmits(['update']);
 
 /*
 const emitUpdate = (value) => {
@@ -26,7 +26,7 @@ const {
     tooltip,
     name,
     cursor
-  }= useTools(emits);
+  }= useTools();
 
 const isDisabled = computed(() => {
   return state.isDisabled;

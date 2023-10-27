@@ -1,7 +1,7 @@
 import { ref, watch, onMounted, reactive,computed, inject, watchEffect } from 'vue';
 import paper from 'paper';
 
-export  function useTools(emit) {
+export  function useTools() {
 
 const setCursor = inject('setCursor');
 const getActiveTool = inject('getActiveTool');

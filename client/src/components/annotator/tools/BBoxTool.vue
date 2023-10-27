@@ -23,7 +23,7 @@ import { useInfoStore } from "@/store/info";
 const infoStore = useInfoStore();
 */
 
-const emits = defineEmits(['update']);
+// const emits = defineEmits(['update']);
 
 /*
 const emitUpdate = (value) => {
@@ -38,7 +38,7 @@ const {
     tooltip,
     name,
     cursor
-  }= useTools(emits);
+  }= useTools();
 
 // const store = useStore();
 // const addUndo = store.commit('addUndo');
