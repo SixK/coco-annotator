@@ -41,13 +41,14 @@ watchEffect(() => {
     console.log('active tool:',getActiveTool(), name.value);
     if (name.value !== getActiveTool()) {
         // isDisabled.value = true;
-        state.isDisabled  = true;
+        // state.isDisabled  = true;
         state.isActive = false;
         console.log('disabled all 2');
     }else{
         if(!state.isDisabled){
            setCursor(cursor.value);
-           emit('update', name.value);
+           // emit('update', name.value);
+           setActiveTool(name.value);
            state.isActive = true;
         }
     }
@@ -63,7 +64,7 @@ watch(
            setCursor(cursor.value);
            setActiveTool('Select');
            // emit('update', tool);
-           emit('update', 'Select');
+           //emit('update', 'Select');
        }
        
        let tool = localStorage.getItem("editorTool") || "Select";
@@ -71,7 +72,7 @@ watch(
            state.isActive = true;
            setCursor(cursor.value);
            setActiveTool(tool);
-           emit('update', tool);
+           //emit('update', tool);
        }
    }
 );
@@ -85,7 +86,7 @@ watchEffect(() => {
           if(name.value === 'Select') {
                 setCursor(cursor.value);
                 setActiveTool('Select');
-                emit('update', 'Select');
+                // emit('update', 'Select');
           }
       } 
 });
@@ -103,11 +104,12 @@ const update = () => {
     // props.$emit('update', props.name)
     setCursor(cursor.value);
     
-    emit('update', name.value);
+    // emit('update', name.value);
     setActiveTool(name.value);
     // emitUpdate(name.value);
     // isActive.value = true;
     state.isActive = true;
+    state.isDisabled = false;
     // console.log('active', isActive, state.isActive);
     console.log('active in tool', state.isActive, name.value);
 };

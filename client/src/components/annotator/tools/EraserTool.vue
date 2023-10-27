@@ -12,9 +12,11 @@ import paper from 'paper';
 
 const emits = defineEmits(['update']);
 
+/*
 const emitUpdate = (value) => {
     emits('update',  value);
 }
+*/
 
 const props = defineProps({
   scale: {

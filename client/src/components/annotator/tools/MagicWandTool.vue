@@ -29,9 +29,11 @@ const props = defineProps({
 
 const emits = defineEmits(['update']);
 
+/*
 const emitUpdate = (value) => {
     emits('update',  value);
 }
+*/
 
 const {
     click,

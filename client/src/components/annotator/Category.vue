@@ -343,11 +343,12 @@ const isFormValid = computed(() => {
   );
 });
 
+/*
 watch(
-  () => props.activeTool,
+  () => activeTool.value,
   (value) => {
       activeTool.value = value;
-});
+});*/
 
 watch(
   () => color.value, 
