@@ -141,7 +141,7 @@
         >
           <Category
             v-for="(category, index) in categories"
-            :key="category.id + '-category'"
+            :key="category.id + '-category-'+image.id"
             :simplify="simplify"
             :categorysearch="search"
             :category="category"
@@ -164,7 +164,7 @@
         >
           <CLabel
             v-for="category in categories"
-            :key="category.id + '-label'"
+            :key="category.id + '-label-'+image.id"
             v-model="image.categoryIds"
             :category="category"
             :categoryIds="image.categoryIds"
@@ -343,6 +343,7 @@ const props = defineProps({
   }
 });
 
+const annotations = ref(null);
 const backup = ref(null);
 const refcanvas = ref(null);
 // bind all components
@@ -420,10 +421,12 @@ const pinching = ref({
       old_zoom: 1
 });
 
-const category = ref([])
+const category = ref(null)
+const categorylist = ref([])
+
 const setCategoryRef = el => {
       if (el) {
-        category.value.push(el)
+         categorylist.value.push(el);
       }
 }
 
@@ -484,9 +487,9 @@ const save = (callback) => {
         categories: []
       };
 
-      if (category.value != null && mode.value === "segment") {
+      if (categorylist.value != null && mode.value === "segment") {
         image.value.categoryIds = [];
-        category.value.forEach((cat) => {
+        categorylist.value.forEach((cat) => {
           let categoryData = cat.exportCategory();
           data.categories.push(categoryData);
 
@@ -738,30 +741,31 @@ const onCategoryClick = (indices) => {
       if (indices.keypoint !== -1) {
         current.value.keypoint = indices.keypoint;
         let ann =
-          currentCategory.value.category.annotations[current.value.annotation];
+          currentCategoryFromList.value.category.annotations[current.value.annotation];
+          
         let kpTool = keypoint.value;
         let selectTool = select.value;
-        let cat = category.value[current.value.category];
-        
+        let cat = categorylist.value[current.value.category];
+
         // let annot = cat.$refs.annotation[current.value.annotation];
         let annot = cat.category.annotations[current.value.annotation]
-        if (currentAnnotation.value) {
+        if (currentAnnotationFromList.value) {
             // keypoints._labelled seem's only visible on currentAnnotation
-            annot = currentAnnotation.value;
+            annot = currentAnnotationFromList.value;
         }
-        
+
         // let annotation = category.$refs.annotation[this.current.annotation];
         // let annot = annotation.value[current.value.annotation];
         annot.showKeypoints = true;
         let keypoints = annot.keypoints;
         if (keypoints._labelled && keypoints._labelled[indices.keypoint + 1]) {
           let indexLabel = String(current.value.keypoint + 1);
-          let keypoint = keypoints._labelled[indexLabel];
-          keypoint.selected = true;
-          activeTool.value = selectTool;
-          activeTool.value.click();
+              let keypoint = keypoints._labelled[indexLabel];
+              keypoint.selected = true;
+              activeTool.value = selectTool;
+              activeTool.value.click();
         } else {
-          currentAnnotation.value.keypoint.next.label = String(
+          currentAnnotationFromList.value.keypoint.next.label = String(
             indices.keypoint + 1
           );
           activeTool.value = kpTool;
@@ -772,11 +776,12 @@ const onCategoryClick = (indices) => {
 
 const onKeypointsComplete = () => {
        /********* Remove me when this.currentAnnotation will not be empty at start ********/ 
-      if(!currentAnnotation.value) {
+
+      if(!currentAnnotationFromList.value) {
           console.log('should remove this condition in onKeypointsComplete()')
            return
        }else {
-         currentAnnotation.value.keypoint.next.label = -1;
+         currentAnnotationFromList.value.keypoint.next.label = -1;
        }
        /********* Remove me when this.currentAnnotation will not be empty at start ********/
        if ( activeTool.value === 'Keypoints') {
@@ -785,12 +790,26 @@ const onKeypointsComplete = () => {
         }
 };
 
+const getCategoryByIndex = (index) => {
+      if (index == null) return null;
+      if (index < 0) return null;
+      
+      let cat = categorylist.value;
+      // let cat = backup.value;
+
+      if (cat == null) return null;
+      
+      if (cat.length < 1 || index >= cat.length) return null;
+
+      return cat[index];
+      // return backup.value[index];
+};
+
 const getCategory = (index) => {
       if (index == null) return null;
       if (index < 0) return null;
 
       let cat = category.value;
-      
       // let cat = backup.value;
 
       if (cat == null) return null;
@@ -801,13 +820,13 @@ const getCategory = (index) => {
 };
 
 const uniteCurrentAnnotation = (compound, simplify = true, undoable = true, isBBox = false) => {
-  if (currentAnnotation.value == null) return;
-  currentAnnotation.value.unite(compound, simplify, undoable, isBBox);
+  if (currentAnnotationFromList.value == null) return;
+  currentAnnotationFromList.value.unite(compound, simplify, undoable, isBBox);
 };
 
 const subtractCurrentAnnotation = (compound, simplify = true, undoable = true) => {
-  if (currentCategory.value == null) return;
-  currentAnnotation.value.subtract(compound, simplify, undoable);
+  if (currentCategoryFromList.value == null) return;
+  currentAnnotationFromList.value.subtract(compound, simplify, undoable);
 };
 
 const selectLastEditorTool = () => {
@@ -819,11 +838,13 @@ const getImageRaster = () => {
 };
 
 const getCurrentCategory = () => {
-  return currentCategory.value;
+    console.log('getCurrentCategory called');
+  return currentCategoryFromList.value;
 };
 
 const getCurrentAnnotation = () => {
-        return currentAnnotation.value;
+        console.log('getCurrentAnnotation called');
+        return currentAnnotationFromList.value;
 };
 
 const setCursor = (newCursor) => {
@@ -834,8 +855,24 @@ const setCursor = (newCursor) => {
         });
 };
 
+const currentCategoryFromList = computed(() => {
+  return getCategoryByIndex(current.value.category);
+});
+
 const currentCategory = computed(() => {
   return getCategory(current.value.category);
+});
+
+const currentAnnotationFromList = computed(() => {
+  // recursive call in production mode
+  console.log('annotator compute currentAnnotationFromList:', currentCategoryFromList.value);
+
+  if (currentCategoryFromList.value == null) {
+    return null;
+  }
+
+  console.log(' compute current annotationList annotation2:', currentCategoryFromList.value.getAnnotationFromIndex(current.value.annotation));
+  return currentCategoryFromList.value.getAnnotationFromIndex(current.value.annotation);
 });
 
 const currentAnnotation = computed(() => {
@@ -881,7 +918,7 @@ const incrementCategory = () => {
 const decrementCategory = () => {
     if (current.value.category === -1) {
       current.value.category = categories.value.length - 1;
-      let annotationCount = currentCategory.value.category.annotations.length;
+      let annotationCount = currentCategoryFromList.value.category.annotations.length;
       if (annotationCount > 0) {
         current.value.annotation = annotationCount - 1;
       }
@@ -891,7 +928,7 @@ const decrementCategory = () => {
 };
 
 const incrementAnnotation = () => {
-  let annotationCount = currentCategory.value.category.annotations.length;
+  let annotationCount = currentCategoryFromList.value.category.annotations.length;
   if (current.value.annotation === annotationCount - 1) {
     incrementCategory();
     current.value.annotation = -1;
@@ -938,7 +975,7 @@ const incrementKeypoint = () => {
       current.value.keypoint += 1;
     }
     if (currentKeypoint.value != null) {
-      currentAnnotation.value.onAnnotationKeypointClick(current.value.keypoint);
+      currentAnnotationFromList.value.onAnnotationKeypointClick(current.value.keypoint);
       // currentAnnotation.value.emit("keypoint-click", current.value.keypoint);
     }
   };
@@ -950,18 +987,18 @@ const decrementKeypoint = () => {
       current.value.keypoint -= 1;
     }
     if (currentKeypoint.value != null) {
-      currentAnnotation.value.onAnnotationKeypointClick(current.value.keypoint);
+      currentAnnotationFromList.value.onAnnotationKeypointClick(current.value.keypoint);
       // currentAnnotation.value.emit("keypoint-click", current.value.keypoint);
     }
 };
 
 const moveUp = () => {
-  if (currentCategory.value != null) {
-    if (currentAnnotation.value != null) {
+  if (currentCategoryFromList.value != null) {
+    if (currentAnnotationFromList.value != null) {
       if (currentKeypoint.value != null) {
         decrementKeypoint();
       } else if (
-        currentAnnotation.value.showKeypoints &&
+        currentAnnotationFromList.value.showKeypoints &&
         current.value.keypoint === -1
       ) {
         decrementKeypoint();
@@ -979,12 +1016,12 @@ const moveUp = () => {
 };
 
 const moveDown = () => {
-  if (currentCategory.value != null) {
-    if (currentAnnotation.value != null) {
+  if (currentCategoryFromList.value != null) {
+    if (currentAnnotationFromList.value != null) {
       if (currentKeypoint.value != null) {
         incrementKeypoint();
       } else if (
-        currentAnnotation.value.showKeypoints &&
+        currentAnnotationFromList.value.showKeypoints &&
         current.value.keypoint == -1
       ) {
         incrementKeypoint();
@@ -1002,29 +1039,30 @@ const moveDown = () => {
 };
 
 const stepIn = () => {
-      if (currentCategory.value != null) {
-        if (!currentCategory.value.isVisible && currentAnnotation.value) {
-          currentCategory.value.isVisible = true;
+    console.log('stepIn ...');
+      if (currentCategoryFromList.value != null) {
+        if (!currentCategoryFromList.value.isVisible && currentAnnotationFromList.value) {
+          currentCategoryFromList.value.isVisible = true;
           current.value.annotation = 0;
-          currentAnnotation.value.showKeypoints = false;
+          currentAnnotationFromList.value.showKeypoints = false;
           current.value.keypoint = -1;
         } else if (
-          !currentCategory.value.showAnnotations &&
+          !currentCategoryFromList.value.showAnnotations &&
           currentAnnotationLength.value > 0
         ) {
-          currentCategory.value.showAnnotations = true;
+          currentCategoryFromList.value.showAnnotations = true;
           current.value.annotation = 0;
-          currentAnnotation.value.showKeypoints = false;
+          currentAnnotationFromList.value.showKeypoints = false;
           current.value.keypoint = -1;
         } else if (
-          currentAnnotation.value != null &&
-          !currentAnnotation.value.showKeypoints &&
-          currentAnnotation.value.keypointLabels &&
-          currentAnnotation.value.keypointLabels.length > 0
+          currentAnnotationFromList.value != null &&
+          !currentAnnotationFromList.value.showKeypoints &&
+          currentAnnotationFromList.value.keypointLabels &&
+          currentAnnotationFromList.value.keypointLabels.length > 0
         ) {
-          currentAnnotation.value.showKeypoints = true;
+          currentAnnotationFromList.value.showKeypoints = true;
           current.value.keypoint = 0;
-          currentAnnotation.value.onAnnotationKeypointClick(
+          currentAnnotationFromList.value.onAnnotationKeypointClick(
             current.value.keypoint
           );
         }
@@ -1032,18 +1070,18 @@ const stepIn = () => {
 };
 
 const stepOut = () => {
-  if (currentCategory.value != null) {
+  if (currentCategoryFromList.value != null) {
     if (
-      currentAnnotation.value != null &&
-      currentAnnotation.value.showKeypoints
+      currentAnnotationFromList.value != null &&
+      currentAnnotationFromList.value.showKeypoints
     ) {
-      currentAnnotation.value.showKeypoints = false;
+      currentAnnotationFromList.value.showKeypoints = false;
       current.value.keypoint = -1;
-    } else if (currentCategory.value.showAnnotations) {
-      currentCategory.value.showAnnotations = false;
+    } else if (currentCategoryFromList.value.showAnnotations) {
+      currentCategoryFromList.value.showAnnotations = false;
       current.value.annotation = -1;
-    } else if (currentCategory.value.isVisible) {
-      currentCategory.value.isVisible = false;
+    } else if (currentCategoryFromList.value.isVisible) {
+      currentCategoryFromList.value.isVisible = false;
     }
   }
 };
@@ -1103,24 +1141,24 @@ const scrollElement = (element) => {
 };
 
 const showAll = () => {
-      if (category.value == null) return;
+      if (categorylist.value == null) return;
 
-      category.value.forEach((cat) => {
+      categorylist.value.forEach((cat) => {
             cat.isVisible = cat.category.annotations.length > 0;
       });
 };
 
 const hideAll = () => {
-      if (category.value == null) return;
+      if (categorylist.value == null) return;
 
-      category.value.forEach((cat) => {
+      categorylist.value.forEach((cat) => {
         cat.isVisible = false;
         cat.showAnnotations = false;
       });
 };
 
 const findCategoryByName = (categoryName) => {
-      let categoryComponent = category.value.find(
+      let categoryComponent = categorylist.value.find(
         (cat) =>
           cat.category.name.toLowerCase() === categoryName.toLowerCase()
       );
@@ -1134,18 +1172,18 @@ const addAnnotation = (categoryName, segments, keypoints, isbbox = false) => {
 
       if (keypoints.length == 0 && segments.length == 0) return;
 
-      let category = findCategoryByName(categoryName);
-      if (category == null) return;
+      let localcategory = findCategoryByName(categoryName);
+      if (localcategory == null) return;
 
       Annotations.create({
         image_id: image.value.id,
-        category_id: category.id,
+        category_id: localcategory.id,
         segmentation: segments,
         keypoints: keypoints,
         isbbox: isbbox,
       }).then((response) => {
-        let annotation = response.data;
-        category.annotations.push(annotation);
+        let localannotation = response.data;
+        localcategory.annotations.push(localannotation);
       });
 };
 
@@ -1198,13 +1236,16 @@ const doneLoading = computed(() => {
 });
 
 const currentAnnotationLength = computed(() => {
-  if (currentCategory.value == null) return null;
-  return currentCategory.value.category.annotations.length;
+    console.log('currentAnnotationLength computed');
+  if (currentCategoryFromList.value == null) return null;
+  return currentCategoryFromList.value.category.annotations.length;
 });
 
 const currentKeypointLength = computed(() => {
-  if (currentAnnotation.value == null) return null;
-  return currentAnnotation.value.annotation.keypoints.length;
+   console.log('currentKeypointLength computed');
+
+  if (currentAnnotationFromList.value == null) return null;
+  return currentAnnotationFromList.value.annotation.keypoints.length;
 });
 
 
@@ -1225,11 +1266,11 @@ watch(
 });
 
 watch(
-  () => currentCategory.value, 
+  () => currentCategoryFromList.value, 
   (newCategory) => {
       if (newCategory != null) {
         if (
-          currentAnnotation.value == null ||
+          currentAnnotationFromList.value == null ||
           !newCategory.showAnnotations
         ) {
           let element = newCategory.$el;
@@ -1239,7 +1280,7 @@ watch(
 });
 
 watch(
-  () => currentAnnotation.value, 
+  () => currentAnnotationFromList.value, 
   (newElement) => {
       updateKeypointPanel.value = updateKeypointPanel.value + 1;
       if (newElement != null) {
@@ -1264,7 +1305,7 @@ watch(
   () => current.value.annotation, 
   (ca) => {
       if (ca < -1) current.value.annotation = -1;
-      if (currentCategory.value != null) {
+      if (currentCategoryFromList.value != null) {
         let max = currentAnnotationLength.value;
         if (ca > max) {
           current.value.annotation = -1;
@@ -1277,7 +1318,7 @@ watch(
   (sk) => {
     updateKeypointPanel.value = updateKeypointPanel.value + 1;
     if (sk < -1) current.value.keypoint = -1;
-    if (currentCategory.value != null) {
+    if (currentCategoryFromList.value != null) {
       let max = currentAnnotationLength.value;
       if (sk > max) {
         current.value.keypoint = -1;
@@ -1374,6 +1415,7 @@ provide('getCurrentCategory', getCurrentCategory);
 provide('imageRaster', image.value.raster);
 provide('getImageRaster', getImageRaster);
 provide('getCategory', getCategory);
+provide('getCategoryByIndex', getCategoryByIndex);
 provide('getPaper', getPaper);
 provide('getHover', getHover);
 provide('getImageId', getImageId);

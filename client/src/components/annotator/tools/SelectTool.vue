@@ -21,6 +21,8 @@ const infoStore = useInfoStore();
 
 import { nextTick, ref, computed, watch, inject, onMounted, provide } from 'vue'
 
+const getAnnotationFromIndex = inject('getAnnotationFromIndex');
+const getCategoryByIndex = inject('getCategoryByIndex');
 const getCategory = inject('getCategory');
 const getHover = inject('getHover');
 const getPaper = inject('getPaper');
@@ -197,9 +199,9 @@ const generateTitle = () => {
   }
   if (hover.value.category && hover.value.annotation) {
     let id = hover.value.textId;
-    let category = hover.value.category.category.name;
+    let localcategory = hover.value.category.category.name;
     string += "ID: " + id + " \n";
-    string += "Category: " + category + " \n";
+    string += "Category: " + localcategory + " \n";
   }
   // if (store.getters["user/loginEnabled"]) {
   if (authStore.loginEnabled()) {
@@ -296,8 +298,9 @@ const checkBbox = (paperObject) => {
   if(!paperObject.data.categoryId) return false;
   let categoryId = paperObject.data.categoryId;  
   
-  let category = getCategory(categoryId);
-  let annotation = category.getAnnotation(annotationId);
+  let category = getCategoryByIndex(categoryId);
+   if (category == null) return false;
+  let annotation = category.getAnnotationFromIndex(annotationId);
   // let annotation = category.category.annotations[annotationId];
   if (annotation == null) return false;
   
@@ -459,10 +462,10 @@ const onMouseMove = (event) => {
         localHover.value.annotation = annotationId;
 
         // hover.value.category = $parent.getCategory(categoryId);
-        hover.value.category = getCategory(categoryId);
+        hover.value.category = getCategoryByIndex(categoryId);
         if (hover.value.category != null) {
           hover.value.annotation =
-            hover.value.category.getAnnotation(annotationId);
+            hover.value.category.getAnnotationFromIndex(annotationId);
           event.item.selected = true;
           hoverText();
         }

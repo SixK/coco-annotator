@@ -274,10 +274,11 @@ const categorysearch = ref(props.categorysearch);
 const keypoints = ref(null);
 let categorySettingsModal = null;
 
-const annotation = ref([]);
+const annotation = ref(null);
+const annotationlist = ref([]);
 const setAnnotationRef = el => {
       if (el) {
-        annotation.value.push(el);
+        annotationlist.value.push(el);
       }
 }
 
@@ -453,7 +454,7 @@ const createAnnotation = () => {
         isVisible.value = true;
         showAnnotations.value = true;
 
-        let annotations = annotation.value;
+        let annotations = annotationlist.value;
         if (annotations == null) return;
 
         let tmp_annotation = annotations[annotationId - 1];
@@ -488,8 +489,8 @@ const exportCategory = () => {
     };
 
 
-    if (annotation.value != null) {
-      annotation.value.forEach((ann) => {
+    if (annotationlist.value != null) {
+      annotationlist.value.forEach((ann) => {
         categoryData.annotations.push(ann.exportAnnotation());
       });
     }
@@ -512,7 +513,7 @@ const removeKeypointEdge = (edge) => {
   if (index !== -1) {
     let edge = keypoint.value.edges[index];
     keypoint.value.edges.splice(index, 1);
-    let annotations = annotation.value;
+    let annotations = annotationlist.value;
     if (annotations) {
       annotations.forEach((a) => a.keypoints.removeLine(edge));
     }
@@ -584,6 +585,13 @@ const getAnnotation = (index) => {
       return annotation.value[index];
 };
 
+const getAnnotationFromIndex = (index) => {
+      let ref = annotationlist.value;
+      if (ref == null) return null;
+      return annotationlist.value[index];
+};
+
+
 const setColor = () => {
     let annotations = annotation.value;
     if (annotations == null) return;
@@ -640,7 +648,7 @@ const onAnnotation = (data) => {
 
 
 onBeforeUpdate(() => {
-      annotation.value = []
+      annotationlist.value = [];
 });
 
 onMounted( () => {
@@ -663,7 +671,7 @@ onUnmounted(() => {
 });
     
 
-defineExpose({category, setColor, getAnnotation, 
+defineExpose({category, setColor, getAnnotation, getAnnotationFromIndex,
                               showAnnotations, exportCategory, 
                               createAnnotation, selectedAnnotation,
                               isVisible,  isHover, color, supercategory, search,
@@ -676,6 +684,7 @@ provide('isCurrent', isCurrent);
 provide('getCategoryIndex', getCategoryIndex);
 provide('resetCategorySettings', resetCategorySettings);
 provide('getShowAnnotations', getShowAnnotations);
+provide('getAnnotationFromIndex', getAnnotationFromIndex);
 
 </script>
 

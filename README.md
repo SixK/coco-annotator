@@ -102,6 +102,8 @@ For examples and more information check out the [wiki](https://github.com/jsbrok
 - [ ] Understand Keypoints and make them fully work
 - [x] Restore all shortcuts
 - [ ] Fix undefined Category error when clicking on some annotations
+- [x] Fix recursive warnings and make prod version work
+- [ ] understand why categories and annotations are not updated in some objects till we click on a category or an annotation after going to next or previous image. annotations id are not the right ones in this case.
 
 At this state, source code tested only using docker-compose.dev.yml.
 Lot of eslint errors appears, but application is functionnal

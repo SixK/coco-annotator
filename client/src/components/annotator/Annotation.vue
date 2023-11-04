@@ -1055,8 +1055,8 @@ watch(
     () => {
     console.log('watch annotation value');
     initAnnotation();
-},{ flush: 'post'});
-
+});
+//},{ flush: 'post'});
 
 watch(
   () => isCurrent.value, 

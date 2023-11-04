@@ -88,7 +88,8 @@ watch(
   if (!newVal && loader != null) {
     loader.hide();
   }
-});
+}, { immediate: true });
+
 
 watch(
   () => socketConnection.value, 
