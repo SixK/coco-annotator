@@ -360,7 +360,7 @@ watch(
 watch(
   () => opacity.value, 
   (newopacity) => {
-      let annotations = annotation.value
+      let annotations = annotationlist.value
       if (annotations.value == null) return;
       annotations.value.forEach((a) => (a.compoundPath.opacity = newopacity));
 });
@@ -368,7 +368,7 @@ watch(
 watch(
   () => isVisible.value, 
   (newVisible) => {
-      let annotations = annotation.value
+      let annotations = annotationlist.value
       if (annotations == null) return;
 
       annotations.forEach((a) => {
@@ -593,7 +593,7 @@ const getAnnotationFromIndex = (index) => {
 
 
 const setColor = () => {
-    let annotations = annotation.value;
+    let annotations = annotationlist.value;
     if (annotations == null) return;
     if (!isVisible.value) return;
 

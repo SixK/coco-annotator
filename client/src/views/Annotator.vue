@@ -947,7 +947,7 @@ const incrementAnnotation = () => {
 };
 
 const decrementAnnotation = () => {
-  let annotationCount = currentCategory.value.category.annotations.length;
+  let annotationCount = currentCategoryFromList.value.category.annotations.length;
   if (current.value.annotation === -1) {
     current.value.annotation = annotationCount - 1;
   } else if (current.value.annotation === 0) {
@@ -1393,7 +1393,7 @@ onMounted(() => {
 
 
 onBeforeUpdate(() => {
-      category.value = []
+      categorylist.value = [];
 });
 
 
