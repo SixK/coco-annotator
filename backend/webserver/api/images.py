@@ -174,7 +174,7 @@ class ImageCopyAnnotations(Resource):
         if image_from.width != image_to.width or image_from.height != image_to.height:
             return {'success': False, 'message': 'Image sizes do not match'}, 400
 
-        if category_ids is None:
+        if category_ids is None or len(category_ids) == 0 :
             category_ids = DatasetModel.objects(id=image_from.dataset_id).first().categories
 
         query = AnnotationModel.objects(
