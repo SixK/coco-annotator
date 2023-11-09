@@ -85,7 +85,7 @@
 
 <script setup>
 import { nextTick } from 'vue';
-import { ref, computed, watch, onMounted } from 'vue';
+import { toRaw, toRef, ref, computed, watch, onMounted } from 'vue';
 
 const emit = defineEmits(["update:selectedCategories", "selectedCategories", "initialized", 
 // const emit = defineEmits([ "selectedCategories", "initialized", 
@@ -167,7 +167,8 @@ const hiddenInput = ref("");
 const searchResults = ref([]);
 const searchSelection = ref(0);
 const typeaheadActivationThreshold = ref(props.typeaheadActivationThreshold);
-// const existingTags = ref(props.existingTags);
+const existingTags = ref(props.existingTags);
+const onlyExistingTags = ref(props.onlyExistingTags);
 const typeaheadMaxResults = ref(props.typeaheadMaxResults);
 const deleteOnBackspace = ref(props.deleteOnBackspace);
 const selectedCategories = ref(props.selectedCategories);
@@ -176,14 +177,34 @@ const taginput = ref(null);
 
 
 const showPlaceholder = computed(() => {
-  if (props.onlyExistingTags) {
-    if (props.selectedCategories.length === Object.keys(props.existingTags).length) {
+
+  if (onlyExistingTags.value) {
+    // console.log('ppppp - showPlaceHolder:', selectedCategories.value.length, Object.keys(existingTags.value).length);
+    if (selectedCategories.value.length === Object.keys(existingTags.value).length) {
       return false;
     }
   }
   return true;
 });
 
+watch(
+  () => selectedCategories.value,
+  () => {
+    console.log('pppppppp - selectedCategories.value');
+    tagsFromValue();
+  }
+);
+
+watch(
+  tags.value,
+  (newVal, oldVal) => {
+      console.log('ppppppp - watch tags.value:', newVal);
+      hiddenInput.value = newVal.join(",");
+      emit("selectedCategories", newVal);
+      emit("update:selectedCategories", newVal);
+});
+
+/*
 watch(
   () => tags.value,
   () => {
@@ -194,19 +215,7 @@ watch(
     emit("update:selectedCategories", tags.value);
   }
 );
-
-watch(
-  () => selectedCategories.value,
-  () => {
-    tagsFromValue();
-  }
-);
-
-onMounted(() => {
-  tagsFromValue();
-  // Emit an event
-  emit("initialized");
-});
+*/
 
 const escapeRegExp = (string) => {
       return string.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -355,16 +364,25 @@ const clearTags = () => {
 }
 
 const tagsFromValue = () => {
-      if (props.selectedCategories && props.selectedCategories.length) {
-        const newTags = Array.isArray(props.selectedCategories)
-          ? props.selectedCategories
-          : props.selectedCategories.split(',');
+    // code execution speed problem, tags are visible only id we output console.log !??
+    
+    const rawArray = toRaw(props.selectedCategories);
+                                                                                        props.selectedCategories, props.selectedCategories.length, 
+                                                                                        selectedCategories.value, selectedCategories.value.length);
+
+      // if (props.selectedCategories && props.selectedCategories.length) {
+      if (selectedCategories.value && props.selectedCategories.length) {
+        // const newTags = Array.isArray(props.selectedCategories)
+        const newTags = Array.isArray(selectedCategories.value)
+          ? selectedCategories.value
+          : selectedCategories.value.split(',');
         if (JSON.stringify(newTags) === JSON.stringify(tags.value)) {
           return;
         }
         clearTags();
         newTags.forEach((slug) => {
-          const existingTag = props.existingTags[slug];
+          // const existingTag = props.existingTags[slug];
+          const existingTag = existingTags.value[slug];
           const text = existingTag ? existingTag : slug;
           addTag(slug, text);
         });
@@ -403,6 +421,11 @@ const onKeyDown = (e) => {
   }
 };
 
+onMounted(() => {
+  tagsFromValue();
+  // Emit an event
+  emit("initialized");
+});
 
 </script>
 

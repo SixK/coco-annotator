@@ -236,7 +236,7 @@ import axios from "axios";
 import MetaData from "@/components/MetaData";
 import TagsInput from "@/components/TagsInput";
 
-import { ref, computed, inject, watch, onMounted } from "vue";
+import { ref, computed, inject, watch, onMounted, onBeforeMount } from "vue";
 import { useRouter } from 'vue-router';
 //import { useStore } from 'vuex';
 //const store = useStore();
@@ -421,9 +421,17 @@ const users = computed(() => {
   return users;
 });
 
+onBeforeMount(() => {
+    createSelectedUsers();
+    createSelectedCategories();
+
+});
+
+
 onMounted(() => {
-  createSelectedCategories();
-  createSelectedUsers();
+  // createSelectedUsers();
+   // createSelectedCategories();
+
 });
 
 

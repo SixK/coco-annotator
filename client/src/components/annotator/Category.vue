@@ -192,7 +192,8 @@ import KeypointsDefinition from "@/components/KeypointsDefinition";
 
 import { nextTick } from 'vue';
 
-import { getCurrentInstance, provide, inject, watch, reactive, ref, computed, onMounted, onUnmounted, onBeforeUpdate,toRef } from 'vue';
+import { getCurrentInstance, provide, inject, watch, reactive, 
+                 ref, computed, onMounted, onUnmounted, onUpdated,toRef, onBeforeUpdate } from 'vue';
 
 const props = defineProps({
     category: {
