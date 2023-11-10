@@ -12,7 +12,6 @@
   },
   "dependencies": {
     "@popperjs/core": "^2.11.8",
-    "@vue/compat": "^3.3.7",
     "autoprefixer": "^10.4.16",
     "axios": "^1.5.1",
     "bootstrap": "^5.3.2",
@@ -26,7 +25,7 @@
     "postcss-modules": "^6.0.0",
     "simplify-js": "^1.2.4",
     "@unlazy/vue": "^0.10.1",
-    "vue": "^3.3.7",
+    "vue": "^3.3.8",
     "vue-3-socket.io-ext": "^1.2.1",
     "vue-loader": "^17.3.0",
     "vue-loading-overlay": "^6.0.3",
