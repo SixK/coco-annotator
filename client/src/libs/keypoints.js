@@ -265,7 +265,7 @@ export class Keypoints extends paper.Group {
    */
   _drawLine(edge, firstKeypoint, secondKeypoint) {
     let h = this._hashEdge(edge);
-    if (this._lines[h]) return;
+    // if (this._lines[h]) return;
 
     let line = new paper.Path.Line(firstKeypoint, secondKeypoint);
     line.strokeColor = this.strokeColor;

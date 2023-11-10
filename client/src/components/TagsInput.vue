@@ -190,7 +190,6 @@ const showPlaceholder = computed(() => {
 watch(
   () => selectedCategories.value,
   () => {
-    console.log('pppppppp - selectedCategories.value');
     tagsFromValue();
   }
 );
@@ -198,24 +197,11 @@ watch(
 watch(
   tags.value,
   (newVal, oldVal) => {
-      console.log('ppppppp - watch tags.value:', newVal);
       hiddenInput.value = newVal.join(",");
       emit("selectedCategories", newVal);
       emit("update:selectedCategories", newVal);
 });
 
-/*
-watch(
-  () => tags.value,
-  () => {
-    // Updating the hidden input
-    hiddenInput.value = tags.value.join(",");
-    // Update the bound v-model value
-    emit("selectedCategories", tags.value);
-    emit("update:selectedCategories", tags.value);
-  }
-);
-*/
 
 const escapeRegExp = (string) => {
       return string.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -367,8 +353,6 @@ const tagsFromValue = () => {
     // code execution speed problem, tags are visible only id we output console.log !??
     
     const rawArray = toRaw(props.selectedCategories);
-                                                                                        props.selectedCategories, props.selectedCategories.length, 
-                                                                                        selectedCategories.value, selectedCategories.value.length);
 
       // if (props.selectedCategories && props.selectedCategories.length) {
       if (selectedCategories.value && props.selectedCategories.length) {
