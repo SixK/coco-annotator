@@ -1,4 +1,4 @@
-protobuf==4.24.4
+protobuf==4.23.4
 werkzeug==3.0.1
 Jinja2==3.1.2
 itsdangerous==2.1.2
@@ -24,9 +24,9 @@ celery==5.3.4
 Shapely==2.0.2
 scipy
 scikit-learn
-Pillow
+Pillow==10.1.0
 matplotlib
-keras==2.14.0
+keras==2.15.0
 h5py
 imgaug
 IPython[all]

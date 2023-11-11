@@ -42,7 +42,10 @@ COPY --from=build-stage /workspace/client/dist /workspace/dist
 
 RUN apt update && apt install -y libsm6 libxext6 libxrender1 libgl1
 
+RUN pip install -r ./requirements.txt
+
 RUN git clone https://github.com/SysCV/sam-hq.git && cd sam-hq && pip install -e .
+RUN pip install timm
 
 RUN git clone --depth=1 https://github.com/iamlab-cmu/DEXTR-KerasTensorflow.git /tmp/dextr2 && \
            cd /tmp/dextr2 && \
