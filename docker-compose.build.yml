@@ -14,6 +14,7 @@ services:
       context: .
       dockerfile: ./Dockerfile
     container_name: annotator_webclient
+    image: annotator_webclient
     restart: always
     ports:
       - "5000:5000"
@@ -31,6 +32,7 @@ services:
       - cocoannotator
   workers:
     container_name: annotator_workers
+    image: annotator_workers
     build:
       context: .
       dockerfile: ./backend/workers/Dockerfile

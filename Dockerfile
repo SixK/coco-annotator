@@ -18,18 +18,17 @@ COPY ./client/package* /workspace/
 ENV NODE_PATH=/workspace/node_modules
 RUN npm install
 
-COPY ./client/patch_strict/paper-full.min.js  /workspace/node_modules/paper/dist/paper-full.min.js
-COPY ./client/patch_strict/paper-full.js  /workspace/node_modules/paper/dist/paper-full.js
-COPY ./client/patch_strict/paper-full.min.js  /workspace/client/node_modules/paper/dist/paper-full.min.js
-COPY ./client/patch_strict/paper-full.js  /workspace/client/node_modules/paper/dist/paper-full.js
-
-
-WORKDIR /workspace/client
-RUN npm --depth 20 update caniuse-lite browserslist
 # COPY ./client/patch_strict/paper-full.min.js  /workspace/node_modules/paper/dist/paper-full.min.js
 # COPY ./client/patch_strict/paper-full.js  /workspace/node_modules/paper/dist/paper-full.js
 # COPY ./client/patch_strict/paper-full.min.js  /workspace/client/node_modules/paper/dist/paper-full.min.js
 # COPY ./client/patch_strict/paper-full.js  /workspace/client/node_modules/paper/dist/paper-full.js
+
+WORKDIR /workspace/client
+RUN npm --depth 20 update caniuse-lite browserslist
+COPY ./client/patch_strict/paper-full.min.js  /workspace/node_modules/paper/dist/paper-full.min.js
+COPY ./client/patch_strict/paper-full.js  /workspace/node_modules/paper/dist/paper-full.js
+COPY ./client/patch_strict/paper-full.min.js  /workspace/client/node_modules/paper/dist/paper-full.min.js
+COPY ./client/patch_strict/paper-full.js  /workspace/client/node_modules/paper/dist/paper-full.js
 RUN npm run build
 
 FROM jsbroks/coco-annotator:python-env

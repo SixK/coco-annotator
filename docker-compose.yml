@@ -9,7 +9,7 @@ networks:
 
 services:
   webserver:
-    image: jsbroks/coco-annotator:webserver-stable
+    image: annotator_webclient
     container_name: annotator_webclient
     restart: always
     ports:
@@ -27,7 +27,7 @@ services:
       - cocoannotator
   workers:
     container_name: annotator_workers
-    image: jsbroks/coco-annotator:workers-stable
+    image: annotator_workers
     volumes:
       - "./datasets:/datasets"
     depends_on:
