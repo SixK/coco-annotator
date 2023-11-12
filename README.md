@@ -1,3 +1,65 @@
+# COCO Annotator next generation
+
+This version of COCO Annotator is a strait port from JsBroke COCO Annotator official version to vue3.2+
+
+Before going further, if you already use JsBroker COCO Annotator and want to switch to this version, you will have to change  user password encryption methode in mongo database (Werkzeug 3 break change).  
+For this, you will have to install an old and compatible Werkzeug python library and use the change_password_hash_type.py python script:
+
+	pip install werkzeug==2.0.3
+	pip install pymongo
+	python change_password_hash_type.py
+
+By default change_password_hash_type.py only change password hash type for the admin user.  
+Edit this file and run it again to migrate others users accounts.  
+You will have to know all users password to migrate all passwords.  
+You can then use any recent werkzeug version.  
+
+## Features
+**Now we can talk about what this version will provide:  **  
+- vue 3.2+ style code  
+- upgraded python libraries versions  
+- upgraded javascript packages  
+- use Bootstrap5  
+- use pinia instead of vuex  
+- use vite instead of vue-cli  
+- added segment anything tool (SAM-HQ) to help to segment objects (1 click to segment an object)  
+- activate GPU (seem's this was not really activated even when using docker-compose.gpu.yml)  
+- fixed some bugs and javascript errors  
+- can use detectron2 models to help segment objects  
+- maybe more ...  
+
+**what features you will loose or bugs are introduced:  **  
+- watchdog to detect new images has been disabled (this was freezing the application. This feature may be reactivated later)  
+- pinch zoom has been removed (need to find a library to replace and use a tablet to test it)  
+- objects id are not the new ones when switching to next or previous images (need to click on an object to get ids updated)  
+- exported json annotations files seem's ok but are actually not fully tested  
+- hope to not have more bugs and features removed...  
+
+## Build docker images
+There is actually no pre-built docker images.   
+You will have to build docker images by yourself.   
+Note that docker images are actually using around 15Gb disk space.   Make sure to have at least 30Gb disk space to build all images.  
+You can probably have images around 2/3 Gb disk space if removing IA features and tweaking Dockerfiles. (but it may not be that eazy to do)
+
+### Building docker images:  
+Production images with no IA support :
+
+	docker-compose -f ./docker-compose.build.yml build
+	docker-compose -f ./docker-compose.yml up
+
+Dev images with IA support :
+
+	docker-compose -f ./docker-compose.dev.yml build
+	docker-compose -f ./docker-compose.dev.yml up
+
+Production images with IA support:
+
+	bash ./build_gpu.sh  
+	docker-compose -f /docker-compose.gpu.yml up  
+
+
+---
+
 <p align="center"><img src="https://i.imgur.com/AA7IdbQ.png"></p>
 
 <p align="center">
@@ -101,7 +163,7 @@ For examples and more information check out the [wiki](https://github.com/jsbrok
 - [x] Make source code work without Vue2 compatibility mode
 - [ ] Understand Keypoints and make them fully work
 - [x] Restore all shortcuts
-- [ ] Fix undefined Category error when clicking on some annotations
+- [x] Fix undefined Category error when clicking on some annotations
 - [x] Fix recursive warnings and make prod version work
 - [ ] understand why categories and annotations are not updated in some objects till we click on a category or an annotation after going to next or previous image. annotations id are not the right ones in this case.
 
