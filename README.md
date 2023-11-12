@@ -1,8 +1,8 @@
 # COCO Annotator next generation
 
-This version of COCO Annotator is a strait port from JsBroke COCO Annotator official version to vue3.2+
+This version of COCO Annotator is a strait port from JsBroks COCO Annotator official version to vue3.2+
 
-Before going further, if you already use JsBroker COCO Annotator and want to switch to this version, you will have to change  user password encryption methode in mongo database (Werkzeug 3 break change).  
+Before going further, if you already use JsBroks COCO Annotator and want to switch to this version, you will have to change  user password encryption methode in mongo database (Werkzeug 3 break change).  
 For this, you will have to install an old and compatible Werkzeug python library and use the change_password_hash_type.py python script:
 
 	pip install werkzeug==2.0.3
